@@ -211,7 +211,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LoginScreen(), // ✅ updated
+        pageBuilder: (_, __, ___) => const LoginView(), 
         transitionDuration: const Duration(milliseconds: 600),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),

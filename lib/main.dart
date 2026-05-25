@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
-import 'views/splash_view.dart'; // add this if SplashScreen is not in main.dart
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'views/splash_view.dart';
+import 'package:get/get.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const PostlyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PostlyApp extends StatelessWidget {
+  const PostlyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Postly',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+        fontFamily: 'SpaceGrotesk',
       ),
       home: const SplashScreen(),
     );
