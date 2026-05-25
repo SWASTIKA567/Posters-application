@@ -1,29 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  runApp(const PostlyApp());
-}
-
-class PostlyApp extends StatelessWidget {
-  const PostlyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Postly',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-        fontFamily: 'SpaceGrotesk',
-      ),
-      home: const SplashScreen(),
-    );
-  }
-}
+import 'login_view.dart';
 
 class AppColors {
   static const bg = Color(0xFF0A0A0F);
@@ -109,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen>
   final _posters = [
     PosterConfig(
       colors: AppColors.p1,
-      entryOffset: const Offset(-300, -200), // ← closer entry
+      entryOffset: const Offset(-300, -200),
       exitOffset: const Offset(700, 900),
       entryRotation: -20,
       exitRotation: 10,
@@ -117,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
     ),
     PosterConfig(
       colors: AppColors.p2,
-      entryOffset: const Offset(300, 40), // ← closer entry
+      entryOffset: const Offset(300, 40),
       exitOffset: const Offset(-700, 700),
       entryRotation: 15,
       exitRotation: -8,
@@ -125,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
     ),
     PosterConfig(
       colors: AppColors.p3,
-      entryOffset: const Offset(250, 350), // ← closer entry
+      entryOffset: const Offset(250, 350),
       exitOffset: const Offset(-700, -500),
       entryRotation: 20,
       exitRotation: -15,
@@ -133,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
     ),
     PosterConfig(
       colors: AppColors.p4,
-      entryOffset: const Offset(280, -180), // ← closer entry
+      entryOffset: const Offset(280, -180),
       exitOffset: const Offset(-700, 900),
       entryRotation: -18,
       exitRotation: 12,
@@ -233,7 +211,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LoginPlaceholder(),
+        pageBuilder: (_, __, ___) => const LoginScreen(), // ✅ updated
         transitionDuration: const Duration(milliseconds: 600),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -282,7 +260,6 @@ class _SplashScreenState extends State<SplashScreen>
                   final t = _easeOut(tMs / halfDur);
                   offset = Offset.lerp(p.entryOffset, Offset.zero, t)!;
                   rotation = _lerp(p.entryRotation, 0, t);
-                  // ✅ opacity: starts low (0), builds up as poster reaches center
                   opacity = _easeOut(tMs / halfDur);
                   scale = _lerp(0.6, 1.0, t);
                 } else if (tMs <= halfDur + pauseMs) {
@@ -482,33 +459,6 @@ class _PosterCard extends StatelessWidget {
             offset: const Offset(0, 10),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class LoginPlaceholder extends StatelessWidget {
-  const LoginPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Center(
-        child: ShaderMask(
-          shaderCallback: (b) =>
-              const LinearGradient(colors: AppColors.logoGrad).createShader(b),
-          child: const Text(
-            'postly.',
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: -2,
-              fontFamily: 'Syne',
-            ),
-          ),
-        ),
       ),
     );
   }
