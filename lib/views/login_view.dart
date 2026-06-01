@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import '../controller/login_controller.dart';
+import 'register_view.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -536,7 +537,7 @@ class _LoginScreenState extends State<LoginScreen>
           const TextSpan(text: 'new here? '),
           WidgetSpan(
             child: GestureDetector(
-              onTap: () => Get.toNamed('/signup'),
+              onTap: () => Get.to(() => const RegisterView()),
               child: const Text(
                 'create an account',
                 style: TextStyle(
