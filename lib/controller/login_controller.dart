@@ -1,94 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginController {
+class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final emailController    = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  final emailFocus    = FocusNode();
+  final emailFocus = FocusNode();
   final passwordFocus = FocusNode();
 
-  bool isLoading       = false;
-  bool obscurePassword = true;
-  bool emailFocused    = false;
-  bool passwordFocused = false;
-  String? errorMessage;
+  final isLoading = false.obs;
+  final obscurePassword = true.obs;
+  final emailFocused = false.obs;
+  final passwordFocused = false.obs;
+  final errorMessage = RxnString();
 
-  void togglePasswordVisibility(VoidCallback refresh) {
-    obscurePassword = !obscurePassword;
-    refresh();
+  @override
+  void onInit() {
+    super.onInit();
+    emailFocus.addListener(() => emailFocused.value = emailFocus.hasFocus);
+    passwordFocus.addListener(
+      () => passwordFocused.value = passwordFocus.hasFocus,
+    );
   }
 
+  void togglePasswordVisibility() =>
+      obscurePassword.value = !obscurePassword.value;
+
   // ── Email & Password Login ──────────────────────────────────────────────────
-  Future<void> loginWithEmail(VoidCallback refresh, VoidCallback onSuccess) async {
-    final email    = emailController.text.trim();
+  Future<void> loginWithEmail() async {
+    final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      errorMessage = 'Please fill in all fields.';
-      refresh();
+      errorMessage.value = 'Please fill in all fields.';
       return;
     }
 
-    isLoading    = true;
-    errorMessage = null;
-    refresh();
+    isLoading.value = true;
+    errorMessage.value = null;
 
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      isLoading = false;
-      refresh();
-      onSuccess();
+      isLoading.value = false;
+      Get.offAllNamed('/home');
     } on FirebaseAuthException catch (e) {
-      isLoading    = false;
-      errorMessage = _mapError(e.code);
-      refresh();
+      isLoading.value = false;
+      errorMessage.value = _mapError(e.code);
     }
   }
 
   // ── Google Login ────────────────────────────────────────────────────────────
-  Future<void> loginWithGoogle(VoidCallback refresh, VoidCallback onSuccess) async {
-    isLoading    = true;
-    errorMessage = null;
-    refresh();
-
-    try {
-      // TODO: add google_sign_in package and implement
-      // final googleUser = await GoogleSignIn().signIn();
-      // final googleAuth = await googleUser!.authentication;
-      // final credential = GoogleAuthProvider.credential(
-      //   accessToken: googleAuth.accessToken,
-      //   idToken: googleAuth.idToken,
-      // );
-      // await _auth.signInWithCredential(credential);
-      isLoading = false;
-      refresh();
-      onSuccess();
-    } catch (e) {
-      isLoading    = false;
-      errorMessage = 'Google sign-in failed. Try again.';
-      refresh();
-    }
-  }
 
   // ── Error Mapping ───────────────────────────────────────────────────────────
   String _mapError(String code) {
     switch (code) {
-      case 'user-not-found':    return 'No account found with this email.';
-      case 'wrong-password':    return 'Incorrect password. Try again.';
-      case 'invalid-email':     return 'Please enter a valid email.';
-      case 'user-disabled':     return 'This account has been disabled.';
-      case 'too-many-requests': return 'Too many attempts. Try again later.';
-      default:                  return 'Something went wrong. Please try again.';
+      case 'user-not-found':
+        return 'No account found with this email.';
+      case 'wrong-password':
+        return 'Incorrect password. Try again.';
+      case 'invalid-email':
+        return 'Please enter a valid email.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many attempts. Try again later.';
+      default:
+        return 'Something went wrong. Please try again.';
     }
   }
 
-  void dispose() {
+  @override
+  void onClose() {
     emailController.dispose();
     passwordController.dispose();
     emailFocus.dispose();
     passwordFocus.dispose();
+    super.onClose();
   }
 }

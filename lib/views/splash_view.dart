@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:math' as math;
+import 'package:get/get.dart';
 import 'login_view.dart';
 
 class AppColors {
@@ -209,13 +209,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LoginView(), 
-        transitionDuration: const Duration(milliseconds: 600),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-      ),
+
+    // ✅ GetX navigation replacing vanilla Navigator
+    Get.off(
+      () => const LoginScreen(),
+      transition: Transition.fade,
+      duration: const Duration(milliseconds: 600),
     );
   }
 
