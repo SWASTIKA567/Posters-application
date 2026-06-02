@@ -541,7 +541,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: const Text(
                 'create an account',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 30,
                   fontWeight: FontWeight.w600,
                   color: AppColors.purple,
                 ),

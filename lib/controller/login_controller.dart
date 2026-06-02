@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:poster_application/views/home_view.dart';
 
 class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -46,7 +47,7 @@ class LoginController extends GetxController {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       isLoading.value = false;
-      Get.offAllNamed('/home');
+      Get.offAll(() => const HomeView());
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
       errorMessage.value = _mapError(e.code);
