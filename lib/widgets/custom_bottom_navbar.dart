@@ -12,30 +12,36 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.onCenterTap,
   });
 
+  static const Color primaryRed = Color(0xFFD32F2F);
+  static const Color teal = Color(0xFF00796B);
+  static const Color orange = Color(0xFFFF5722);
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      height: 75,
+      height: 80,
       decoration: BoxDecoration(
-        color: const Color(0xFF111118),
-        borderRadius: BorderRadius.circular(40),
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withOpacity(.2),
-
-            blurRadius: 2,
-            offset: const Offset(0, 5),
+            color: primaryRed.withOpacity(.12),
+            blurRadius: 20,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _navItem(icon: Icons.home, title: "Home", index: 0),
+              _navItem(icon: Icons.home_rounded, title: "Home", index: 0),
 
               _navItem(
                 icon: Icons.inventory_2_outlined,
@@ -43,46 +49,52 @@ class CustomBottomNavBar extends StatelessWidget {
                 index: 1,
               ),
 
-              const SizedBox(width: 70),
+              const SizedBox(width: 80),
 
               _navItem(
-                icon: Icons.favorite_border,
+                icon: Icons.favorite_border_rounded,
                 title: "Wishlist",
                 index: 2,
               ),
 
-              _navItem(icon: Icons.person_outline, title: "Profile", index: 3),
+              _navItem(
+                icon: Icons.person_outline_rounded,
+                title: "Profile",
+                index: 3,
+              ),
             ],
           ),
 
           Positioned(
-            top: 5,
+            top: -25,
             child: GestureDetector(
               onTap: onCenterTap,
               child: Container(
-                height: 65,
-                width: 65,
+                height: 70,
+                width: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff8B5CF6), Color(0xff7C3AED)],
-                  ),
+                  color: const Color(0xFF00796B),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.2),
-                      blurRadius: 2,
-                      offset: const Offset(0, 5),
+                      color: const Color(0xFF00796B).withOpacity(.30),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.print, color: Colors.white),
+                    Icon(Icons.print_rounded, color: Colors.white, size: 24),
                     SizedBox(height: 2),
                     Text(
                       "Print",
-                      style: TextStyle(color: Colors.white, fontSize: 10),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -103,26 +115,23 @@ class CustomBottomNavBar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => onTap(index),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? const Color(0xFFA78BFA)
-                : const Color(0xFFAAAAAA),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              color: isSelected
-                  ? const Color(0xFFA78BFA)
-                  : const Color(0xFFAAAAAA),
-              fontSize: 12,
+      child: SizedBox(
+        width: 65,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 24, color: isSelected ? primaryRed : Colors.grey),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected ? primaryRed : Colors.grey,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

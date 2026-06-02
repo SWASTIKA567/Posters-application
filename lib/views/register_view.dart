@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import '../controller/register_controller.dart';
+import '../themes/app_colors.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -55,13 +56,13 @@ class _RegisterViewState extends State<RegisterView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _AppColors.bg,
+      backgroundColor: AppColors.bg,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           _Blob(
             ctrl: _blob1,
-            colors: [const Color(0xFF7C3AED), const Color(0xFF3B82F6)],
+            colors: AppColors.logoGrad,
             size: 260,
             top: -100,
             left: -80,
@@ -71,7 +72,7 @@ class _RegisterViewState extends State<RegisterView>
           ),
           _Blob(
             ctrl: _blob2,
-            colors: [const Color(0xFFEC4899), const Color(0xFFF59E0B)],
+            colors: AppColors.logoGrad,
             size: 200,
             bottom: 100,
             right: -60,
@@ -169,7 +170,7 @@ class _RegisterViewState extends State<RegisterView>
       children: [
         ShaderMask(
           shaderCallback: (b) =>
-              const LinearGradient(colors: _AppColors.logoGrad).createShader(b),
+              const LinearGradient(colors: AppColors.logoGrad).createShader(b),
           child: const Text(
             'postly.',
             style: TextStyle(
@@ -204,7 +205,7 @@ class _RegisterViewState extends State<RegisterView>
                       height: 5,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: _AppColors.purple.withOpacity(
+                        color: AppColors.primary.withOpacity(
                           0.5 + _pulseCtrl.value * 0.5,
                         ),
                       ),
@@ -247,7 +248,7 @@ class _RegisterViewState extends State<RegisterView>
               WidgetSpan(
                 child: ShaderMask(
                   shaderCallback: (b) => const LinearGradient(
-                    colors: _AppColors.pinkPurple,
+                    colors: AppColors.logoGrad,
                   ).createShader(b),
                   child: const Text(
                     'poster community.',
@@ -345,7 +346,7 @@ class _RegisterViewState extends State<RegisterView>
               padding: const EdgeInsets.symmetric(vertical: 15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(colors: _AppColors.primaryGrad),
+                gradient: const LinearGradient(colors: AppColors.primaryGrad),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF7C3AED).withOpacity(0.4),
@@ -397,7 +398,7 @@ class _RegisterViewState extends State<RegisterView>
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: _AppColors.purple,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -432,19 +433,6 @@ class _RegisterViewState extends State<RegisterView>
       ),
     );
   }
-}
-
-// ─── COLORS ───────────────────────────────────────────────────────────────────
-class _AppColors {
-  static const bg = Color(0xFF0A0A0F);
-  static const purple = Color(0xFFA78BFA);
-  static const List<Color> primaryGrad = [Color(0xFF7C3AED), Color(0xFF3B82F6)];
-  static const List<Color> logoGrad = [
-    Color(0xFFA78BFA),
-    Color(0xFF38BDF8),
-    Color(0xFF34D399),
-  ];
-  static const List<Color> pinkPurple = [Color(0xFFA78BFA), Color(0xFFF472B6)];
 }
 
 // ─── BLOB ─────────────────────────────────────────────────────────────────────

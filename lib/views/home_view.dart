@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../controller/home_controller.dart';
 import '../widgets/poster_card.dart';
 import '../widgets/custom_bottom_navbar.dart';
+import '../themes/app_colors.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -59,7 +60,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _AppColors.bg,
+      backgroundColor: AppColors.bg,
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: selectedIndex,
 
@@ -121,7 +122,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         const SizedBox(height: 24),
                         _buildUploadCard(),
                         const SizedBox(height: 30),
-                        _sectionTitle("Featured Posters"),
+                        _sectionTitle("Want to explore Our Collection?"),
                         const SizedBox(height: 16),
                         SizedBox(
                           height: 220,
@@ -140,7 +141,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _sectionTitle("Recent Posters"),
+                        _sectionTitle("Trending Posters"),
                         const SizedBox(height: 16),
                         SizedBox(
                           height: 220,
@@ -175,13 +176,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       children: [
         ShaderMask(
           shaderCallback: (b) =>
-              const LinearGradient(colors: _AppColors.logoGrad).createShader(b),
-          child: const Text(
+              const LinearGradient(colors: AppColors.logoGrad).createShader(b),
+          child: Text(
             "postly.",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: AppColors.primaryGrad[0],
             ),
           ),
         ),
@@ -189,12 +190,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.05),
+            color: Colors.black.withOpacity(.05),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
             Icons.notifications_none_rounded,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
       ],
@@ -202,37 +203,50 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   Widget _buildHero() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: Colors.white.withOpacity(.05),
-        border: Border.all(color: Colors.white.withOpacity(.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ShaderMask(
-            shaderCallback: (b) => const LinearGradient(
-              colors: _AppColors.primaryGrad,
-            ).createShader(b),
-            child: const Text(
-              "Print it.\nFrame it.\nLove it.",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 34,
-                height: 1.05,
+    return Row(
+      children: [
+        Expanded(
+          flex: 6,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShaderMask(
+                shaderCallback: (b) => const LinearGradient(
+                  colors: AppColors.primaryGrad,
+                ).createShader(b),
+                child: const Text(
+                  "Print it.\nFrame it.\nLove it.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 34,
+                    height: 1.05,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              Text(
+                "Turn your digital posters into premium prints.",
+                style: TextStyle(
+                  color: Colors.black.withOpacity(.55),
+                  fontSize: 15,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            "Turn your digital posters into premium prints.",
-            style: TextStyle(color: Colors.white.withOpacity(.55)),
+        ),
+
+        const SizedBox(width: 20),
+
+        Expanded(
+          flex: 4,
+          child: Image.asset(
+            'assets/posters/poster1.jpg',
+            height: 180,
+            fit: BoxFit.contain,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -241,7 +255,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(colors: _AppColors.primaryGrad),
+        gradient: const LinearGradient(colors: AppColors.primaryGrad),
       ),
       child: Row(
         children: [
@@ -249,31 +263,31 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(.15),
+              color: Colors.black.withOpacity(.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.add_photo_alternate_outlined,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Upload Poster",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 16,
+                    fontSize: 20,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "Gallery • Drive • URL",
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -289,23 +303,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       style: const TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w800,
-        color: Colors.white,
+        color: Colors.black,
       ),
     );
   }
-}
-
-// ─── COLORS ───────────────────────────────────────────────────────────────────
-class _AppColors {
-  static const bg = Color(0xFF0A0A0F);
-
-  static const List<Color> primaryGrad = [Color(0xFF7C3AED), Color(0xFF3B82F6)];
-
-  static const List<Color> logoGrad = [
-    Color(0xFFA78BFA),
-    Color(0xFF38BDF8),
-    Color(0xFF34D399),
-  ];
 }
 
 // ─── BLOB ─────────────────────────────────────────────────────────────────────

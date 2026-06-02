@@ -5,11 +5,7 @@ class PosterCard extends StatelessWidget {
   final String title;
   final String image;
 
-  const PosterCard({
-    super.key,
-    required this.title,
-    required this.image,
-  });
+  const PosterCard({super.key, required this.title, required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -18,32 +14,40 @@ class PosterCard extends StatelessWidget {
       margin: const EdgeInsets.only(right: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.white.withOpacity(.05),
-        border: Border.all(
-          color: Colors.white.withOpacity(.08),
-        ),
+        color: Colors.black.withOpacity(.3),
+        border: Border.all(color: Colors.white.withOpacity(.08)),
       ),
-      child: Column(
+      clipBehavior: Clip.hardEdge,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: Image.asset(
-                image,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+          // Faded background image
+          Opacity(
+            opacity: 0.8,
+            child: Image.asset(
+              image,
+              width: double.infinity,
+              fit: BoxFit.cover,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+
+          // Center text — no box, just shadow for readability
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  height: 1.3,
+                  shadows: [
+                    Shadow(blurRadius: 8, color: Colors.black87),
+                    Shadow(blurRadius: 20, color: Colors.black54),
+                  ],
+                ),
               ),
             ),
           ),
