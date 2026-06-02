@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../controller/home_controller.dart';
 import '../widgets/poster_card.dart';
+import '../widgets/custom_bottom_navbar.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -14,6 +15,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   final HomeController ctrl = Get.put(HomeController());
+  int selectedIndex = 0;
 
   late AnimationController _blob1;
   late AnimationController _blob2;
@@ -58,6 +60,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _AppColors.bg,
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: selectedIndex,
+
+        onTap: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+
+        onCenterTap: () {
+          print("Print Clicked");
+        },
+      ),
       body: Stack(
         children: [
           _Blob(
@@ -124,7 +139,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 10),
                         _sectionTitle("Recent Posters"),
                         const SizedBox(height: 16),
                         SizedBox(
