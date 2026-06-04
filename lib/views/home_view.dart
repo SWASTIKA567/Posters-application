@@ -6,6 +6,7 @@ import '../controller/home_controller.dart';
 import '../widgets/poster_card.dart';
 import '../widgets/custom_bottom_navbar.dart';
 import '../themes/app_colors.dart';
+import '../views/upload_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -71,7 +72,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         },
 
         onCenterTap: () {
-          print("Print Clicked");
+          Get.to(() => const UploadView());
         },
       ),
       body: Stack(
@@ -251,48 +252,53 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   Widget _buildUploadCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(colors: AppColors.primaryGrad),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(.15),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => const UploadView());
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: const LinearGradient(colors: AppColors.primaryGrad),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.add_photo_alternate_outlined,
+                color: Colors.black,
+              ),
             ),
-            child: const Icon(
-              Icons.add_photo_alternate_outlined,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Upload Poster",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Upload Poster",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Gallery • Drive • URL",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    "Gallery • Drive • URL",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

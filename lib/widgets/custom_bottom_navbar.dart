@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controller/cart_controller.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -45,8 +47,46 @@ class CustomBottomNavBar extends StatelessWidget {
 
               _navItem(
                 icon: Icons.inventory_2_outlined,
-                title: "Orders",
+                title: "Cart",
                 index: 1,
+                iconWidget: Obx(() {
+                  final count = CartController.to.totalItems;
+
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 24,
+                        color: selectedIndex == 1 ? primaryRed : Colors.black,
+                      ),
+
+                      if (count > 0)
+                        Positioned(
+                          top: -5,
+                          right: -8,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                count > 9 ? '9+' : '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
               ),
 
               const SizedBox(width: 80),
@@ -69,6 +109,7 @@ class CustomBottomNavBar extends StatelessWidget {
             top: -25,
             child: GestureDetector(
               onTap: onCenterTap,
+
               child: Container(
                 height: 70,
                 width: 70,
@@ -107,7 +148,8 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 
   Widget _navItem({
-    required IconData icon,
+    IconData? icon,
+    Widget? iconWidget,
     required String title,
     required int index,
   }) {
@@ -120,7 +162,12 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: isSelected ? primaryRed : Colors.black),
+            iconWidget ??
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected ? primaryRed : Colors.black,
+                ),
             const SizedBox(height: 4),
             Text(
               title,
