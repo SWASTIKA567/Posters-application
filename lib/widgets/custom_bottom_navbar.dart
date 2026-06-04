@@ -120,14 +120,14 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: isSelected ? primaryRed : Colors.grey),
+            Icon(icon, size: 24, color: isSelected ? primaryRed : Colors.black),
             const SizedBox(height: 4),
             Text(
               title,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                color: isSelected ? primaryRed : Colors.grey,
+                color: isSelected ? primaryRed : Colors.black,
               ),
             ),
           ],

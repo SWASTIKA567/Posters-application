@@ -176,7 +176,7 @@ class _RegisterViewState extends State<RegisterView>
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: Colors.black,
               letterSpacing: -0.5,
             ),
           ),
@@ -217,7 +217,7 @@ class _RegisterViewState extends State<RegisterView>
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFFC4B5FD),
+                      color: Color.fromARGB(255, 67, 30, 213),
                     ),
                   ),
                 ],
@@ -241,7 +241,7 @@ class _RegisterViewState extends State<RegisterView>
               fontWeight: FontWeight.w800,
               height: 1.15,
               letterSpacing: -0.5,
-              color: Colors.white,
+              color: Colors.black,
             ),
             children: [
               const TextSpan(text: 'Join the\n'),
@@ -370,7 +370,7 @@ class _RegisterViewState extends State<RegisterView>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: Colors.black,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -387,7 +387,10 @@ class _RegisterViewState extends State<RegisterView>
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.35)),
+        style: TextStyle(
+          fontSize: 13,
+          color: const Color.fromARGB(255, 200, 56, 56).withOpacity(0.35),
+        ),
         children: [
           const TextSpan(text: 'already have an account? '),
           WidgetSpan(
@@ -415,7 +418,7 @@ class _RegisterViewState extends State<RegisterView>
       text: TextSpan(
         style: TextStyle(
           fontSize: 10,
-          color: Colors.white.withOpacity(0.2),
+          color: const Color.fromARGB(255, 200, 56, 56).withOpacity(0.2),
           height: 1.6,
         ),
         children: const [
@@ -523,7 +526,7 @@ class _InputField extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.5),
           ),
         ),
         const SizedBox(height: 6),
@@ -534,12 +537,12 @@ class _InputField extends StatelessWidget {
             border: Border.all(
               color: isFocused
                   ? const Color(0xFF7C3AED).withOpacity(0.6)
-                  : Colors.white.withOpacity(0.1),
+                  : Colors.black.withOpacity(0.1),
               width: isFocused ? 1.5 : 1,
             ),
             color: isFocused
                 ? const Color(0xFF7C3AED).withOpacity(0.07)
-                : Colors.white.withOpacity(0.05),
+                : Colors.black.withOpacity(0.05),
             boxShadow: isFocused
                 ? [
                     BoxShadow(

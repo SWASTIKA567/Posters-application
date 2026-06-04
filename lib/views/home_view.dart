@@ -29,17 +29,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     _blob1 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
 
     _blob2 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 5),
     )..repeat(reverse: true);
 
     _blob3 = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 9),
     )..repeat(reverse: true);
 
     _fadeCtrl = AnimationController(
@@ -82,7 +82,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             size: 260,
             top: -100,
             left: -80,
-            opacity: .30,
+            opacity: .56,
             dx: 20,
             dy: -30,
           ),
@@ -90,19 +90,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ctrl: _blob2,
             colors: const [Color(0xFFEC4899), Color(0xFFF59E0B)],
             size: 220,
-            bottom: 100,
+            bottom: 80,
             right: -60,
-            opacity: .22,
+            opacity: .57,
             dx: -20,
             dy: 20,
           ),
           _Blob(
             ctrl: _blob3,
             colors: const [Color(0xFF10B981), Color(0xFF3B82F6)],
-            size: 160,
+            size: 180,
             top: 350,
             left: -30,
-            opacity: .15,
+            opacity: .56,
             dx: 15,
             dy: -20,
           ),
