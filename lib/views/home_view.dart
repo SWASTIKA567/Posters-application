@@ -7,6 +7,9 @@ import '../widgets/poster_card.dart';
 import '../widgets/custom_bottom_navbar.dart';
 import '../themes/app_colors.dart';
 import '../views/upload_view.dart';
+import 'cart_view.dart';
+import 'wishlist_view.dart';
+import 'profile_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -69,6 +72,23 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           setState(() {
             selectedIndex = index;
           });
+          switch (index) {
+            case 0:
+              Get.offAll(() => const HomeView());
+              break;
+
+            case 1:
+              Get.to(() => const CartView());
+              break;
+
+            case 2:
+              Get.to(() => const WishlistView());
+              break;
+
+            case 3:
+              Get.to(() => const ProfileView());
+              break;
+          }
         },
 
         onCenterTap: () {
@@ -136,6 +156,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 return PosterCard(
                                   title: poster["title"]!,
                                   image: poster["image"]!,
+                                  onWishlistTap: () async {
+                                    await WishlistController.to.addToWishlist(
+                                      title: poster["title"]!,
+                                      image: poster["image"]!,
+                                    );
+
+                                    Get.snackbar(
+                                      "Wishlist",
+                                      "Added to wishlist",
+                                    );
+                                  },
                                 );
                               },
                             ),
