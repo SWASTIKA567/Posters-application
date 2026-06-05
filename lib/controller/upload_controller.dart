@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart'; //
 
-import 'cart_controller.dart';
+import 'order_controller.dart';
 
 class PosterSize {
   final String label; // "A3", "A4", "A5"
@@ -22,6 +23,7 @@ class PosterSize {
 
 class UploadController extends GetxController {
   static UploadController get to => Get.find();
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   // ── Image ──────────────────────────────────────────────────────────────────
   final Rx<File?> pickedImage = Rx<File?>(null);
@@ -75,10 +77,11 @@ class UploadController extends GetxController {
     try {
       isUploading.value = true;
       uploadProgress.value = 0;
+      final uid = auth.currentUser!.uid;
 
       final String fileName = '${const Uuid().v4()}.jpg';
       final ref = FirebaseStorage.instance.ref().child(
-        'poster_uploads/$fileName',
+        'poster_uploads/$uid/$fileName',
       );
 
       final uploadTask = ref.putFile(image);
@@ -129,19 +132,26 @@ class UploadController extends GetxController {
 
     // 2. Save order to Firestore
     try {
-      await FirebaseFirestore.instance.collection('cart_orders').add({
-        'imageUrl': uploadedImageUrl.value,
-        'size': selectedSize.label,
-        'dimensions': selectedSize.dimensions,
-        'pricePerUnit': selectedSize.price,
-        'quantity': quantity.value,
-        'totalPrice': totalPrice,
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'in_cart',
-      });
+      final uid = auth.currentUser!.uid;
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('cart_orders')
+          .add({
+            'userId': uid,
+            'imageUrl': uploadedImageUrl.value,
+            'size': selectedSize.label,
+            'dimensions': selectedSize.dimensions,
+            'pricePerUnit': selectedSize.price,
+            'quantity': quantity.value,
+            'totalPrice': totalPrice,
+            'createdAt': FieldValue.serverTimestamp(),
+            'status': 'in_cart',
+          });
 
       // 3. Update local cart
-      CartController.to.addItem(
+      OrderController.to.addItem(
         CartItem(
           imageUrl: uploadedImageUrl.value,
           size: selectedSize.label,
