@@ -1,5 +1,8 @@
 // TODO Implement this library.
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controller/wishlist_controller.dart';
+import 'package:collection/collection.dart';
 
 class PosterCard extends StatelessWidget {
   final String title;
@@ -9,6 +12,8 @@ class PosterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wishlistCtrl = WishlistController.to;
+
     return Container(
       width: 140,
       margin: const EdgeInsets.only(right: 14),
@@ -21,7 +26,7 @@ class PosterCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Faded background image
+          // ── Background image ──────────────────────────────────
           Opacity(
             opacity: 0.8,
             child: Image.asset(
@@ -31,7 +36,7 @@ class PosterCard extends StatelessWidget {
             ),
           ),
 
-          // Center text — no box, just shadow for readability
+          // ── Center title ──────────────────────────────────────
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -50,6 +55,54 @@ class PosterCard extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+
+          // ── Heart button (top-right) ──────────────────────────
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Obx(() {
+              final isLiked = wishlistCtrl.isWishlisted(title);
+              return GestureDetector(
+                onTap: () async {
+                  if (isLiked) {
+                    final item = wishlistCtrl.wishlist.firstWhereOrNull(
+                      (e) => e.title == title,
+                    );
+                    if (item != null) {
+                      await wishlistCtrl.removeWishlist(item.docId);
+                    }
+                  } else {
+                    await wishlistCtrl.addToWishlist(
+                      title: title,
+                      image: image,
+                    );
+                  }
+                },
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.elasticOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
+                  child: Container(
+                    key: ValueKey(isLiked), // triggers AnimatedSwitcher
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: isLiked
+                          ? Colors.redAccent.withOpacity(0.85)
+                          : Colors.black.withOpacity(0.35),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
         ],
       ),

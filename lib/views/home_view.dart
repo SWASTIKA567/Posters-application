@@ -156,17 +156,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 return PosterCard(
                                   title: poster["title"]!,
                                   image: poster["image"]!,
-                                  onWishlistTap: () async {
-                                    await WishlistController.to.addToWishlist(
-                                      title: poster["title"]!,
-                                      image: poster["image"]!,
-                                    );
-
-                                    Get.snackbar(
-                                      "Wishlist",
-                                      "Added to wishlist",
-                                    );
-                                  },
                                 );
                               },
                             ),
