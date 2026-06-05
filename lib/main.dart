@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:poster_application/controller/cart_controller.dart';
+import '../controller/order_controller.dart';
 
 import 'views/splash_view.dart';
 import 'package:get/get.dart';
+import '../controller/wishlist_controller.dart';
+import '../controller/upload_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  Get.put(CartController(), permanent: true);
+  Get.put(WishlistController(), permanent: true);
+  Get.put(UploadController(), permanent: true);
+  Get.put(OrderController(), permanent: true);
   runApp(const PostlyApp());
 }
 

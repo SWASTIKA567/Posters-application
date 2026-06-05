@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:poster_application/views/home_view.dart';
-
+import '../controller/order_controller.dart';
+import '../controller/wishlist_controller.dart';
+import '../controller/upload_controller.dart';
 
 class RegisterController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -79,7 +81,16 @@ class RegisterController extends GetxController {
       );
       await credential.user?.updateDisplayName(name);
       isLoading.value = false;
-      Get.offAll(() => const HomeView());
+      if (!Get.isRegistered<WishlistController>()) {
+        Get.put(WishlistController(), permanent: true);
+      }
+      if (!Get.isRegistered<OrderController>()) {
+        Get.put(OrderController(), permanent: true);
+      }
+      if (!Get.isRegistered<UploadController>()) {
+        Get.put(UploadController(), permanent: true);
+      }
+      Get.off(() => const HomeView());
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
       errorMessage.value = _mapError(e.code);

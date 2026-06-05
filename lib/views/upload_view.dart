@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:poster_application/controller/cart_controller.dart';
-import 'package:poster_application/controller/upload_controller.dart';
+import '../controller/order_controller.dart';
+import '../controller/upload_controller.dart';
 import '../themes/app_colors.dart';
 
 class UploadView extends StatelessWidget {
@@ -54,7 +54,6 @@ class UploadView extends StatelessWidget {
   }
 }
 
-
 class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -93,7 +92,7 @@ class _Header extends StatelessWidget {
         const Spacer(),
         // cart badge — notification icon style from HomeView
         Obx(() {
-          final count = CartController.to.totalItems;
+          final count = OrderController.to.totalItems;
           return Stack(
             clipBehavior: Clip.none,
             children: [
@@ -161,7 +160,7 @@ class _StepLabel extends StatelessWidget {
           ).createShader(b),
           child: const Text(
             // number is small gradient accent beside the black section title
-            '',   // placeholder — actual text below via Stack trick
+            '', // placeholder — actual text below via Stack trick
             style: TextStyle(fontSize: 0),
           ),
         ),
@@ -173,7 +172,7 @@ class _StepLabel extends StatelessWidget {
           child: Text(
             number,
             style: const TextStyle(
-              color: Colors.white,   // overridden by ShaderMask
+              color: Colors.white, // overridden by ShaderMask
               fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
@@ -280,8 +279,11 @@ class _ImageUploadSection extends StatelessWidget {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.edit_outlined,
-                                    color: Colors.white, size: 15),
+                                Icon(
+                                  Icons.edit_outlined,
+                                  color: Colors.white,
+                                  size: 15,
+                                ),
                                 SizedBox(width: 5),
                                 Text(
                                   "Change",
@@ -602,9 +604,15 @@ class _OrderSummary extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _SummaryRow(label: 'Size', value: '${size.label} (${size.dimensions})'),
+            _SummaryRow(
+              label: 'Size',
+              value: '${size.label} (${size.dimensions})',
+            ),
             const SizedBox(height: 12),
-            _SummaryRow(label: 'Price per copy', value: '₹${size.price.toInt()}'),
+            _SummaryRow(
+              label: 'Price per copy',
+              value: '₹${size.price.toInt()}',
+            ),
             const SizedBox(height: 12),
             _SummaryRow(label: 'Quantity', value: '× $qty'),
             Padding(
@@ -657,10 +665,7 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Colors.black.withOpacity(.45),
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.black.withOpacity(.45), fontSize: 14),
         ),
         Text(
           value,

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../controller/order_controller.dart';
+import '../controller/wishlist_controller.dart';
 import 'package:poster_application/views/home_view.dart';
+
+import '../controller/upload_controller.dart';
 
 class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,7 +51,16 @@ class LoginController extends GetxController {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       isLoading.value = false;
-      Get.offAll(() => const HomeView());
+      if (!Get.isRegistered<WishlistController>()) {
+        Get.put(WishlistController(), permanent: true);
+      }
+      if (!Get.isRegistered<OrderController>()) {
+        Get.put(OrderController(), permanent: true);
+      }
+      if (!Get.isRegistered<UploadController>()) {
+        Get.put(UploadController(), permanent: true);
+      }
+      Get.off(() => const HomeView());
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
       errorMessage.value = _mapError(e.code);

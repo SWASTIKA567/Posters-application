@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:get/get.dart';
+
 import 'login_view.dart';
 
 class AppColors {
@@ -210,7 +211,6 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
-    // ✅ GetX navigation replacing vanilla Navigator
     Get.off(
       () => const LoginScreen(),
       transition: Transition.fade,

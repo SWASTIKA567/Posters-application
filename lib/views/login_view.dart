@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
-  final LoginController _ctrl = Get.put(LoginController());
+  late final LoginController _ctrl;
 
   late AnimationController _blob1, _blob2, _blob3;
   late AnimationController _starSpin, _fadeCtrl, _pulseCtrl;
@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
+    _ctrl = Get.put(LoginController());
     _blob1 = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),

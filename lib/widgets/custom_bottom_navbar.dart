@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/cart_controller.dart';
+import '../controller/order_controller.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -50,7 +50,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 title: "Cart",
                 index: 1,
                 iconWidget: Obx(() {
-                  final count = CartController.to.totalItems;
+                  final count = OrderController.to.totalItems;
 
                   return Stack(
                     clipBehavior: Clip.none,

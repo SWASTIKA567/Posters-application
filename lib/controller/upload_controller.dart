@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart'; //
 
-import 'order_controller.dart';
+import '../controller/order_controller.dart';
 
 class PosterSize {
   final String label; // "A3", "A4", "A5"

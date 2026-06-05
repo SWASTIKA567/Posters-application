@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/wishlist_controller.dart';
-import 'package:collection/collection.dart';
 
 class WishlistView extends StatelessWidget {
   const WishlistView({super.key});
