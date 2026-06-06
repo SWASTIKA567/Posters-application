@@ -1,15 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../views/home_view.dart';
-
 import '../controller/upload_controller.dart';
 
 class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -35,7 +35,7 @@ class LoginController extends GetxController {
   void togglePasswordVisibility() =>
       obscurePassword.value = !obscurePassword.value;
 
-  // ── Email & Password Login ──────────────────────────────────────────────────
+  // ── Email & Password Login ────────────────────────────────────────────────
   Future<void> loginWithEmail() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -49,27 +49,50 @@ class LoginController extends GetxController {
     errorMessage.value = null;
 
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = credential.user!;
+
+      // ── Update lastLoginAt in Firestore ───────────────────────────────
+      // Also creates the user doc if somehow missing (e.g. old accounts)
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'name': user.displayName ?? '',
+        'email': user.email ?? email,
+        'photoUrl': user.photoURL ?? '',
+        'provider': 'email',
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // merge = never overwrite existing fields
+
       isLoading.value = false;
-      if (!Get.isRegistered<WishlistController>()) {
-        Get.put(WishlistController(), permanent: true);
-      }
-      if (!Get.isRegistered<OrderController>()) {
-        Get.put(OrderController(), permanent: true);
-      }
-      if (!Get.isRegistered<UploadController>()) {
-        Get.put(UploadController(), permanent: true);
-      }
+      _initControllers();
       Get.off(() => const HomeView());
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
       errorMessage.value = _mapError(e.code);
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = 'Something went wrong. Please try again.';
+      debugPrint('Login error: $e');
     }
   }
 
-  // ── Google Login ────────────────────────────────────────────────────────────
+  void _initControllers() {
+    if (!Get.isRegistered<WishlistController>()) {
+      Get.put(WishlistController(), permanent: true);
+    }
+    if (!Get.isRegistered<OrderController>()) {
+      Get.put(OrderController(), permanent: true);
+    }
+    if (!Get.isRegistered<UploadController>()) {
+      Get.put(UploadController(), permanent: true);
+    }
+  }
 
-  // ── Error Mapping ───────────────────────────────────────────────────────────
+  // ── Error Mapping ─────────────────────────────────────────────────────────
   String _mapError(String code) {
     switch (code) {
       case 'user-not-found':

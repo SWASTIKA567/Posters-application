@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import '../controller/upload_controller.dart';
 
 class RegisterController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -79,21 +81,46 @@ class RegisterController extends GetxController {
         email: email,
         password: password,
       );
-      await credential.user?.updateDisplayName(name);
+
+      final user = credential.user!;
+
+      // Update display name in Auth
+      await user.updateDisplayName(name);
+
+      // ── Save user profile to Firestore ────────────────────────────────
+      // This creates users/{uid} doc so you can see every user in console
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'name': name,
+        'email': email,
+        'photoUrl': user.photoURL ?? '',
+        'provider': 'email',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLoginAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // merge so existing data isn't wiped
+
       isLoading.value = false;
-      if (!Get.isRegistered<WishlistController>()) {
-        Get.put(WishlistController(), permanent: true);
-      }
-      if (!Get.isRegistered<OrderController>()) {
-        Get.put(OrderController(), permanent: true);
-      }
-      if (!Get.isRegistered<UploadController>()) {
-        Get.put(UploadController(), permanent: true);
-      }
+      _initControllers();
       Get.off(() => const HomeView());
     } on FirebaseAuthException catch (e) {
       isLoading.value = false;
       errorMessage.value = _mapError(e.code);
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = 'Something went wrong. Please try again.';
+      debugPrint('Register error: $e');
+    }
+  }
+
+  void _initControllers() {
+    if (!Get.isRegistered<WishlistController>()) {
+      Get.put(WishlistController(), permanent: true);
+    }
+    if (!Get.isRegistered<OrderController>()) {
+      Get.put(OrderController(), permanent: true);
+    }
+    if (!Get.isRegistered<UploadController>()) {
+      Get.put(UploadController(), permanent: true);
     }
   }
 

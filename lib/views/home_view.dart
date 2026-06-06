@@ -157,6 +157,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 return PosterCard(
                                   title: poster["title"] as String,
                                   image: poster["image"] as String,
+
                                   section: PosterSection.featured,
                                 );
                               },
@@ -178,6 +179,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 return PosterCard(
                                   title: poster["title"] as String,
                                   image: poster["image"] as String,
+                                  price: poster["price"] as String,
                                   section: PosterSection.recent,
                                 );
                               },
