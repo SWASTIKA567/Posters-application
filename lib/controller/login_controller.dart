@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
-import 'package:poster_application/views/home_view.dart';
+import '../views/home_view.dart';
 
 import '../controller/upload_controller.dart';
 

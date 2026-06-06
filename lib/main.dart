@@ -6,6 +6,7 @@ import 'views/splash_view.dart';
 import 'package:get/get.dart';
 import 'controller/wishlist_controller.dart';
 import 'controller/upload_controller.dart';
+import 'controller/profile_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() async {
   Get.put(WishlistController(), permanent: true);
   Get.put(UploadController(), permanent: true);
   Get.put(OrderController(), permanent: true);
+  Get.put(ProfileController(), permanent: true);
   runApp(const PostlyApp());
 }
 

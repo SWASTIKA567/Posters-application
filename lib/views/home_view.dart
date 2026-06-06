@@ -153,9 +153,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               itemCount: ctrl.featuredPosters.length,
                               itemBuilder: (_, index) {
                                 final poster = ctrl.featuredPosters[index];
+
                                 return PosterCard(
-                                  title: poster["title"]!,
-                                  image: poster["image"]!,
+                                  title: poster["title"] as String,
+                                  image: poster["image"] as String,
+                                  section: PosterSection.featured,
                                 );
                               },
                             ),
@@ -172,9 +174,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               itemCount: ctrl.recentPosters.length,
                               itemBuilder: (_, index) {
                                 final poster = ctrl.recentPosters[index];
+
                                 return PosterCard(
-                                  title: poster["title"]!,
-                                  image: poster["image"]!,
+                                  title: poster["title"] as String,
+                                  image: poster["image"] as String,
+                                  section: PosterSection.recent,
                                 );
                               },
                             ),

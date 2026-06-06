@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:poster_application/themes/app_colors.dart';
+import '../themes/app_colors.dart';
 import '../controller/address_controller.dart';
 
 class AddressView extends StatelessWidget {
