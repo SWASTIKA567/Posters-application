@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import '../controller/order_controller.dart';
+import 'controller/order_controller.dart';
 
 import 'views/splash_view.dart';
 import 'package:get/get.dart';
-import '../controller/wishlist_controller.dart';
-import '../controller/upload_controller.dart';
+import 'controller/wishlist_controller.dart';
+import 'controller/upload_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

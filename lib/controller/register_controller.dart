@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:poster_application/views/home_view.dart';
+import '../views/home_view.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/upload_controller.dart';
