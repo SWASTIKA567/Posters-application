@@ -60,36 +60,40 @@ class _RegisterViewState extends State<RegisterView>
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
+          // Subtle background grid
+          Positioned.fill(child: CustomPaint(painter: _GridPainter())),
+
           _Blob(
             ctrl: _blob1,
-            colors: AppColors.logoGrad,
+            colors: [const Color(0xFFD32F2F), const Color(0xFFFF5722)],
             size: 260,
             top: -100,
             left: -80,
-            opacity: 0.30,
+            opacity: 0.10,
             dx: 20,
             dy: -30,
           ),
           _Blob(
             ctrl: _blob2,
-            colors: AppColors.logoGrad,
+            colors: [const Color(0xFF00796B), const Color(0xFFFF5722)],
             size: 200,
             bottom: 100,
             right: -60,
-            opacity: 0.22,
+            opacity: 0.08,
             dx: -20,
             dy: 20,
           ),
           _Blob(
             ctrl: _blob3,
-            colors: [const Color(0xFF10B981), const Color(0xFF3B82F6)],
+            colors: [const Color(0xFFFF5722), const Color(0xFFD32F2F)],
             size: 150,
             top: 300,
             left: -30,
-            opacity: 0.15,
+            opacity: 0.07,
             dx: 15,
             dy: -20,
           ),
+
           SafeArea(
             child: FadeTransition(
               opacity: CurvedAnimation(
@@ -120,6 +124,8 @@ class _RegisterViewState extends State<RegisterView>
                     ),
                     _buildCTA(),
                     const SizedBox(height: 18),
+                    _buildDivider(),
+                    const SizedBox(height: 18),
                     _buildSignIn(),
                     const SizedBox(height: 16),
                     _buildTerms(),
@@ -140,22 +146,22 @@ class _RegisterViewState extends State<RegisterView>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.redAccent.withOpacity(0.1),
+          color: AppColors.primary.withOpacity(0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+          border: Border.all(color: AppColors.primary.withOpacity(0.30)),
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline_rounded,
               size: 16,
-              color: Colors.redAccent,
+              color: AppColors.primary,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 _ctrl.errorMessage.value ?? '',
-                style: const TextStyle(fontSize: 12, color: Colors.redAccent),
+                style: TextStyle(fontSize: 12, color: AppColors.primary),
               ),
             ),
           ],
@@ -174,26 +180,24 @@ class _RegisterViewState extends State<RegisterView>
           child: const Text(
             'postly.',
             style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
-              letterSpacing: -0.5,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -1,
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         AnimatedBuilder(
           animation: _pulseCtrl,
           builder: (_, __) => Transform.scale(
             scale: 1.0 + _pulseCtrl.value * 0.02,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED).withOpacity(0.15),
+                color: AppColors.primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(99),
-                border: Border.all(
-                  color: const Color(0xFF7C3AED).withOpacity(0.35),
-                ),
+                border: Border.all(color: AppColors.primary.withOpacity(0.20)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -211,13 +215,14 @@ class _RegisterViewState extends State<RegisterView>
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
+                  const SizedBox(width: 7),
+                  Text(
                     'create · express · vibe',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromARGB(255, 67, 30, 213),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary.withOpacity(0.75),
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
@@ -237,26 +242,26 @@ class _RegisterViewState extends State<RegisterView>
           textAlign: TextAlign.center,
           text: TextSpan(
             style: const TextStyle(
-              fontSize: 26,
+              fontSize: 28,
               fontWeight: FontWeight.w800,
               height: 1.15,
-              letterSpacing: -0.5,
-              color: Colors.black,
+              letterSpacing: -0.8,
+              color: Color(0xFF1A1A1A),
             ),
             children: [
               const TextSpan(text: 'Join the\n'),
               WidgetSpan(
                 child: ShaderMask(
                   shaderCallback: (b) => const LinearGradient(
-                    colors: AppColors.logoGrad,
+                    colors: AppColors.tealOrange,
                   ).createShader(b),
                   child: const Text(
                     'poster community.',
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
-                      letterSpacing: -0.5,
+                      letterSpacing: -0.8,
                     ),
                   ),
                 ),
@@ -264,11 +269,15 @@ class _RegisterViewState extends State<RegisterView>
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        const SizedBox(height: 10),
+        Text(
           'Create your account and start making posters that slap.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Color(0x73FFFFFF), height: 1.5),
+          style: TextStyle(
+            fontSize: 13.5,
+            color: const Color(0xFF1A1A1A).withOpacity(0.45),
+            height: 1.5,
+          ),
         ),
       ],
     );
@@ -337,19 +346,23 @@ class _RegisterViewState extends State<RegisterView>
     return AnimatedBuilder(
       animation: _pulseCtrl,
       builder: (_, __) => Transform.scale(
-        scale: 1.0 + _pulseCtrl.value * 0.008,
+        scale: 1.0 + _pulseCtrl.value * 0.006,
         child: Obx(
           () => GestureDetector(
             onTap: _ctrl.isLoading.value ? null : _ctrl.registerWithEmail,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 15),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(colors: AppColors.primaryGrad),
+                gradient: const LinearGradient(
+                  colors: AppColors.primaryGrad,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF7C3AED).withOpacity(0.4),
+                    color: AppColors.primary.withOpacity(0.30),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -370,7 +383,7 @@ class _RegisterViewState extends State<RegisterView>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: Colors.black,
+                          color: Colors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -382,6 +395,37 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 
+  // ── DIVIDER ───────────────────────────────────────────────────────────────────
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            color: const Color(0xFF1A1A1A).withOpacity(0.10),
+            thickness: 1,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'or',
+            style: TextStyle(
+              fontSize: 12,
+              color: const Color(0xFF1A1A1A).withOpacity(0.30),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            color: const Color(0xFF1A1A1A).withOpacity(0.10),
+            thickness: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── SIGN IN ───────────────────────────────────────────────────────────────────
   Widget _buildSignIn() {
     return RichText(
@@ -389,18 +433,18 @@ class _RegisterViewState extends State<RegisterView>
       text: TextSpan(
         style: TextStyle(
           fontSize: 13,
-          color: const Color.fromARGB(255, 200, 56, 56).withOpacity(0.35),
+          color: const Color(0xFF1A1A1A).withOpacity(0.45),
         ),
         children: [
           const TextSpan(text: 'already have an account? '),
           WidgetSpan(
             child: GestureDetector(
               onTap: () => Get.back(),
-              child: const Text(
+              child: Text(
                 'sign in',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.primary,
                 ),
               ),
@@ -418,24 +462,51 @@ class _RegisterViewState extends State<RegisterView>
       text: TextSpan(
         style: TextStyle(
           fontSize: 10,
-          color: const Color.fromARGB(255, 200, 56, 56).withOpacity(0.2),
+          color: const Color(0xFF1A1A1A).withOpacity(0.25),
           height: 1.6,
         ),
-        children: const [
-          TextSpan(text: 'by signing up you agree to our '),
+        children: [
+          const TextSpan(text: 'by signing up you agree to our '),
           TextSpan(
             text: 'terms',
-            style: TextStyle(color: Color(0x99A78BFA)),
+            style: TextStyle(
+              color: AppColors.primary.withOpacity(0.65),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          TextSpan(text: ' and '),
+          const TextSpan(text: ' and '),
           TextSpan(
             text: 'privacy policy',
-            style: TextStyle(color: Color(0x99A78BFA)),
+            style: TextStyle(
+              color: AppColors.primary.withOpacity(0.65),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+// ─── BACKGROUND GRID PAINTER ──────────────────────────────────────────────────
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF1A1A1A).withOpacity(0.035)
+      ..strokeWidth = 1;
+
+    const spacing = 40.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter old) => false;
 }
 
 // ─── BLOB ─────────────────────────────────────────────────────────────────────
@@ -525,49 +596,63 @@ class _InputField extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.black.withOpacity(0.5),
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1A1A1A).withOpacity(0.50),
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 7),
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isFocused
-                  ? const Color(0xFF7C3AED).withOpacity(0.6)
-                  : Colors.black.withOpacity(0.1),
+                  ? AppColors.primary.withOpacity(0.50)
+                  : const Color(0xFF1A1A1A).withOpacity(0.10),
               width: isFocused ? 1.5 : 1,
             ),
             color: isFocused
-                ? const Color(0xFF7C3AED).withOpacity(0.07)
-                : Colors.black.withOpacity(0.05),
+                ? AppColors.primary.withOpacity(0.04)
+                : const Color(0xFFF5F5F5),
             boxShadow: isFocused
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.15),
+                      color: AppColors.primary.withOpacity(0.12),
                       blurRadius: 12,
+                      spreadRadius: 0,
                     ),
                   ]
-                : [],
+                : [
+                    BoxShadow(
+                      color: const Color(0xFF1A1A1A).withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: TextField(
             controller: controller,
             focusNode: focusNode,
             obscureText: obscureText,
             keyboardType: keyboardType,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF1A1A1A),
+              fontWeight: FontWeight.w500,
+            ),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.25),
+                color: const Color(0xFF1A1A1A).withOpacity(0.25),
                 fontSize: 14,
               ),
               prefixIcon: Icon(
                 prefixIcon,
                 size: 18,
-                color: Colors.white.withOpacity(0.35),
+                color: isFocused
+                    ? AppColors.primary.withOpacity(0.7)
+                    : const Color(0xFF1A1A1A).withOpacity(0.30),
               ),
               suffixIcon: suffixIcon != null
                   ? GestureDetector(
@@ -575,7 +660,7 @@ class _InputField extends StatelessWidget {
                       child: Icon(
                         suffixIcon,
                         size: 18,
-                        color: Colors.white.withOpacity(0.35),
+                        color: const Color(0xFF1A1A1A).withOpacity(0.30),
                       ),
                     )
                   : null,
