@@ -230,50 +230,59 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   Widget _buildHero() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 6,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ShaderMask(
-                shaderCallback: (b) => const LinearGradient(
-                  colors: AppColors.primaryGrad,
-                ).createShader(b),
-                child: const Text(
-                  "Print it.\nFrame it.\nLove it.",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 34,
-                    height: 1.05,
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Text side
+          Flexible(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShaderMask(
+                  shaderCallback: (b) => const LinearGradient(
+                    colors: AppColors.primaryGrad,
+                  ).createShader(b),
+                  child: Text(
+                    "Print it.\nFrame it.\nLove it.",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: screenWidth * 0.075,
+                      height: 1.05,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                "Turn your digital posters into premium prints.",
-                style: TextStyle(
-                  color: Colors.black.withOpacity(.55),
-                  fontSize: 15,
+                const SizedBox(height: 12),
+                Text(
+                  "Turn your digital posters into premium prints.",
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(.55),
+                    fontSize: screenWidth * 0.030,
+                  ),
                 ),
+              ],
+            ),
+          ),
+
+          // Image fills whatever height the text column naturally takes
+          Flexible(
+            flex: 5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/bg.png',
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-            ],
+            ),
           ),
-        ),
-
-        const SizedBox(width: 20),
-
-        Expanded(
-          flex: 4,
-          child: Image.asset(
-            'assets/posters/poster1.jpg',
-            height: 180,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
