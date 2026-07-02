@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -23,37 +24,64 @@ class ProfileController extends GetxController {
 
   User? get currentUser => _auth.currentUser;
 
+  StreamSubscription? _authSub;
+  StreamSubscription? _addressesSub;
+
   @override
   void onInit() {
     super.onInit();
-    loadProfile();
+    _authSub = _auth.authStateChanges().listen((user) {
+      loadProfile();
+    });
   }
 
   Future<void> loadProfile() async {
     isLoading.value = true;
     try {
       final uid = currentUser?.uid;
-      if (uid == null) return;
+      if (uid == null) {
+        nameCtrl.clear();
+        emailCtrl.clear();
+        phoneCtrl.clear();
+        addressCtrl.clear();
+        cityCtrl.clear();
+        stateCtrl.clear();
+        pincodeCtrl.clear();
+        return;
+      }
 
-      nameCtrl.text = currentUser?.displayName ?? '';
-      emailCtrl.text = currentUser?.email ?? '';
+      // Reload user to get latest displayName (needed right after registration)
+      await _auth.currentUser?.reload();
 
-      final addressSnap = await _firestore
+      nameCtrl.text = _auth.currentUser?.displayName ?? '';
+      emailCtrl.text = _auth.currentUser?.email ?? '';
+
+      _addressesSub?.cancel();
+      _addressesSub = _firestore
           .collection('users')
           .doc(uid)
           .collection('addresses')
           .orderBy('savedAt', descending: true)
           .limit(1)
-          .get();
-
-      if (addressSnap.docs.isNotEmpty) {
-        final data = addressSnap.docs.first.data();
-        phoneCtrl.text = data['phone'] ?? '';
-        addressCtrl.text = data['addressLine'] ?? '';
-        cityCtrl.text = data['city'] ?? '';
-        stateCtrl.text = data['state'] ?? '';
-        pincodeCtrl.text = data['pincode'] ?? '';
-      }
+          .snapshots()
+          .listen((snap) {
+        if (!isEditMode.value) {
+          if (snap.docs.isNotEmpty) {
+            final data = snap.docs.first.data();
+            phoneCtrl.text = data['phone'] ?? '';
+            addressCtrl.text = data['addressLine'] ?? '';
+            cityCtrl.text = data['city'] ?? '';
+            stateCtrl.text = data['state'] ?? '';
+            pincodeCtrl.text = data['pincode'] ?? '';
+          } else {
+            phoneCtrl.clear();
+            addressCtrl.clear();
+            cityCtrl.clear();
+            stateCtrl.clear();
+            pincodeCtrl.clear();
+          }
+        }
+      });
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -129,6 +157,8 @@ class ProfileController extends GetxController {
 
   @override
   void onClose() {
+    _authSub?.cancel();
+    _addressesSub?.cancel();
     nameCtrl.dispose();
     emailCtrl.dispose();
     phoneCtrl.dispose();

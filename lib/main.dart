@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'controller/order_controller.dart';
+import 'firebase_options.dart';
 
 import 'views/splash_view.dart';
 import 'package:get/get.dart';
@@ -10,7 +11,9 @@ import 'controller/profile_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   Get.put(WishlistController(), permanent: true);
   Get.put(UploadController(), permanent: true);
   Get.put(OrderController(), permanent: true);

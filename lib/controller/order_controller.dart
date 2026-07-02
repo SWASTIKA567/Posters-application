@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,6 +42,7 @@ class CartItem {
 }
 
 class UserAddress {
+  final String? id;
   final String name;
   final String phone;
   final String addressLine;
@@ -49,6 +51,7 @@ class UserAddress {
   final String pincode;
 
   UserAddress({
+    this.id,
     required this.name,
     required this.phone,
     required this.addressLine,
@@ -58,6 +61,25 @@ class UserAddress {
   });
 
   String get fullAddress => '$addressLine, $city, $state - $pincode';
+
+  factory UserAddress.fromMap(String id, Map<String, dynamic> map) => UserAddress(
+        id: id,
+        name: map['name'] ?? '',
+        phone: map['phone'] ?? '',
+        addressLine: map['addressLine'] ?? '',
+        city: map['city'] ?? '',
+        state: map['state'] ?? '',
+        pincode: map['pincode'] ?? '',
+      );
+
+  Map<String, dynamic> toMap() => {
+        'name': name,
+        'phone': phone,
+        'addressLine': addressLine,
+        'city': city,
+        'state': state,
+        'pincode': pincode,
+      };
 }
 
 class OrderController extends GetxController {
@@ -84,14 +106,72 @@ class OrderController extends GetxController {
 
   // ── Address ───────────────────────────────────────────────────────────────
   final Rx<UserAddress?> deliveryAddress = Rx<UserAddress?>(null);
+  final RxList<UserAddress> savedAddresses = <UserAddress>[].obs;
+  
+  StreamSubscription? _addressesSubscription;
+  StreamSubscription? _authSubscription;
 
   void setAddress(UserAddress address) => deliveryAddress.value = address;
+
+  void fetchAddresses() {
+    _addressesSubscription?.cancel();
+    final uid = _uid;
+    if (uid == null) {
+      savedAddresses.clear();
+      return;
+    }
+    _addressesSubscription = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('addresses')
+        .orderBy('savedAt', descending: true)
+        .snapshots()
+        .listen((snap) {
+      savedAddresses.value = snap.docs
+          .map((d) => UserAddress.fromMap(d.id, d.data() as Map<String, dynamic>))
+          .toList();
+
+      // Automatically select the first address if none is selected yet
+      if (deliveryAddress.value == null && savedAddresses.isNotEmpty) {
+        deliveryAddress.value = savedAddresses.first;
+      } else if (deliveryAddress.value != null) {
+        // If the selected address was updated/deleted, keep local deliveryAddress synced
+        final index = savedAddresses.indexWhere((e) => e.id == deliveryAddress.value!.id);
+        if (index != -1) {
+          deliveryAddress.value = savedAddresses[index];
+        } else {
+          deliveryAddress.value = savedAddresses.isNotEmpty ? savedAddresses.first : null;
+        }
+      }
+    });
+  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
-    if (_uid != null) fetchCart();
+    if (_uid != null) {
+      fetchCart();
+      fetchAddresses();
+    }
+    _authSubscription = _auth.authStateChanges().listen((user) {
+      if (user != null) {
+        fetchCart();
+        fetchAddresses();
+      } else {
+        items.clear();
+        deliveryAddress.value = null;
+        savedAddresses.clear();
+        _addressesSubscription?.cancel();
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    _authSubscription?.cancel();
+    _addressesSubscription?.cancel();
+    super.onClose();
   }
 
   // ── Fetch cart from Firestore ─────────────────────────────────────────────

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../themes/app_colors.dart';
-import 'address_view.dart';
+import 'select_address_view.dart';
 import '../controller/order_controller.dart';
 
 class CartView extends StatelessWidget {
@@ -337,7 +337,7 @@ class _AddressSection extends StatelessWidget {
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Get.to(() => const AddressView()),
+                  onTap: () => Get.to(() => const SelectAddressView()),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
