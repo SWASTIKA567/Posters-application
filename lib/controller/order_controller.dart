@@ -294,7 +294,11 @@ class OrderController extends GetxController {
       final uid = _uid!;
 
       // Save order to Firestore
-      await _firestore.collection('users').doc(uid).collection('orders').add({
+      final orderRef = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('orders')
+          .add({
         'userId': uid,
         'items': items
             .map(
@@ -321,6 +325,203 @@ class OrderController extends GetxController {
         'status': 'placed',
         'createdAt': FieldValue.serverTimestamp(),
       });
+
+      // ── Trigger Email Notification ────────────────────────────────────────
+      // The Firebase "Trigger Email" extension watches the top-level `mail`
+      // collection and automatically sends any document added here as an email.
+      final userEmail = _auth.currentUser?.email ?? '';
+      if (userEmail.isNotEmpty) {
+        final shortOrderId = orderRef.id.length > 8
+            ? orderRef.id.substring(0, 8).toUpperCase()
+            : orderRef.id.toUpperCase();
+
+        // Build plain-text item list
+        final itemLines = items.map((e) =>
+          '  • ${e.size} × ${e.quantity} copy  →  ₹${e.totalPrice.toInt()}'
+        ).join('\n');
+
+        // Build HTML item rows
+        final itemRows = items.map((e) => '''
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">
+              <b>${e.size}</b>
+            </td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:center;">
+              ${e.quantity}
+            </td>
+            <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:right;">
+              ₹${e.totalPrice.toInt()}
+            </td>
+          </tr>''').join('');
+
+        final htmlBody = '''
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:16px;overflow:hidden;
+                      box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#D32F2F,#FF5722);
+                        padding:28px 32px;text-align:center;">
+              <h1 style="margin:0;color:#fff;font-size:24px;letter-spacing:-0.5px;">
+                🎉 Order Confirmed!
+              </h1>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                Thank you for your order, ${addr.name}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Order ID -->
+          <tr>
+            <td style="padding:24px 32px 0;text-align:center;">
+              <p style="margin:0;color:#888;font-size:12px;letter-spacing:1px;">ORDER ID</p>
+              <p style="margin:4px 0 0;color:#1a1a1a;font-size:20px;font-weight:bold;">
+                #$shortOrderId
+              </p>
+            </td>
+          </tr>
+
+          <!-- Items Table -->
+          <tr>
+            <td style="padding:24px 32px;">
+              <p style="margin:0 0 12px;color:#1a1a1a;font-weight:bold;font-size:15px;">
+                📦 Items Ordered
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+                <thead>
+                  <tr style="background:#f9f9f9;">
+                    <th style="padding:10px 12px;text-align:left;color:#555;font-size:12px;">
+                      SIZE
+                    </th>
+                    <th style="padding:10px 12px;text-align:center;color:#555;font-size:12px;">
+                      QTY
+                    </th>
+                    <th style="padding:10px 12px;text-align:right;color:#555;font-size:12px;">
+                      PRICE
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>$itemRows</tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Pricing Summary -->
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:6px 0;color:#555;font-size:14px;">Subtotal</td>
+                  <td style="padding:6px 0;text-align:right;color:#1a1a1a;font-size:14px;">
+                    ₹${subtotal.toInt()}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:#555;font-size:14px;">Delivery</td>
+                  <td style="padding:6px 0;text-align:right;color:#1a1a1a;font-size:14px;">
+                    ₹${deliveryCharge.toInt()}
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <hr style="border:none;border-top:1px solid #f0f0f0;margin:8px 0;">
+                  </td>
+                </tr>
+                <tr>
+                  <td style="color:#1a1a1a;font-weight:bold;font-size:16px;">Grand Total</td>
+                  <td style="text-align:right;color:#D32F2F;font-weight:bold;font-size:20px;">
+                    ₹${grandTotal.toInt()}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-top:6px;color:#00796B;font-size:13px;">
+                    💳 Cash on Delivery
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Delivery Address -->
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <div style="background:#f9f9f9;border-radius:10px;padding:16px;">
+                <p style="margin:0 0 8px;font-weight:bold;color:#1a1a1a;font-size:14px;">
+                  📍 Delivery Address
+                </p>
+                <p style="margin:0;color:#555;font-size:13px;line-height:1.6;">
+                  <b>${addr.name}</b> &nbsp;•&nbsp; ${addr.phone}<br>
+                  ${addr.addressLine}, ${addr.city},<br>
+                  ${addr.state} – ${addr.pincode}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9f9f9;padding:20px 32px;text-align:center;
+                        border-top:1px solid #f0f0f0;">
+              <p style="margin:0;color:#aaa;font-size:12px;">
+                You're receiving this because you placed an order on <b>Postly</b>.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>''';
+
+        final plainText = '''
+Hi ${addr.name},
+
+Your Postly order has been placed successfully! 🎉
+
+Order ID: #$shortOrderId
+
+ITEMS ORDERED:
+$itemLines
+
+Subtotal:         ₹${subtotal.toInt()}
+Delivery:         ₹${deliveryCharge.toInt()}
+Grand Total:      ₹${grandTotal.toInt()}
+Payment:          Cash on Delivery
+
+DELIVERY ADDRESS:
+${addr.name} • ${addr.phone}
+${addr.addressLine}, ${addr.city}, ${addr.state} - ${addr.pincode}
+
+Thank you for shopping with Postly!
+''';
+
+        try {
+          await _firestore.collection('mail').add({
+            'to': userEmail,
+            'message': {
+              'subject': '🎉 Order Confirmed – #$shortOrderId | Postly',
+              'text': plainText,
+              'html': htmlBody,
+            },
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } catch (mailErr) {
+          // Non-fatal: order already placed, just log the email error
+          debugPrint('Email trigger error: $mailErr');
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       // Clear cart from Firestore + locally
       await _clearCartInFirestore();
