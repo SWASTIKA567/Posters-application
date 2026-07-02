@@ -113,6 +113,34 @@ class OrderController extends GetxController {
 
   void setAddress(UserAddress address) => deliveryAddress.value = address;
 
+  // ── Orders ────────────────────────────────────────────────────────────────
+  final RxList<Map<String, dynamic>> orders = <Map<String, dynamic>>[].obs;
+  StreamSubscription? _ordersSubscription;
+
+  void fetchOrders() {
+    _ordersSubscription?.cancel();
+    final uid = _uid;
+    if (uid == null) {
+      orders.clear();
+      return;
+    }
+    _ordersSubscription = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('orders')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snap) {
+      orders.value = snap.docs.map((d) {
+        final data = d.data();
+        data['orderId'] = d.id;
+        return data;
+      }).toList();
+    }, onError: (e) {
+      debugPrint('fetchOrders error: $e');
+    });
+  }
+
   void fetchAddresses() {
     _addressesSubscription?.cancel();
     final uid = _uid;
@@ -153,16 +181,20 @@ class OrderController extends GetxController {
     if (_uid != null) {
       fetchCart();
       fetchAddresses();
+      fetchOrders();
     }
     _authSubscription = _auth.authStateChanges().listen((user) {
       if (user != null) {
         fetchCart();
         fetchAddresses();
+        fetchOrders();
       } else {
         items.clear();
         deliveryAddress.value = null;
         savedAddresses.clear();
+        orders.clear();
         _addressesSubscription?.cancel();
+        _ordersSubscription?.cancel();
       }
     });
   }
@@ -171,6 +203,7 @@ class OrderController extends GetxController {
   void onClose() {
     _authSubscription?.cancel();
     _addressesSubscription?.cancel();
+    _ordersSubscription?.cancel();
     super.onClose();
   }
 

@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../controller/profile_controller.dart';
 import '../views/home_view.dart';
 import '../themes/app_colors.dart';
+import 'orders_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -32,6 +33,8 @@ class ProfileView extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: [
+                        const SizedBox(height: 12),
+                        _buildOrderHistoryCard(),
                         const SizedBox(height: 12),
                         _buildSection(
                           title: 'Personal info',
@@ -412,6 +415,69 @@ class ProfileView extends StatelessWidget {
                       letterSpacing: 0.3,
                     ),
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderHistoryCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEEEEEE), width: 0.5),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Get.to(() => const OrdersView()),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Order History',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'View all your placed poster orders',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF888888),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Color(0xFFBBBBBB),
+                size: 14,
+              ),
+            ],
           ),
         ),
       ),

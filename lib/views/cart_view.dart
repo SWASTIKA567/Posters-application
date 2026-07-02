@@ -197,18 +197,31 @@ class _CartItemCard extends StatelessWidget {
           // Poster thumbnail
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              item.imageUrl,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 80,
-                height: 80,
-                color: Colors.black.withOpacity(.08),
-                child: const Icon(Icons.image_outlined, color: Colors.black38),
-              ),
-            ),
+            child: item.imageUrl.startsWith('http')
+                ? Image.network(
+                    item.imageUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.black.withOpacity(.08),
+                      child: const Icon(Icons.image_outlined, color: Colors.black38),
+                    ),
+                  )
+                : Image.asset(
+                    item.imageUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.black.withOpacity(.08),
+                      child: const Icon(Icons.image_outlined, color: Colors.black38),
+                    ),
+                  ),
           ),
           const SizedBox(width: 14),
 
