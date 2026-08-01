@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
+import '../views/home_view.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get to => Get.find();
@@ -15,6 +16,7 @@ class ProfileController extends GetxController {
 
   final isLoading = false.obs;
   final isSaving = false.obs;
+  final isDeleting = false.obs;
   final isEditMode = false.obs;
 
   @override
@@ -89,6 +91,36 @@ class ProfileController extends GetxController {
       );
     } finally {
       isSaving.value = false;
+    }
+  }
+
+  // ── Delete Account (Google Play Policy Requirement) ─────────────────────────
+  Future<void> deleteAccount() async {
+    isDeleting.value = true;
+    try {
+      final res = await ApiService.delete('/users/account');
+      if (res['success'] == true) {
+        ApiService.setAuthToken(null);
+        isDeleting.value = false;
+        Get.offAll(() => const HomeView());
+        Get.snackbar(
+          'Account Deleted',
+          'Your account and all associated data have been permanently removed.',
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
+      } else {
+        isDeleting.value = false;
+        Get.snackbar('Error', res['message'] ?? 'Failed to delete account.');
+      }
+    } catch (e) {
+      isDeleting.value = false;
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+      );
     }
   }
 

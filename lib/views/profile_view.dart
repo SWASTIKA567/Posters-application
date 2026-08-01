@@ -485,36 +485,103 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildLogoutCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEEEEEE), width: 0.5),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () async {
-          ApiService.setAuthToken(null);
-          Get.offAll(() => const HomeView());
-        },
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.logout, color: AppColors.primary, size: 16),
-              SizedBox(width: 6),
-              Text(
-                'Logout',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
+    final controller = Get.find<ProfileController>();
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFEEEEEE), width: 0.5),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () async {
+              ApiService.setAuthToken(null);
+              Get.offAll(() => const HomeView());
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.logout, color: AppColors.primary, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.red.shade200, width: 0.5),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => _confirmDeleteAccount(controller),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.delete_forever_rounded, color: Colors.red, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Delete Account',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _confirmDeleteAccount(ProfileController controller) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          "Delete Account?",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+        ),
+        content: const Text(
+          "This will permanently delete your account, saved addresses, cart items, and wishlist. This action cannot be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteAccount();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text("Delete Permanently", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
