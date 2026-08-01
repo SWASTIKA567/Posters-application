@@ -1,7 +1,7 @@
 // TODO Implement this library.
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../controller/profile_controller.dart';
 import '../views/home_view.dart';
 import '../themes/app_colors.dart';
@@ -494,7 +494,7 @@ class ProfileView extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () async {
-          await FirebaseAuth.instance.signOut();
+          ApiService.setAuthToken(null);
           Get.offAll(() => const HomeView());
         },
         child: const Padding(

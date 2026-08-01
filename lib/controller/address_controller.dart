@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../controller/order_controller.dart';
+import '../controller/profile_controller.dart';
 
 class AddressController extends GetxController {
   static AddressController get to => Get.find();
@@ -15,6 +16,24 @@ class AddressController extends GetxController {
 
   final formKey = GlobalKey<FormState>();
   final RxBool isSaving = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    prefillFromProfile();
+  }
+
+  void prefillFromProfile() {
+    if (Get.isRegistered<ProfileController>()) {
+      final profile = ProfileController.to;
+      if (nameCtrl.text.isEmpty && profile.nameCtrl.text.isNotEmpty) {
+        nameCtrl.text = profile.nameCtrl.text;
+      }
+      if (phoneCtrl.text.isEmpty && profile.phoneCtrl.text.isNotEmpty) {
+        phoneCtrl.text = profile.phoneCtrl.text;
+      }
+    }
+  }
 
   void clearFields() {
     nameCtrl.clear();
