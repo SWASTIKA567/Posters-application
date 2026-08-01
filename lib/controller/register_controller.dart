@@ -1,16 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../views/home_view.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/upload_controller.dart';
 
 class RegisterController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -49,6 +45,7 @@ class RegisterController extends GetxController {
   void toggleConfirmPasswordVisibility() =>
       obscureConfirmPassword.value = !obscureConfirmPassword.value;
 
+  // ── Register User via REST API ──────────────────────────────────────────────
   Future<void> registerWithEmail() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
@@ -77,37 +74,25 @@ class RegisterController extends GetxController {
     errorMessage.value = null;
 
     try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = credential.user!;
-
-      // Update display name in Auth
-      await user.updateDisplayName(name);
-
-      // ── Save user profile to Firestore ────────────────────────────────
-      // This creates users/{uid} doc so you can see every user in console
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
+      final res = await ApiService.post('/auth/register', {
         'name': name,
         'email': email,
-        'photoUrl': user.photoURL ?? '',
-        'provider': 'email',
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLoginAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)); // merge so existing data isn't wiped
+        'password': password,
+      });
 
-      isLoading.value = false;
-      _initControllers();
-      Get.off(() => const HomeView());
-    } on FirebaseAuthException catch (e) {
-      isLoading.value = false;
-      errorMessage.value = _mapError(e.code);
+      if (res['success'] == true && res['token'] != null) {
+        ApiService.setAuthToken(res['token']);
+
+        isLoading.value = false;
+        _initControllers();
+        Get.off(() => const HomeView());
+      } else {
+        isLoading.value = false;
+        errorMessage.value = res['message'] ?? 'Registration failed. Try again.';
+      }
     } catch (e) {
       isLoading.value = false;
-      errorMessage.value = 'Something went wrong. Please try again.';
+      errorMessage.value = e.toString().replaceAll('Exception: ', '');
       debugPrint('Register error: $e');
     }
   }
@@ -121,23 +106,6 @@ class RegisterController extends GetxController {
     }
     if (!Get.isRegistered<UploadController>()) {
       Get.put(UploadController(), permanent: true);
-    }
-  }
-
-  String _mapError(String code) {
-    switch (code) {
-      case 'email-already-in-use':
-        return 'An account with this email already exists.';
-      case 'invalid-email':
-        return 'Please enter a valid email.';
-      case 'weak-password':
-        return 'Password is too weak. Use at least 6 characters.';
-      case 'operation-not-allowed':
-        return 'Email/password accounts are not enabled.';
-      case 'too-many-requests':
-        return 'Too many attempts. Try again later.';
-      default:
-        return 'Something went wrong. Please try again.';
     }
   }
 

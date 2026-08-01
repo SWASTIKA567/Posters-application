@@ -1,16 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../views/home_view.dart';
 import '../controller/upload_controller.dart';
 
 class LoginController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -35,7 +31,7 @@ class LoginController extends GetxController {
   void togglePasswordVisibility() =>
       obscurePassword.value = !obscurePassword.value;
 
-  // ── Email & Password Login ────────────────────────────────────────────────
+  // ── Email & Password Login via REST API ────────────────────────────────────
   Future<void> loginWithEmail() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -49,33 +45,25 @@ class LoginController extends GetxController {
     errorMessage.value = null;
 
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final res = await ApiService.post('/auth/login', {
+        'email': email,
+        'password': password,
+      });
 
-      final user = credential.user!;
+      if (res['success'] == true && res['token'] != null) {
+        // Save JWT token in ApiService
+        ApiService.setAuthToken(res['token']);
 
-      // ── Update lastLoginAt in Firestore ───────────────────────────────
-      // Also creates the user doc if somehow missing (e.g. old accounts)
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'name': user.displayName ?? '',
-        'email': user.email ?? email,
-        'photoUrl': user.photoURL ?? '',
-        'provider': 'email',
-        'lastLoginAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)); // merge = never overwrite existing fields
-
-      isLoading.value = false;
-      _initControllers();
-      Get.off(() => const HomeView());
-    } on FirebaseAuthException catch (e) {
-      isLoading.value = false;
-      errorMessage.value = _mapError(e.code);
+        isLoading.value = false;
+        _initControllers();
+        Get.off(() => const HomeView());
+      } else {
+        isLoading.value = false;
+        errorMessage.value = res['message'] ?? 'Login failed. Try again.';
+      }
     } catch (e) {
       isLoading.value = false;
-      errorMessage.value = 'Something went wrong. Please try again.';
+      errorMessage.value = e.toString().replaceAll('Exception: ', '');
       debugPrint('Login error: $e');
     }
   }
@@ -89,24 +77,6 @@ class LoginController extends GetxController {
     }
     if (!Get.isRegistered<UploadController>()) {
       Get.put(UploadController(), permanent: true);
-    }
-  }
-
-  // ── Error Mapping ─────────────────────────────────────────────────────────
-  String _mapError(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'No account found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password. Try again.';
-      case 'invalid-email':
-        return 'Please enter a valid email.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many attempts. Try again later.';
-      default:
-        return 'Something went wrong. Please try again.';
     }
   }
 

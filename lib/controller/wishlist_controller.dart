@@ -1,28 +1,17 @@
-// TODO Implement this library.
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../model/wishlist_model.dart';
 
 class WishlistController extends GetxController {
   static WishlistController get to => Get.find();
 
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final FirebaseAuth auth = FirebaseAuth.instance;
-
   RxList<WishlistItem> wishlist = <WishlistItem>[].obs;
-
-  CollectionReference get _collection => firestore
-      .collection('users')
-      .doc(auth.currentUser!.uid)
-      .collection('wishlist');
 
   @override
   void onInit() {
     super.onInit();
-    if (auth.currentUser != null) {
-      fetchWishlist();
-    }
+    fetchWishlist();
   }
 
   Future<void> addToWishlist({
@@ -32,26 +21,28 @@ class WishlistController extends GetxController {
     final alreadyAdded = wishlist.any((item) => item.title == title);
     if (alreadyAdded) return;
 
-    await _collection.add({
-      'title': title,
-      'image': image,
-      'createdAt': Timestamp.now(),
-    });
-
-    await fetchWishlist();
+    try {
+      await ApiService.post('/wishlist/toggle', {
+        'title': title,
+        'image': image,
+      });
+      await fetchWishlist();
+    } catch (e) {
+      debugPrint('addToWishlist error: $e');
+    }
   }
 
   Future<void> fetchWishlist() async {
-    final snapshot = await _collection
-        .orderBy('createdAt', descending: true)
-        .get();
-
-    wishlist.value = snapshot.docs
-        .map(
-          (doc) =>
-              WishlistItem.fromMap(doc.id, doc.data() as Map<String, dynamic>),
-        )
-        .toList();
+    try {
+      final res = await ApiService.get('/wishlist');
+      if (res['success'] == true && res['wishlist'] != null) {
+        wishlist.value = (res['wishlist'] as List)
+            .map((doc) => WishlistItem.fromMap(doc['_id'], Map<String, dynamic>.from(doc)))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('fetchWishlist error: $e');
+    }
   }
 
   bool isWishlisted(String title) {
@@ -59,7 +50,11 @@ class WishlistController extends GetxController {
   }
 
   Future<void> removeWishlist(String docId) async {
-    await _collection.doc(docId).delete();
-    await fetchWishlist();
+    try {
+      await ApiService.delete('/wishlist/$docId');
+      await fetchWishlist();
+    } catch (e) {
+      debugPrint('removeWishlist error: $e');
+    }
   }
 }

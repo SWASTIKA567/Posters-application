@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-import 'package:firebase_auth/firebase_auth.dart'; //
-
+import '../services/api_service.dart';
 import '../controller/order_controller.dart';
 
 class PosterSize {
@@ -23,7 +19,6 @@ class PosterSize {
 
 class UploadController extends GetxController {
   static UploadController get to => Get.find();
-  final FirebaseAuth auth = FirebaseAuth.instance;
 
   // ── Image ──────────────────────────────────────────────────────────────────
   final Rx<File?> pickedImage = Rx<File?>(null);
@@ -72,33 +67,22 @@ class UploadController extends GetxController {
     }
   }
 
-  // ── Firebase Upload ────────────────────────────────────────────────────────
-  Future<String?> _uploadToStorage(File image) async {
+  // ── Upload Image to Backend ────────────────────────────────────────────────
+  Future<String?> _uploadToServer(File image) async {
     try {
       isUploading.value = true;
-      uploadProgress.value = 0;
-      final uid = auth.currentUser!.uid;
+      uploadProgress.value = 0.5;
 
-      final String fileName = '${const Uuid().v4()}.jpg';
-      final ref = FirebaseStorage.instance.ref().child(
-        'poster_uploads/$uid/$fileName',
-      );
+      final url = await ApiService.uploadImage(image);
 
-      final uploadTask = ref.putFile(image);
-
-      uploadTask.snapshotEvents.listen((snap) {
-        uploadProgress.value = snap.bytesTransferred / snap.totalBytes;
-      });
-
-      final snapshot = await uploadTask;
-      final url = await snapshot.ref.getDownloadURL();
+      uploadProgress.value = 1.0;
       isUploading.value = false;
       return url;
     } catch (e) {
       isUploading.value = false;
       Get.snackbar(
         'Upload Failed',
-        e.toString(),
+        e.toString().replaceAll('Exception: ', ''),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );
@@ -122,7 +106,7 @@ class UploadController extends GetxController {
 
     // 1. Upload image if not already uploaded
     if (uploadedImageUrl.value.isEmpty) {
-      final url = await _uploadToStorage(pickedImage.value!);
+      final url = await _uploadToServer(pickedImage.value!);
       if (url == null) {
         isAddingToCart.value = false;
         return;
@@ -130,55 +114,51 @@ class UploadController extends GetxController {
       uploadedImageUrl.value = url;
     }
 
-    // 2. Save order to Firestore
+    // 2. Save order to backend via API
     try {
-      final uid = auth.currentUser!.uid;
+      final res = await ApiService.post('/cart', {
+        'imageUrl': uploadedImageUrl.value,
+        'size': selectedSize.label,
+        'quantity': quantity.value,
+        'totalPrice': totalPrice,
+      });
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('cart_orders')
-          .add({
-            'userId': uid,
-            'imageUrl': uploadedImageUrl.value,
-            'size': selectedSize.label,
-            'dimensions': selectedSize.dimensions,
-            'pricePerUnit': selectedSize.price,
-            'quantity': quantity.value,
-            'totalPrice': totalPrice,
-            'createdAt': FieldValue.serverTimestamp(),
-            'status': 'in_cart',
-          });
+      if (res['success'] == true) {
+        // 3. Update local cart in OrderController
+        final String docId = res['item']?['_id'] ?? '';
+        OrderController.to.addItem(
+          CartItem(
+            docId: docId,
+            imageUrl: uploadedImageUrl.value,
+            size: selectedSize.label,
+            quantity: quantity.value,
+            totalPrice: totalPrice,
+            addedAt: DateTime.now(),
+          ),
+        );
 
-      // 3. Update local cart
-      OrderController.to.addItem(
-        CartItem(
-          imageUrl: uploadedImageUrl.value,
-          size: selectedSize.label,
-          quantity: quantity.value,
-          totalPrice: totalPrice,
-          addedAt: DateTime.now(),
-        ),
-      );
+        isAddingToCart.value = false;
 
-      isAddingToCart.value = false;
+        // 4. Success feedback
+        Get.snackbar(
+          '🎉 Added to Cart!',
+          '${quantity.value}× ${selectedSize.label} poster added.',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
 
-      // 4. Success feedback
-      Get.snackbar(
-        '🎉 Added to Cart!',
-        '${quantity.value}× ${selectedSize.label} poster added.',
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-      );
-
-      // Reset for next upload
-      _reset();
+        // Reset for next upload
+        _reset();
+      } else {
+        isAddingToCart.value = false;
+        Get.snackbar('Error', res['message'] ?? 'Failed to add item to cart');
+      }
     } catch (e) {
       isAddingToCart.value = false;
       Get.snackbar(
         'Error',
-        e.toString(),
+        e.toString().replaceAll('Exception: ', ''),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

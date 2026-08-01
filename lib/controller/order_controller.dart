@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import '../services/api_service.dart';
 
 class CartItem {
-  final String? docId; // Firestore doc ID (null for local-only items)
+  final String? docId;
   final String imageUrl;
   final String size;
   final int quantity;
@@ -23,24 +22,23 @@ class CartItem {
     required this.addedAt,
   });
 
-  Map<String, dynamic> toMap(String uid) => {
-    'userId': uid,
-    'imageUrl': imageUrl,
-    'size': size,
-    'quantity': quantity,
-    'totalPrice': totalPrice,
-    'addedAt': Timestamp.fromDate(addedAt),
-    'status': 'in_cart',
-  };
+  Map<String, dynamic> toMap() => {
+        'imageUrl': imageUrl,
+        'size': size,
+        'quantity': quantity,
+        'totalPrice': totalPrice,
+      };
 
   factory CartItem.fromMap(String docId, Map<String, dynamic> map) => CartItem(
-    docId: docId,
-    imageUrl: map['imageUrl'] ?? '',
-    size: map['size'] ?? 'A4',
-    quantity: map['quantity'] ?? 1,
-    totalPrice: (map['totalPrice'] ?? 0).toDouble(),
-    addedAt: (map['addedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-  );
+        docId: docId,
+        imageUrl: map['imageUrl'] ?? '',
+        size: map['size'] ?? 'A4',
+        quantity: map['quantity'] ?? 1,
+        totalPrice: (map['totalPrice'] ?? 0).toDouble(),
+        addedAt: map['createdAt'] != null
+            ? DateTime.parse(map['createdAt'])
+            : DateTime.now(),
+      );
 }
 
 class UserAddress {
@@ -87,22 +85,12 @@ class UserAddress {
 class OrderController extends GetxController {
   static OrderController get to => Get.find();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // ── EmailJS Settings ───────────────────────────────────────────────────────
-  // Setup your keys at https://www.emailjs.com/
   static const String _emailJsServiceId = 'YOUR_EMAILJS_SERVICE_ID';
   static const String _emailJsTemplateId = 'YOUR_EMAILJS_TEMPLATE_ID';
   static const String _emailJsPublicKey = 'YOUR_EMAILJS_PUBLIC_KEY';
 
   // ── Cart ──────────────────────────────────────────────────────────────────
   final RxList<CartItem> items = <CartItem>[].obs;
-
-  String? get _uid => _auth.currentUser?.uid;
-
-  CollectionReference get _cartRef =>
-      _firestore.collection('users').doc(_uid).collection('cart');
 
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
 
@@ -115,168 +103,102 @@ class OrderController extends GetxController {
   // ── Address ───────────────────────────────────────────────────────────────
   final Rx<UserAddress?> deliveryAddress = Rx<UserAddress?>(null);
   final RxList<UserAddress> savedAddresses = <UserAddress>[].obs;
-  
-  StreamSubscription? _addressesSubscription;
-  StreamSubscription? _authSubscription;
 
   void setAddress(UserAddress address) => deliveryAddress.value = address;
 
   // ── Orders ────────────────────────────────────────────────────────────────
   final RxList<Map<String, dynamic>> orders = <Map<String, dynamic>>[].obs;
-  StreamSubscription? _ordersSubscription;
 
-  void fetchOrders() {
-    _ordersSubscription?.cancel();
-    final uid = _uid;
-    if (uid == null) {
-      orders.clear();
-      return;
-    }
-    _ordersSubscription = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('orders')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .listen((snap) {
-      orders.value = snap.docs.map((d) {
-        final data = d.data();
-        data['orderId'] = d.id;
-        return data;
-      }).toList();
-    }, onError: (e) {
+  Future<void> fetchOrders() async {
+    try {
+      final res = await ApiService.get('/orders');
+      if (res['success'] == true && res['orders'] != null) {
+        orders.value = (res['orders'] as List).map((e) {
+          final data = Map<String, dynamic>.from(e);
+          data['orderId'] = e['_id'];
+          return data;
+        }).toList();
+      }
+    } catch (e) {
       debugPrint('fetchOrders error: $e');
-    });
+    }
   }
 
-  void fetchAddresses() {
-    _addressesSubscription?.cancel();
-    final uid = _uid;
-    if (uid == null) {
-      savedAddresses.clear();
-      return;
-    }
-    _addressesSubscription = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('addresses')
-        .orderBy('savedAt', descending: true)
-        .snapshots()
-        .listen((snap) {
-      savedAddresses.value = snap.docs
-          .map((d) => UserAddress.fromMap(d.id, d.data() as Map<String, dynamic>))
-          .toList();
+  Future<void> fetchAddresses() async {
+    try {
+      final res = await ApiService.get('/addresses');
+      if (res['success'] == true && res['addresses'] != null) {
+        savedAddresses.value = (res['addresses'] as List)
+            .map((d) => UserAddress.fromMap(d['_id'], Map<String, dynamic>.from(d)))
+            .toList();
 
-      // Automatically select the first address if none is selected yet
-      if (deliveryAddress.value == null && savedAddresses.isNotEmpty) {
-        deliveryAddress.value = savedAddresses.first;
-      } else if (deliveryAddress.value != null) {
-        // If the selected address was updated/deleted, keep local deliveryAddress synced
-        final index = savedAddresses.indexWhere((e) => e.id == deliveryAddress.value!.id);
-        if (index != -1) {
-          deliveryAddress.value = savedAddresses[index];
-        } else {
-          deliveryAddress.value = savedAddresses.isNotEmpty ? savedAddresses.first : null;
+        if (deliveryAddress.value == null && savedAddresses.isNotEmpty) {
+          deliveryAddress.value = savedAddresses.first;
         }
       }
-    });
+    } catch (e) {
+      debugPrint('fetchAddresses error: $e');
+    }
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
-    if (_uid != null) {
-      fetchCart();
-      fetchAddresses();
-      fetchOrders();
-    }
-    _authSubscription = _auth.authStateChanges().listen((user) {
-      if (user != null) {
-        fetchCart();
-        fetchAddresses();
-        fetchOrders();
-      } else {
-        items.clear();
-        deliveryAddress.value = null;
-        savedAddresses.clear();
-        orders.clear();
-        _addressesSubscription?.cancel();
-        _ordersSubscription?.cancel();
-      }
-    });
+    fetchCart();
+    fetchAddresses();
+    fetchOrders();
   }
 
-  @override
-  void onClose() {
-    _authSubscription?.cancel();
-    _addressesSubscription?.cancel();
-    _ordersSubscription?.cancel();
-    super.onClose();
-  }
-
-  // ── Fetch cart from Firestore ─────────────────────────────────────────────
+  // ── Fetch Cart via REST API ───────────────────────────────────────────────
   Future<void> fetchCart() async {
-    if (_uid == null) return;
     try {
-      final snap = await _cartRef.orderBy('addedAt', descending: false).get();
-      items.value = snap.docs
-          .map((d) => CartItem.fromMap(d.id, d.data() as Map<String, dynamic>))
-          .toList();
+      final res = await ApiService.get('/cart');
+      if (res['success'] == true && res['items'] != null) {
+        items.value = (res['items'] as List)
+            .map((d) => CartItem.fromMap(d['_id'], Map<String, dynamic>.from(d)))
+            .toList();
+      }
     } catch (e) {
       debugPrint('fetchCart error: $e');
     }
   }
 
-  // ── Add item — saves to Firestore + local list ────────────────────────────
+  // ── Add Item ───────────────────────────────────────────────────────────────
   Future<void> addItem(CartItem item) async {
-    if (_uid == null) {
-      items.add(item);
-      return;
-    }
     try {
-      final doc = await _cartRef.add(item.toMap(_uid!));
-      // Store with docId so we can delete it later
-      items.add(
-        CartItem(
-          docId: doc.id,
-          imageUrl: item.imageUrl,
-          size: item.size,
-          quantity: item.quantity,
-          totalPrice: item.totalPrice,
-          addedAt: item.addedAt,
-        ),
-      );
+      final res = await ApiService.post('/cart', item.toMap());
+      if (res['success'] == true && res['item'] != null) {
+        final docId = res['item']['_id'];
+        items.add(
+          CartItem(
+            docId: docId,
+            imageUrl: item.imageUrl,
+            size: item.size,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice,
+            addedAt: item.addedAt,
+          ),
+        );
+      } else {
+        items.add(item);
+      }
     } catch (e) {
       debugPrint('addItem error: $e');
-      items.add(item); // still add locally so UI doesn't break
+      items.add(item);
     }
   }
 
-  // ── Remove item — deletes from Firestore + local list ────────────────────
+  // ── Remove Item ────────────────────────────────────────────────────────────
   Future<void> removeItem(int index) async {
     if (index < 0 || index >= items.length) return;
     final item = items[index];
     items.removeAt(index);
-    if (_uid != null && item.docId != null) {
+    if (item.docId != null) {
       try {
-        await _cartRef.doc(item.docId).delete();
+        await ApiService.delete('/cart/${item.docId}');
       } catch (e) {
         debugPrint('removeItem error: $e');
       }
-    }
-  }
-
-  // ── Clear entire cart from Firestore ─────────────────────────────────────
-  Future<void> _clearCartInFirestore() async {
-    if (_uid == null) return;
-    try {
-      final snap = await _cartRef.get();
-      for (final doc in snap.docs) {
-        await doc.reference.delete();
-      }
-    } catch (e) {
-      debugPrint('clearCart error: $e');
     }
   }
 
@@ -299,113 +221,38 @@ class OrderController extends GetxController {
     isPlacingOrder.value = true;
     try {
       final addr = deliveryAddress.value!;
-      final uid = _uid!;
 
-      // Save order to Firestore
-      final orderRef = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('orders')
-          .add({
-        'userId': uid,
-        'items': items
-            .map(
-              (e) => {
-                'imageUrl': e.imageUrl,
-                'size': e.size,
-                'quantity': e.quantity,
-                'totalPrice': e.totalPrice,
-              },
-            )
-            .toList(),
-        'address': {
-          'name': addr.name,
-          'phone': addr.phone,
-          'addressLine': addr.addressLine,
-          'city': addr.city,
-          'state': addr.state,
-          'pincode': addr.pincode,
-        },
+      final res = await ApiService.post('/orders', {
+        'items': items.map((e) => e.toMap()).toList(),
+        'deliveryAddress': addr.toMap(),
         'subtotal': subtotal,
         'deliveryCharge': deliveryCharge,
         'grandTotal': grandTotal,
         'paymentMethod': 'Cash on Delivery',
-        'status': 'placed',
-        'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // ── Trigger Email Notification (EmailJS) ──────────────────────────────
-      // Sends a POST request to EmailJS API directly from the app.
-      final userEmail = _auth.currentUser?.email ?? '';
-      if (userEmail.isNotEmpty) {
-        final shortOrderId = orderRef.id.length > 8
-            ? orderRef.id.substring(0, 8).toUpperCase()
-            : orderRef.id.toUpperCase();
+      if (res['success'] == true) {
+        items.clear();
+        deliveryAddress.value = null;
+        isPlacingOrder.value = false;
+        fetchOrders();
 
-        // Build a readable summary of items
-        final itemsSummary = items.map((e) =>
-          '${e.size} × ${e.quantity} (₹${e.totalPrice.toInt()})'
-        ).join(', ');
-
-        try {
-          if (_emailJsServiceId == 'YOUR_EMAILJS_SERVICE_ID' ||
-              _emailJsTemplateId == 'YOUR_EMAILJS_TEMPLATE_ID' ||
-              _emailJsPublicKey == 'YOUR_EMAILJS_PUBLIC_KEY') {
-            debugPrint('⚠️ Please configure your EmailJS credentials in order_controller.dart');
-          } else {
-            final response = await http.post(
-              Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
-              headers: {
-                'Content-Type': 'application/json',
-                'origin': 'http://localhost',
-              },
-              body: jsonEncode({
-                'service_id': _emailJsServiceId,
-                'template_id': _emailJsTemplateId,
-                'user_id': _emailJsPublicKey,
-                'template_params': {
-                  'to_email': userEmail,
-                  'to_name': addr.name,
-                  'order_id': shortOrderId,
-                  'items_summary': itemsSummary,
-                  'grand_total': '₹${grandTotal.toInt()}',
-                  'delivery_address': addr.fullAddress,
-                  'payment_method': 'Cash on Delivery',
-                },
-              }),
-            );
-
-            if (response.statusCode != 200) {
-              debugPrint('EmailJS error response: ${response.body}');
-            } else {
-              debugPrint('EmailJS confirmation sent successfully!');
-            }
-          }
-        } catch (mailErr) {
-          // Non-fatal: order already placed, just log the email error
-          debugPrint('EmailJS trigger error: $mailErr');
-        }
+        Get.snackbar(
+          '🎉 Order Placed!',
+          'Your order has been placed successfully.',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else {
+        isPlacingOrder.value = false;
+        Get.snackbar('Error', res['message'] ?? 'Failed to place order.');
       }
-      // ─────────────────────────────────────────────────────────────────────
-
-      // Clear cart from Firestore + locally
-      await _clearCartInFirestore();
-      items.clear();
-      deliveryAddress.value = null;
-      isPlacingOrder.value = false;
-
-      Get.snackbar(
-        '🎉 Order Placed!',
-        'Your order has been placed successfully.',
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
     } catch (e) {
       isPlacingOrder.value = false;
       Get.snackbar(
         'Error',
-        e.toString(),
+        e.toString().replaceAll('Exception: ', ''),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

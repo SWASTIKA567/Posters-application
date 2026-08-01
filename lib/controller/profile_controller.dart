@@ -1,14 +1,9 @@
-import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../services/api_service.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get to => Get.find();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
@@ -22,73 +17,35 @@ class ProfileController extends GetxController {
   final isSaving = false.obs;
   final isEditMode = false.obs;
 
-  User? get currentUser => _auth.currentUser;
-
-  StreamSubscription? _authSub;
-  StreamSubscription? _addressesSub;
-
   @override
   void onInit() {
     super.onInit();
-    _authSub = _auth.authStateChanges().listen((user) {
-      loadProfile();
-    });
+    loadProfile();
   }
 
   Future<void> loadProfile() async {
     isLoading.value = true;
     try {
-      final uid = currentUser?.uid;
-      if (uid == null) {
-        nameCtrl.clear();
-        emailCtrl.clear();
-        phoneCtrl.clear();
-        addressCtrl.clear();
-        cityCtrl.clear();
-        stateCtrl.clear();
-        pincodeCtrl.clear();
-        return;
+      final res = await ApiService.get('/users/profile');
+      if (res['success'] == true && res['user'] != null) {
+        final user = res['user'];
+        nameCtrl.text = user['name'] ?? '';
+        emailCtrl.text = user['email'] ?? '';
+        phoneCtrl.text = user['phone'] ?? '';
       }
 
-      // Reload user to get latest displayName (needed right after registration)
-      await _auth.currentUser?.reload();
-
-      nameCtrl.text = _auth.currentUser?.displayName ?? '';
-      emailCtrl.text = _auth.currentUser?.email ?? '';
-
-      _addressesSub?.cancel();
-      _addressesSub = _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('addresses')
-          .orderBy('savedAt', descending: true)
-          .limit(1)
-          .snapshots()
-          .listen((snap) {
-        if (!isEditMode.value) {
-          if (snap.docs.isNotEmpty) {
-            final data = snap.docs.first.data();
-            phoneCtrl.text = data['phone'] ?? '';
-            addressCtrl.text = data['addressLine'] ?? '';
-            cityCtrl.text = data['city'] ?? '';
-            stateCtrl.text = data['state'] ?? '';
-            pincodeCtrl.text = data['pincode'] ?? '';
-          } else {
-            phoneCtrl.clear();
-            addressCtrl.clear();
-            cityCtrl.clear();
-            stateCtrl.clear();
-            pincodeCtrl.clear();
-          }
-        }
-      });
+      final addrRes = await ApiService.get('/addresses');
+      if (addrRes['success'] == true &&
+          addrRes['addresses'] != null &&
+          (addrRes['addresses'] as List).isNotEmpty) {
+        final data = addrRes['addresses'][0];
+        addressCtrl.text = data['addressLine'] ?? '';
+        cityCtrl.text = data['city'] ?? '';
+        stateCtrl.text = data['state'] ?? '';
+        pincodeCtrl.text = data['pincode'] ?? '';
+      }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        backgroundColor: const Color(0xFFD32F2F),
-        colorText: Colors.white,
-      );
+      debugPrint('loadProfile error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -99,40 +56,20 @@ class ProfileController extends GetxController {
   Future<void> saveProfile() async {
     isSaving.value = true;
     try {
-      final uid = currentUser?.uid;
-      if (uid == null) return;
-
-      // Update display name in Firebase Auth
-      await currentUser?.updateDisplayName(nameCtrl.text.trim());
-
-      // Update/create address doc
-      final addressSnap = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('addresses')
-          .orderBy('savedAt', descending: true)
-          .limit(1)
-          .get();
-
-      final addressData = {
-        'userId': uid,
+      await ApiService.put('/users/profile', {
         'name': nameCtrl.text.trim(),
         'phone': phoneCtrl.text.trim(),
-        'addressLine': addressCtrl.text.trim(),
-        'city': cityCtrl.text.trim(),
-        'state': stateCtrl.text.trim(),
-        'pincode': pincodeCtrl.text.trim(),
-        'savedAt': FieldValue.serverTimestamp(),
-      };
+      });
 
-      if (addressSnap.docs.isNotEmpty) {
-        await addressSnap.docs.first.reference.update(addressData);
-      } else {
-        await _firestore
-            .collection('users')
-            .doc(uid)
-            .collection('addresses')
-            .add(addressData);
+      if (addressCtrl.text.trim().isNotEmpty) {
+        await ApiService.post('/addresses', {
+          'name': nameCtrl.text.trim(),
+          'phone': phoneCtrl.text.trim(),
+          'addressLine': addressCtrl.text.trim(),
+          'city': cityCtrl.text.trim(),
+          'state': stateCtrl.text.trim(),
+          'pincode': pincodeCtrl.text.trim(),
+        });
       }
 
       isEditMode.value = false;
@@ -146,7 +83,7 @@ class ProfileController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        e.toString(),
+        e.toString().replaceAll('Exception: ', ''),
         backgroundColor: const Color(0xFFD32F2F),
         colorText: Colors.white,
       );
@@ -157,8 +94,6 @@ class ProfileController extends GetxController {
 
   @override
   void onClose() {
-    _authSub?.cancel();
-    _addressesSub?.cancel();
     nameCtrl.dispose();
     emailCtrl.dispose();
     phoneCtrl.dispose();
