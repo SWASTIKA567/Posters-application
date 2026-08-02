@@ -70,6 +70,20 @@ class ApiService {
     }
   }
 
+  // ── PATCH Request ────────────────────────────────────────────────────────────
+  static Future<dynamic> patch(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: _headers(),
+        body: jsonEncode(body),
+      );
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
   // ── DELETE Request ──────────────────────────────────────────────────────────
   static Future<dynamic> delete(String endpoint) async {
     try {

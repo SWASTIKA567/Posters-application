@@ -258,4 +258,45 @@ class OrderController extends GetxController {
       );
     }
   }
+
+  // ── Cancel Order (only if Pending) ────────────────────────────────────────
+  Future<void> cancelOrder(String orderId) async {
+    try {
+      final res = await ApiService.patch('/orders/$orderId/cancel', {});
+      if (res['success'] == true) {
+        // Immediately update local list so UI reflects without extra fetch
+        final idx = orders.indexWhere(
+          (o) => (o['_id'] ?? o['orderId']).toString() == orderId,
+        );
+        if (idx != -1) {
+          final updated = Map<String, dynamic>.from(orders[idx]);
+          updated['status'] = 'Cancelled';
+          orders[idx] = updated;
+          orders.refresh();
+        }
+        Get.snackbar(
+          '🚫 Order Cancelled',
+          'Your order has been cancelled successfully.',
+          backgroundColor: Colors.red.shade700,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else {
+        Get.snackbar(
+          'Cannot Cancel',
+          res['message'] ?? 'Only Pending orders can be cancelled.',
+          backgroundColor: Colors.orange.shade800,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+      );
+    }
+  }
 }
+
