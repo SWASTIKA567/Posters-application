@@ -182,17 +182,16 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLogo() {
     return Column(
       children: [
-        ShaderMask(
-          shaderCallback: (b) =>
-              const LinearGradient(colors: AppColors.logoGrad).createShader(b),
-          child: const Text(
-            'postly.',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -1,
-            ),
+        // Kechi logo image
+        Container(
+          width: 200,
+          height: 80,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Image.asset(
+            'assets/kechi_logo.png',
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(height: 10),
@@ -299,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           _InputField(
             label: 'email address',
-            hint: 'you@postly.app',
+            hint: 'you@kechi.app',
             controller: _ctrl.emailController,
             focusNode: _ctrl.emailFocus,
             isFocused: _ctrl.emailFocused.value,

@@ -5,39 +5,41 @@ import 'package:get/get.dart';
 import 'login_view.dart';
 
 class AppColors {
-  static const bg = Color(0xFF0A0A0F);
-  static const purple = Color(0xFFA78BFA);
-  static const blue = Color(0xFF38BDF8);
-  static const green = Color(0xFF34D399);
-  static const pink = Color(0xFFF472B6);
-  static const amber = Color(0xFFFBBF24);
+  // Kechi brand palette — deep crimson, maroon, gold
+  static const bg = Color(0xFF0D0608);          // near-black with red tint
+  static const crimson = Color(0xFF8B0000);
+  static const maroon  = Color(0xFF6B1A1A);
+  static const gold    = Color(0xFFC9A227);
+  static const rust    = Color(0xFFAF3D1A);
+  static const cream   = Color(0xFFF5E9D7);
 
   static const List<Color> logoGrad = [
-    Color(0xFFA78BFA),
-    Color(0xFF38BDF8),
-    Color(0xFF34D399),
+    Color(0xFF8B0000),
+    Color(0xFFC9A227),
+    Color(0xFF8B0000),
   ];
-  static const List<Color> primaryGrad = [Color(0xFF7C3AED), Color(0xFF3B82F6)];
+  static const List<Color> primaryGrad = [Color(0xFF8B0000), Color(0xFFC9A227)];
 
+  // Poster card gradients — all in crimson/maroon/gold family
   static const List<Color> p1 = [
-    Color(0xFF1e1040),
-    Color(0xFF7C3AED),
-    Color(0xFF3B82F6),
+    Color(0xFF1a0505),
+    Color(0xFF8B0000),
+    Color(0xFFAF3D1A),
   ];
   static const List<Color> p2 = [
-    Color(0xFF2d0a1e),
-    Color(0xFFEC4899),
-    Color(0xFFFBBF24),
+    Color(0xFF1a0a00),
+    Color(0xFFC9A227),
+    Color(0xFF8B4513),
   ];
   static const List<Color> p3 = [
-    Color(0xFF0a1f1a),
-    Color(0xFF10B981),
-    Color(0xFF38BDF8),
+    Color(0xFF2a0505),
+    Color(0xFF6B1A1A),
+    Color(0xFFC9A227),
   ];
   static const List<Color> p4 = [
-    Color(0xFFFAC775),
-    Color(0xFFD4537E),
-    Color(0xFF534AB7),
+    Color(0xFF1a0808),
+    Color(0xFFAF3D1A),
+    Color(0xFF8B0000),
   ];
 }
 
@@ -73,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _logoCtrl;
   late final AnimationController _tagCtrl;
   late final AnimationController _taglineCtrl;
+  late final AnimationController _glowCtrl;
 
   late final List<Animation<double>> _posterAnimations;
   late final Animation<double> _overlayAnim;
@@ -80,10 +83,11 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _logoOpacityAnim;
   late final Animation<double> _tagAnim;
   late final Animation<double> _taglineAnim;
+  late final Animation<double> _glowAnim;
 
   static const _flightDuration = Duration(milliseconds: 950);
-  static const _gapBetween = Duration(milliseconds: 420);
-  static const _pauseAt = Duration(milliseconds: 220);
+  static const _gapBetween     = Duration(milliseconds: 420);
+  static const _pauseAt        = Duration(milliseconds: 220);
 
   final _posters = [
     PosterConfig(
@@ -120,11 +124,11 @@ class _SplashScreenState extends State<SplashScreen>
     ),
   ];
 
-  int _activePoster = -1;
-  bool _showOverlay = false;
-  bool _showLogo = false;
-  bool _showTag = false;
-  bool _showTagline = false;
+  int  _activePoster  = -1;
+  bool _showOverlay   = false;
+  bool _showLogo      = false;
+  bool _showTag       = false;
+  bool _showTagline   = false;
 
   @override
   void initState() {
@@ -147,10 +151,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 800),
     );
     _logoScaleAnim = Tween<double>(
-      begin: 0.65,
+      begin: 0.60,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.easeInOutBack));
     _logoOpacityAnim = Tween<double>(
@@ -169,6 +173,12 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 400),
     );
     _taglineAnim = CurvedAnimation(parent: _taglineCtrl, curve: Curves.easeOut);
+
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+    _glowAnim = CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut);
 
     _runSequence();
   }
@@ -197,18 +207,18 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     setState(() => _showLogo = true);
     _logoCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 550));
 
     if (!mounted) return;
     setState(() => _showTag = true);
     _tagCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 420));
 
     if (!mounted) return;
     setState(() => _showTagline = true);
     _taglineCtrl.forward();
 
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2200));
     if (!mounted) return;
 
     Get.off(
@@ -225,6 +235,7 @@ class _SplashScreenState extends State<SplashScreen>
     _logoCtrl.dispose();
     _tagCtrl.dispose();
     _taglineCtrl.dispose();
+    _glowCtrl.dispose();
     super.dispose();
   }
 
@@ -238,17 +249,61 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: AppColors.bg,
       body: Stack(
         children: [
+          // Rich radial background matching Kechi crimson/gold
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _glowAnim,
+              builder: (_, __) => Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.3),
+                    radius: 1.2,
+                    colors: [
+                      AppColors.crimson.withOpacity(0.18 + _glowAnim.value * 0.07),
+                      AppColors.maroon.withOpacity(0.08),
+                      AppColors.bg,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Gold shimmer accent (bottom)
+          Positioned(
+            bottom: -60,
+            left: 0,
+            right: 0,
+            child: AnimatedBuilder(
+              animation: _glowAnim,
+              builder: (_, __) => Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 0.8,
+                    colors: [
+                      AppColors.gold.withOpacity(0.07 + _glowAnim.value * 0.05),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Poster cards flying through
           ...List.generate(_posters.length, (i) {
             final p = _posters[i];
-            final halfDur = _flightDuration.inMilliseconds / 2;
-            final pauseMs = _pauseAt.inMilliseconds;
-            final totalMs = _flightDuration.inMilliseconds + pauseMs;
+            final halfDur  = _flightDuration.inMilliseconds / 2;
+            final pauseMs  = _pauseAt.inMilliseconds;
+            final totalMs  = _flightDuration.inMilliseconds + pauseMs;
 
             return AnimatedBuilder(
               animation: _posterCtrls[i],
               builder: (_, __) {
                 final rawT = _posterCtrls[i].value;
-                final tMs = rawT * totalMs;
+                final tMs  = rawT * totalMs;
 
                 Offset offset;
                 double rotation;
@@ -257,22 +312,22 @@ class _SplashScreenState extends State<SplashScreen>
 
                 if (tMs <= halfDur) {
                   final t = _easeOut(tMs / halfDur);
-                  offset = Offset.lerp(p.entryOffset, Offset.zero, t)!;
+                  offset   = Offset.lerp(p.entryOffset, Offset.zero, t)!;
                   rotation = _lerp(p.entryRotation, 0, t);
-                  opacity = _easeOut(tMs / halfDur);
-                  scale = _lerp(0.6, 1.0, t);
+                  opacity  = _easeOut(tMs / halfDur);
+                  scale    = _lerp(0.6, 1.0, t);
                 } else if (tMs <= halfDur + pauseMs) {
-                  offset = Offset.zero;
+                  offset   = Offset.zero;
                   rotation = 0;
-                  opacity = 1.0;
-                  scale = 1.0;
+                  opacity  = 1.0;
+                  scale    = 1.0;
                 } else {
                   final exitT = (tMs - halfDur - pauseMs) / halfDur;
                   final t = _easeIn(math.min(exitT, 1.0));
-                  offset = Offset.lerp(Offset.zero, p.exitOffset, t)!;
+                  offset   = Offset.lerp(Offset.zero, p.exitOffset, t)!;
                   rotation = _lerp(0, p.exitRotation, t);
-                  opacity = math.max(1.0 - t * 1.4, 0.0);
-                  scale = _lerp(1.0, 0.6, t);
+                  opacity  = math.max(1.0 - t * 1.4, 0.0);
+                  scale    = _lerp(1.0, 0.6, t);
                 }
 
                 if (i > _activePoster) return const SizedBox.shrink();
@@ -296,14 +351,25 @@ class _SplashScreenState extends State<SplashScreen>
             );
           }),
 
+          // Dark overlay fade
           if (_showOverlay)
             AnimatedBuilder(
               animation: _overlayAnim,
               builder: (_, __) => Container(
-                color: AppColors.bg.withOpacity(_overlayAnim.value * 0.92),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.bg.withOpacity(_overlayAnim.value * 0.95),
+                      AppColors.bg.withOpacity(_overlayAnim.value * 0.90),
+                    ],
+                  ),
+                ),
               ),
             ),
 
+          // ── KECHI LOGO ────────────────────────────────────────────────────────
           if (_showLogo)
             Center(
               child: Column(
@@ -315,27 +381,46 @@ class _SplashScreenState extends State<SplashScreen>
                       opacity: _logoOpacityAnim.value,
                       child: Transform.scale(
                         scale: _logoScaleAnim.value,
-                        child: ShaderMask(
-                          shaderCallback: (b) => const LinearGradient(
-                            colors: AppColors.logoGrad,
-                          ).createShader(b),
-                          child: const Text(
-                            'postly.',
-                            style: TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -3,
-                              fontFamily: 'Syne',
+                        child: Column(
+                          children: [
+                            // Glowing backdrop behind logo
+                            AnimatedBuilder(
+                              animation: _glowAnim,
+                              builder: (_, __) => Container(
+                                width: 320,
+                                height: 130,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.crimson.withOpacity(
+                                          0.28 + _glowAnim.value * 0.12),
+                                      blurRadius: 60,
+                                      spreadRadius: 10,
+                                    ),
+                                    BoxShadow(
+                                      color: AppColors.gold.withOpacity(
+                                          0.12 + _glowAnim.value * 0.08),
+                                      blurRadius: 40,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  'assets/kechi_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
 
+                  // Tag badge
                   if (_showTag)
                     AnimatedBuilder(
                       animation: _tagCtrl,
@@ -345,15 +430,22 @@ class _SplashScreenState extends State<SplashScreen>
                           offset: Offset(0, _lerp(14, 0, _tagAnim.value)),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                              horizontal: 18,
+                              vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C3AED).withOpacity(0.15),
+                              color: AppColors.crimson.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(99),
                               border: Border.all(
-                                color: const Color(0xFF7C3AED).withOpacity(0.4),
+                                color: AppColors.gold.withOpacity(0.45),
+                                width: 1,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.crimson.withOpacity(0.15),
+                                  blurRadius: 12,
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -361,18 +453,25 @@ class _SplashScreenState extends State<SplashScreen>
                                 Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: AppColors.purple,
+                                    color: AppColors.gold,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.gold.withOpacity(0.6),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Text(
+                                const SizedBox(width: 9),
+                                Text(
                                   'create · express · vibe',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFFC4B5FD),
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.cream.withOpacity(0.85),
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ],
@@ -385,9 +484,10 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
+          // ── BOTTOM TAGLINE ────────────────────────────────────────────────────
           if (_showTagline)
             Positioned(
-              bottom: 80,
+              bottom: 72,
               left: 0,
               right: 0,
               child: AnimatedBuilder(
@@ -400,18 +500,24 @@ class _SplashScreenState extends State<SplashScreen>
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0x59FFFFFF),
+                          fontSize: 13.5,
+                          color: Color(0x50FFFFFF),
                           letterSpacing: 0.4,
                           fontFamily: 'SpaceGrotesk',
                         ),
-                        children: const [
-                          TextSpan(text: 'make posters that '),
+                        children: [
+                          const TextSpan(text: 'make posters that '),
                           TextSpan(
                             text: 'slap.',
                             style: TextStyle(
-                              color: AppColors.purple,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.gold,
+                              fontWeight: FontWeight.w700,
+                              shadows: [
+                                Shadow(
+                                  color: AppColors.gold.withOpacity(0.5),
+                                  blurRadius: 8,
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -449,13 +555,21 @@ class _PosterCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: colors,
         ),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
+        border: Border.all(
+          color: AppColors.gold.withOpacity(0.18),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colors.last.withOpacity(0.35),
+            color: colors.last.withOpacity(0.40),
             blurRadius: 30,
             spreadRadius: -5,
-            offset: const Offset(0, 10),
+            offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: AppColors.gold.withOpacity(0.08),
+            blurRadius: 20,
+            spreadRadius: -5,
           ),
         ],
       ),

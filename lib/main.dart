@@ -12,16 +12,16 @@ void main() async {
   Get.put(UploadController(), permanent: true);
   Get.put(OrderController(), permanent: true);
   Get.put(ProfileController(), permanent: true);
-  runApp(const PostlyApp());
+  runApp(const KechiApp());
 }
 
-class PostlyApp extends StatelessWidget {
-  const PostlyApp({super.key});
+class KechiApp extends StatelessWidget {
+  const KechiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Postly',
+      title: 'Kechi',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF0A0A0F),
