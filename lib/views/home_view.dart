@@ -201,16 +201,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget _buildHeader() {
     return Row(
       children: [
-        ShaderMask(
-          shaderCallback: (b) =>
-              const LinearGradient(colors: AppColors.logoGrad).createShader(b),
-          child: Text(
-            "postly.",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primaryGrad[0],
-            ),
+        SizedBox(
+          width: 110,
+          height: 44,
+          child: Image.asset(
+            'assets/kechi_logo.png',
+            fit: BoxFit.contain,
+            alignment: Alignment.centerLeft,
           ),
         ),
         const Spacer(),

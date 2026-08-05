@@ -300,7 +300,7 @@ class _RegisterViewState extends State<RegisterView>
           const SizedBox(height: 14),
           _InputField(
             label: 'email address',
-            hint: 'you@postly.app',
+            hint: 'you@kechi.app',
             controller: _ctrl.emailController,
             focusNode: _ctrl.emailFocus,
             isFocused: _ctrl.emailFocused.value,
