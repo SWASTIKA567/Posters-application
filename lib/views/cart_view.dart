@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../themes/app_colors.dart';
 import 'select_address_view.dart';
 import '../controller/order_controller.dart';
+import '../widgets/payment_checkout_sheet.dart';
 
 class CartView extends StatelessWidget {
   const CartView({super.key});
@@ -535,12 +536,35 @@ class _PlaceOrderButton extends StatelessWidget {
     return Obx(() {
       final loading = ctrl.isPlacingOrder.value;
       return GestureDetector(
-        onTap: loading ? null : ctrl.placeOrder,
+        onTap: loading
+            ? null
+            : () {
+                if (ctrl.deliveryAddress.value == null) {
+                  Get.snackbar(
+                    'Address Required',
+                    'Please select a delivery address first.',
+                    backgroundColor: Colors.orange.shade800,
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+                Get.bottomSheet(
+                  PaymentCheckoutSheet(ctrl: ctrl),
+                  isScrollControlled: true,
+                );
+              },
         child: Container(
           height: 62,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: const LinearGradient(colors: AppColors.primaryGrad),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Center(
             child: loading
@@ -554,7 +578,7 @@ class _PlaceOrderButton extends StatelessWidget {
                   )
                 : Obx(
                     () => Text(
-                      'Place Order  •  ₹${ctrl.grandTotal.toInt()}',
+                      'Proceed to Payment  •  ₹${ctrl.grandTotal.toInt()}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,

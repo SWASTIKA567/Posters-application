@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/order_controller.dart';
 import '../themes/app_colors.dart';
+import '../widgets/order_tracking_screen.dart';
 
 class OrdersView extends StatelessWidget {
   const OrdersView({super.key});
@@ -693,7 +694,43 @@ class OrdersView extends StatelessWidget {
                                     ],
                                   ),
 
-                                  // ── Cancel Button (Pending only) ─────────
+                                   // ── Track Order & Cancel Buttons ──────────────────
+                                   const SizedBox(height: 14),
+                                   Row(
+                                     children: [
+                                       Expanded(
+                                         child: GestureDetector(
+                                           onTap: () => Get.to(() => OrderTrackingScreen(order: order)),
+                                           child: Container(
+                                             height: 42,
+                                             decoration: BoxDecoration(
+                                               borderRadius: BorderRadius.circular(12),
+                                               gradient: const LinearGradient(
+                                                 colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
+                                               ),
+                                             ),
+                                             child: const Row(
+                                               mainAxisAlignment: MainAxisAlignment.center,
+                                               children: [
+                                                 Icon(Icons.map_outlined, color: Colors.white, size: 16),
+                                                 SizedBox(width: 6),
+                                                 Text(
+                                                   "Track Live Order",
+                                                   style: TextStyle(
+                                                     color: Colors.white,
+                                                     fontWeight: FontWeight.w700,
+                                                     fontSize: 13,
+                                                   ),
+                                                 ),
+                                               ],
+                                             ),
+                                           ),
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+
+                                   // ── Cancel Button (Pending only) ─────────
                                   if (status.toLowerCase() == 'pending') ...[
                                     const SizedBox(height: 14),
                                     const Divider(height: 1, thickness: 0.5),
