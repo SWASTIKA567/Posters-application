@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import '../controller/home_controller.dart';
 import '../widgets/poster_card.dart';
 import '../widgets/custom_bottom_navbar.dart';
+import '../widgets/category_poster_screen.dart';
+import '../widgets/poster_detail_screen.dart';
 import '../themes/app_colors.dart';
 import '../views/upload_view.dart';
 import 'cart_view.dart';
@@ -20,6 +22,9 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   final HomeController ctrl = Get.put(HomeController());
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _searchCtrl = TextEditingController();
+
   int selectedIndex = 0;
 
   late AnimationController _blob1;
@@ -50,6 +55,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+
+    _searchCtrl.text = ctrl.searchQuery.value;
   }
 
   @override
@@ -58,16 +65,18 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     _blob2.dispose();
     _blob3.dispose();
     _fadeCtrl.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.bg,
+      drawer: _buildSandwichDrawer(),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: selectedIndex,
-
         onTap: (index) {
           setState(() {
             selectedIndex = index;
@@ -90,7 +99,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               break;
           }
         },
-
         onCenterTap: () {
           Get.to(() => const UploadView());
         },
@@ -99,31 +107,31 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         children: [
           _Blob(
             ctrl: _blob1,
-            colors: const [Color(0xFF7C3AED), Color(0xFF3B82F6)],
+            colors: const [Color(0xFF8B0000), Color(0xFFC9A227)],
             size: 260,
             top: -100,
             left: -80,
-            opacity: .56,
+            opacity: .40,
             dx: 20,
             dy: -30,
           ),
           _Blob(
             ctrl: _blob2,
-            colors: const [Color(0xFFEC4899), Color(0xFFF59E0B)],
+            colors: const [Color(0xFF6B1A1A), Color(0xFFAF3D1A)],
             size: 220,
             bottom: 80,
             right: -60,
-            opacity: .57,
+            opacity: .40,
             dx: -20,
             dy: 20,
           ),
           _Blob(
             ctrl: _blob3,
-            colors: const [Color(0xFF10B981), Color(0xFF3B82F6)],
+            colors: const [Color(0xFFC9A227), Color(0xFF8B0000)],
             size: 180,
             top: 350,
             left: -30,
-            opacity: .56,
+            opacity: .35,
             dx: 15,
             dy: -20,
           ),
@@ -134,58 +142,65 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         _buildHeader(),
-                        const SizedBox(height: 28),
-                        _buildHero(),
-                        const SizedBox(height: 24),
-                        _buildUploadCard(),
-                        const SizedBox(height: 30),
-                        _sectionTitle("Want to explore Our Collection?"),
                         const SizedBox(height: 16),
-                        SizedBox(
-                          height: 220,
-                          child: Obx(
-                            () => ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: ctrl.featuredPosters.length,
-                              itemBuilder: (_, index) {
-                                final poster = ctrl.featuredPosters[index];
-
-                                return PosterCard(
-                                  title: poster["title"] as String,
-                                  image: poster["image"] as String,
-
-                                  section: PosterSection.featured,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        _sectionTitle("Trending Posters"),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 220,
-                          child: Obx(
-                            () => ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: ctrl.recentPosters.length,
-                              itemBuilder: (_, index) {
-                                final poster = ctrl.recentPosters[index];
-
-                                return PosterCard(
-                                  title: poster["title"] as String,
-                                  image: poster["image"] as String,
-                                  price: poster["price"] as String,
-                                  section: PosterSection.recent,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
+                        _buildSearchBar(),
+                        const SizedBox(height: 14),
+                        _buildCategoryFilterPills(),
+                        const SizedBox(height: 20),
+                        Obx(() {
+                          if (ctrl.isFiltering) {
+                            return _buildFilteredResults();
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHero(),
+                              const SizedBox(height: 24),
+                              _buildUploadCard(),
+                              const SizedBox(height: 30),
+                              _sectionTitle("Want to explore Our Collection?"),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                height: 220,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: ctrl.featuredPosters.length,
+                                  itemBuilder: (_, index) {
+                                    final poster = ctrl.featuredPosters[index];
+                                    return PosterCard(
+                                      title: poster["title"] as String,
+                                      image: poster["image"] as String,
+                                      section: PosterSection.featured,
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _sectionTitle("Trending Posters"),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                height: 220,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: ctrl.recentPosters.length,
+                                  itemBuilder: (_, index) {
+                                    final poster = ctrl.recentPosters[index];
+                                    return PosterCard(
+                                      title: poster["title"] as String,
+                                      image: poster["image"] as String,
+                                      price: poster["price"] as String,
+                                      section: PosterSection.recent,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
                       ]),
                     ),
                   ),
@@ -198,31 +213,534 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
+  // ── HEADER WITH SANDWICH BAR ────────────────────────────────────────────────
   Widget _buildHeader() {
     return Row(
       children: [
+        // Sandwich menu button
+        GestureDetector(
+          onTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.black.withOpacity(.08)),
+            ),
+            child: const Icon(
+              Icons.menu_rounded,
+              color: Colors.black87,
+              size: 24,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Kechi Logo
         SizedBox(
-          width: 110,
-          height: 44,
+          width: 105,
+          height: 40,
           child: Image.asset(
             'assets/kechi_logo.png',
             fit: BoxFit.contain,
             alignment: Alignment.centerLeft,
           ),
         ),
+
         const Spacer(),
+
+        // Notification button
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.05),
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.black.withOpacity(.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.black.withOpacity(.08)),
           ),
           child: const Icon(
             Icons.notifications_none_rounded,
-            color: Colors.black,
+            color: Colors.black87,
+            size: 22,
           ),
         ),
       ],
+    );
+  }
+
+  // ── SEARCH BAR ──────────────────────────────────────────────────────────────
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onChanged: (val) => ctrl.setSearch(val),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        decoration: InputDecoration(
+          hintText: "Search posters, styles, categories...",
+          hintStyle: TextStyle(
+            color: Colors.black.withOpacity(0.4),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: const Color(0xFF8B0000).withOpacity(0.8),
+            size: 22,
+          ),
+          suffixIcon: Obx(() => ctrl.searchQuery.value.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 18, color: Colors.black54),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    ctrl.setSearch('');
+                  },
+                )
+              : const SizedBox.shrink()),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        ),
+      ),
+    );
+  }
+
+  // ── CATEGORY FILTER PILLS ───────────────────────────────────────────────────
+  Widget _buildCategoryFilterPills() {
+    return SizedBox(
+      height: 38,
+      child: Obx(() {
+        final selected = ctrl.selectedCategory.value ?? 'All';
+
+        return ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: ctrl.categories.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, index) {
+            final cat = ctrl.categories[index];
+            final title = cat['title']!;
+            final icon = cat['icon']!;
+            final isSelected = (selected == title);
+
+            return GestureDetector(
+              onTap: () {
+                if (title == 'All') {
+                  ctrl.setCategory(null);
+                } else {
+                  ctrl.setCategory(isSelected ? null : title);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF8B0000)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFF8B0000)
+                        : Colors.black.withOpacity(0.1),
+                    width: 1.2,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF8B0000).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(icon, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 6),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }),
+    );
+  }
+
+  // ── FILTERED RESULTS GRID ───────────────────────────────────────────────────
+  Widget _buildFilteredResults() {
+    final list = ctrl.filteredPosters;
+    final cat = ctrl.selectedCategory.value;
+    final q = ctrl.searchQuery.value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                "Search Results (${list.length})",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                _searchCtrl.clear();
+                ctrl.setSearch('');
+                ctrl.setCategory(null);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B0000).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  "Clear filters",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF8B0000),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (cat != null || q.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            "Filtering by: ${cat != null ? 'Category "$cat"' : ''} ${q.isNotEmpty ? 'Query "$q"' : ''}",
+            style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
+          ),
+        ],
+        const SizedBox(height: 16),
+
+        if (list.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.black.withOpacity(0.06)),
+            ),
+            child: Column(
+              children: [
+                const Text("🔍", style: TextStyle(fontSize: 40)),
+                const SizedBox(height: 12),
+                const Text(
+                  "No posters found",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Try searching for another keyword or pick a different category.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Colors.black.withOpacity(0.5)),
+                ),
+              ],
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: list.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.72,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+            ),
+            itemBuilder: (_, index) {
+              final poster = list[index];
+              return GestureDetector(
+                onTap: () {
+                  Get.to(() => PosterDetailScreen(
+                        title: poster["title"]!,
+                        image: poster["image"]!,
+                        price: poster["price"] ?? "₹49",
+                      ));
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                          child: Image.asset(
+                            poster["image"]!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              poster["title"]!,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  poster["price"] ?? "₹49",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF8B0000),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFC9A227).withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    poster["category"] ?? "Poster",
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF8B0000),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  // ── SANDWICH DRAWER ────────────────────────────────────────────────────────
+  Widget _buildSandwichDrawer() {
+    return Drawer(
+      backgroundColor: const Color(0xFF0D0608),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Drawer Header
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: const Color(0xFFC9A227).withOpacity(0.2),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/kechi_logo.png',
+                    height: 38,
+                    fit: BoxFit.contain,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+
+            // Category section title
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    "ALL CATEGORIES",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFC9A227),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  Obx(() => Text(
+                        "${ctrl.categories.length - 1} styles",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+
+            // Categories List
+            Expanded(
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: ctrl.categories.length,
+                itemBuilder: (_, index) {
+                  final cat = ctrl.categories[index];
+                  final title = cat['title']!;
+                  final icon = cat['icon']!;
+
+                  return Obx(() {
+                    final isSelected = (ctrl.selectedCategory.value ?? 'All') == title;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFF8B0000).withOpacity(0.4)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: isSelected
+                            ? Border.all(color: const Color(0xFFC9A227).withOpacity(0.5))
+                            : null,
+                      ),
+                      child: ListTile(
+                        dense: true,
+                        leading: Text(icon, style: const TextStyle(fontSize: 18)),
+                        title: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? Colors.white : Colors.white70,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: isSelected
+                              ? const Color(0xFFC9A227)
+                              : Colors.white.withOpacity(0.2),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pop(); // Close drawer
+                          if (title == 'All') {
+                            ctrl.setCategory(null);
+                          } else {
+                            ctrl.setCategory(title);
+                            Get.to(() => CategoryPostersScreen(categoryTitle: title));
+                          }
+                        },
+                      ),
+                    );
+                  });
+                },
+              ),
+            ),
+
+            // Quick App Navigation footer
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _drawerNavButton(Icons.upload_file_rounded, "Upload", () {
+                    Navigator.pop(context);
+                    Get.to(() => const UploadView());
+                  }),
+                  _drawerNavButton(Icons.shopping_cart_outlined, "Cart", () {
+                    Navigator.pop(context);
+                    Get.to(() => const CartView());
+                  }),
+                  _drawerNavButton(Icons.favorite_border_rounded, "Wishlist", () {
+                    Navigator.pop(context);
+                    Get.to(() => const WishlistView());
+                  }),
+                  _drawerNavButton(Icons.person_outline_rounded, "Profile", () {
+                    Navigator.pop(context);
+                    Get.to(() => const ProfileView());
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerNavButton(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: const Color(0xFFC9A227), size: 20),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Colors.white60),
+          ),
+        ],
+      ),
     );
   }
 
@@ -242,7 +760,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               children: [
                 ShaderMask(
                   shaderCallback: (b) => const LinearGradient(
-                    colors: AppColors.primaryGrad,
+                    colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
                   ).createShader(b),
                   child: Text(
                     "Print it.\nFrame it.\nLove it.",
@@ -292,7 +810,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          gradient: const LinearGradient(colors: AppColors.primaryGrad),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
+          ),
         ),
         child: Row(
           children: [
@@ -305,7 +825,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
               child: const Icon(
                 Icons.add_photo_alternate_outlined,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             const SizedBox(width: 16),
@@ -322,7 +842,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  const Text(
                     "Gallery • Drive • URL",
                     style: TextStyle(color: Colors.white),
                   ),
