@@ -4,10 +4,12 @@ import 'controller/order_controller.dart';
 import 'controller/wishlist_controller.dart';
 import 'controller/upload_controller.dart';
 import 'controller/profile_controller.dart';
+import 'controller/notification_controller.dart';
 import 'views/splash_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Get.put(NotificationController(), permanent: true);
   Get.put(WishlistController(), permanent: true);
   Get.put(UploadController(), permanent: true);
   Get.put(OrderController(), permanent: true);

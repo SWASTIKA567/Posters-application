@@ -12,6 +12,8 @@ import '../views/upload_view.dart';
 import 'cart_view.dart';
 import 'wishlist_view.dart';
 import 'profile_view.dart';
+import 'notifications_view.dart';
+import '../controller/notification_controller.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -251,18 +253,53 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
         const Spacer(),
 
-        // Notification button
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(.06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.black.withOpacity(.08)),
-          ),
-          child: const Icon(
-            Icons.notifications_none_rounded,
-            color: Colors.black87,
-            size: 22,
+        // Notification button with badge
+        GestureDetector(
+          onTap: () => Get.to(() => const NotificationsView()),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.black.withOpacity(.08)),
+                ),
+                child: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.black87,
+                  size: 22,
+                ),
+              ),
+              if (Get.isRegistered<NotificationController>())
+                Obx(() {
+                  final count = NotificationController.to.unreadCount;
+                  if (count == 0) return const SizedBox.shrink();
+                  return Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF8B0000),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Center(
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+            ],
           ),
         ),
       ],

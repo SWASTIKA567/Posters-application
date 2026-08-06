@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/order_controller.dart';
-import '../themes/app_colors.dart';
+import '../controller/notification_controller.dart';
+import '../controller/profile_controller.dart';
+import '../services/email_service.dart';
 import 'order_tracking_screen.dart';
 
 class PaymentCheckoutSheet extends StatefulWidget {
@@ -68,19 +70,37 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     if (success) {
       Get.back(); // close bottom sheet
 
-      // Navigate to order tracking screen for the placed order
       final latestOrder = widget.ctrl.orders.isNotEmpty ? widget.ctrl.orders.first : null;
+      final trackingCode = latestOrder != null ? latestOrder['trackingCode'] ?? 'KCH-84920' : 'KCH-84920';
+
+      // Push Notification
+      if (Get.isRegistered<NotificationController>()) {
+        NotificationController.to.addNotification(
+          title: '🎉 Order Placed #$trackingCode',
+          body: 'Your Kechi poster print order is confirmed & receipt sent to your Gmail!',
+          type: 'order',
+        );
+      }
+
+      // 📧 Send Gmail Notification to User's actual registered email
+      String userEmail = 'customer@gmail.com';
+      if (Get.isRegistered<ProfileController>() && ProfileController.to.emailCtrl.text.isNotEmpty) {
+        userEmail = ProfileController.to.emailCtrl.text.trim();
+      }
+
+      EmailService.sendOrderConfirmationEmail(
+        userEmail: userEmail,
+        userName: widget.ctrl.deliveryAddress.value?.name ?? 'Customer',
+        orderId: latestOrder != null ? (latestOrder['orderId'] ?? 'ORD-1001') : 'ORD-1001',
+        trackingCode: trackingCode,
+        totalAmount: widget.ctrl.grandTotal,
+        paymentMethod: displayMethod,
+        items: latestOrder != null ? (latestOrder['items'] ?? []) : [],
+      );
+
       if (latestOrder != null) {
         Get.to(() => OrderTrackingScreen(order: latestOrder));
       }
-
-      Get.snackbar(
-        '🎉 Payment Successful!',
-        'Your order has been placed & is being printed.',
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
     }
   }
 
