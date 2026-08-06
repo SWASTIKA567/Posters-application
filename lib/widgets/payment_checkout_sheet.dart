@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+
 import '../controller/order_controller.dart';
 import '../controller/notification_controller.dart';
 import '../controller/profile_controller.dart';
 import '../services/email_service.dart';
+import '../services/razorpay_service.dart';
 import 'order_tracking_screen.dart';
 
 class PaymentCheckoutSheet extends StatefulWidget {
@@ -24,7 +27,18 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   final TextEditingController _expiryCtrl = TextEditingController();
   final TextEditingController _cvvCtrl = TextEditingController();
 
+  late RazorpayService _razorpayService;
   bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpayService = RazorpayService();
+    _razorpayService.init(
+      onSuccess: _onRazorpaySuccess,
+      onError: _onRazorpayError,
+    );
+  }
 
   @override
   void dispose() {
@@ -32,7 +46,25 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     _cardNumberCtrl.dispose();
     _expiryCtrl.dispose();
     _cvvCtrl.dispose();
+    _razorpayService.dispose();
     super.dispose();
+  }
+
+  void _onRazorpaySuccess(PaymentSuccessResponse response) async {
+    _finalizeOrder(
+      paymentMethod: 'Razorpay Online (${response.paymentId ?? "UPI"})',
+      paymentStatus: 'Paid',
+    );
+  }
+
+  void _onRazorpayError(PaymentFailureResponse response) {
+    if (mounted) setState(() => _isProcessing = false);
+    Get.snackbar(
+      'Payment Failed',
+      response.message ?? 'Payment was cancelled or failed.',
+      backgroundColor: Colors.red.shade800,
+      colorText: Colors.white,
+    );
   }
 
   Future<void> _handlePayment() async {
@@ -48,20 +80,52 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
 
     setState(() => _isProcessing = true);
 
-    // Simulate payment processing delay (2 seconds)
-    await Future.delayed(const Duration(seconds: 2));
+    // If Cash on Delivery, place directly without Razorpay
+    if (_selectedMethod == 'COD') {
+      await _finalizeOrder(
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Pay on Delivery',
+      );
+      return;
+    }
 
-    String paymentStatus = _selectedMethod == 'COD' ? 'Pay on Delivery' : 'Paid';
-    String displayMethod = _selectedMethod == 'UPI'
-        ? 'UPI ($_selectedUpiApp)'
-        : _selectedMethod == 'Card'
-            ? 'Credit/Debit Card'
-            : _selectedMethod == 'NetBanking'
-                ? 'Net Banking'
-                : 'Cash on Delivery';
+    // If Online Payment (UPI, Card, NetBanking), trigger Razorpay Checkout
+    String userEmail = 'customer@gmail.com';
+    if (Get.isRegistered<ProfileController>() && ProfileController.to.emailCtrl.text.isNotEmpty) {
+      userEmail = ProfileController.to.emailCtrl.text.trim();
+    }
 
+    final addr = widget.ctrl.deliveryAddress.value!;
+    
+    // Open Razorpay Native Payment Gateway
+    if (RazorpayService.razorpayKeyId.contains('rzp_test_YOUR_KEY_HERE')) {
+      // Demo simulation fallback if live key is not yet set by user
+      await Future.delayed(const Duration(seconds: 2));
+      await _finalizeOrder(
+        paymentMethod: _selectedMethod == 'UPI'
+            ? 'UPI ($_selectedUpiApp)'
+            : _selectedMethod == 'Card'
+                ? 'Credit/Debit Card'
+                : 'Net Banking',
+        paymentStatus: 'Paid',
+      );
+    } else {
+      _razorpayService.openCheckout(
+        amountInRupees: widget.ctrl.grandTotal,
+        customerName: addr.name,
+        customerPhone: addr.phone,
+        customerEmail: userEmail,
+        description: 'Kechi Poster Order Payment',
+      );
+    }
+  }
+
+  Future<void> _finalizeOrder({
+    required String paymentMethod,
+    required String paymentStatus,
+  }) async {
     final success = await widget.ctrl.placeOrder(
-      paymentMethod: displayMethod,
+      paymentMethod: paymentMethod,
       paymentStatus: paymentStatus,
     );
 
@@ -82,7 +146,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         );
       }
 
-      // 📧 Send Gmail Notification to User's actual registered email
+      // 📧 Send Gmail Notification to User
       String userEmail = 'customer@gmail.com';
       if (Get.isRegistered<ProfileController>() && ProfileController.to.emailCtrl.text.isNotEmpty) {
         userEmail = ProfileController.to.emailCtrl.text.trim();
@@ -94,7 +158,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         orderId: latestOrder != null ? (latestOrder['orderId'] ?? 'ORD-1001') : 'ORD-1001',
         trackingCode: trackingCode,
         totalAmount: widget.ctrl.grandTotal,
-        paymentMethod: displayMethod,
+        paymentMethod: paymentMethod,
         items: latestOrder != null ? (latestOrder['items'] ?? []) : [],
       );
 
@@ -152,7 +216,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     ),
                   ),
                   Text(
-                    "Select your preferred payment method",
+                    "Secured by Razorpay Payment Gateway",
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.black.withOpacity(0.5),
@@ -240,7 +304,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                           ),
                           SizedBox(width: 12),
                           Text(
-                            "Processing Payment...",
+                            "Connecting to Razorpay...",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -252,7 +316,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     : Text(
                         _selectedMethod == 'COD'
                             ? "Confirm Order (COD)  •  ₹${grandTotal.toInt()}"
-                            : "Pay Now  •  ₹${grandTotal.toInt()}",
+                            : "Pay via Razorpay  •  ₹${grandTotal.toInt()}",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -317,7 +381,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Popular UPI Apps",
+          "Popular UPI Apps (Razorpay Auto Launch)",
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 10),
@@ -368,7 +432,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           child: TextField(
             controller: _upiIdCtrl,
             decoration: const InputDecoration(
-              hintText: "Enter UPI ID (e.g. mobile@upi)",
+              hintText: "Enter VPA ID (e.g. mobile@upi)",
               hintStyle: TextStyle(fontSize: 13, color: Colors.black38),
               border: InputBorder.none,
             ),

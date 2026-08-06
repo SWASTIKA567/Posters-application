@@ -37,6 +37,8 @@ class EmailService {
           'template_id': emailJsTemplateId,
           'user_id': emailJsPublicKey,
           'template_params': {
+            'from_name': 'Kechi',
+            'app_name': 'Kechi Posters',
             'to_email': userEmail,
             'to_name': userName.isNotEmpty ? userName : 'Valued Customer',
             'order_id': orderId,
