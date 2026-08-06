@@ -8,6 +8,7 @@ class NotificationsView extends StatelessWidget {
 
   String _formatTime(DateTime dt) {
     final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';
@@ -32,17 +33,49 @@ class NotificationsView extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all_rounded, color: Color(0xFF8B0000), size: 20),
-            tooltip: "Mark all as read",
-            onPressed: () {
-              notifCtrl.markAllAsRead();
-              Get.snackbar(
-                'Done',
-                'All notifications marked as read.',
-                duration: const Duration(seconds: 2),
-              );
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, color: Colors.black87),
+            onSelected: (val) {
+              if (val == 'read_all') {
+                notifCtrl.markAllAsRead();
+                Get.snackbar(
+                  'Marked as Read',
+                  'All notifications marked as read.',
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: const Color(0xFF8B0000),
+                  colorText: Colors.white,
+                );
+              } else if (val == 'clear_all') {
+                notifCtrl.clearAll();
+                Get.snackbar(
+                  'Cleared',
+                  'All notifications cleared.',
+                  duration: const Duration(seconds: 2),
+                );
+              }
             },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'read_all',
+                child: Row(
+                  children: [
+                    Icon(Icons.done_all_rounded, size: 18, color: Color(0xFF8B0000)),
+                    SizedBox(width: 10),
+                    Text('Mark all as read'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'clear_all',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_sweep_outlined, size: 18, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Clear all notifications'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -76,7 +109,7 @@ class NotificationsView extends StatelessWidget {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
@@ -97,10 +130,27 @@ class NotificationsView extends StatelessWidget {
               ),
             ),
 
+            // Filter Tabs (All, Orders, Offers)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Obx(() {
+                final current = notifCtrl.selectedFilter.value;
+                return Row(
+                  children: [
+                    _buildFilterChip(notifCtrl, 'all', 'All', current),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(notifCtrl, 'order', 'Orders', current),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(notifCtrl, 'promo', 'Offers', current),
+                  ],
+                );
+              }),
+            ),
+
             // Notifications List
             Expanded(
               child: Obx(() {
-                final list = notifCtrl.notifications;
+                final list = notifCtrl.filteredNotifications;
 
                 if (list.isEmpty) {
                   return Center(
@@ -143,106 +193,122 @@ class NotificationsView extends StatelessWidget {
                   itemBuilder: (_, index) {
                     final item = list[index];
 
-                    return GestureDetector(
-                      onTap: () => notifCtrl.markAsRead(item.id),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(16),
+                    return Dismissible(
+                      key: Key(item.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
                         decoration: BoxDecoration(
-                          color: item.isRead ? Colors.white : const Color(0xFF8B0000).withOpacity(0.04),
+                          color: Colors.red.shade700,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: item.isRead
-                                ? Colors.black.withOpacity(0.06)
-                                : const Color(0xFF8B0000).withOpacity(0.2),
-                            width: item.isRead ? 1 : 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: item.type == 'order'
-                                    ? const Color(0xFF10B981).withOpacity(0.12)
-                                    : item.type == 'promo'
-                                        ? const Color(0xFFC9A227).withOpacity(0.15)
-                                        : const Color(0xFF8B0000).withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                item.type == 'order'
-                                    ? Icons.local_shipping_rounded
-                                    : item.type == 'promo'
-                                        ? Icons.local_offer_rounded
-                                        : Icons.notifications_active_rounded,
-                                size: 20,
-                                color: item.type == 'order'
-                                    ? const Color(0xFF10B981)
-                                    : item.type == 'promo'
-                                        ? const Color(0xFFB8860B)
-                                        : const Color(0xFF8B0000),
-                              ),
+                        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                      ),
+                      onDismissed: (_) {
+                        notifCtrl.deleteNotification(item.id);
+                      },
+                      child: GestureDetector(
+                        onTap: () => notifCtrl.markAsRead(item.id),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: item.isRead ? Colors.white : const Color(0xFF8B0000).withOpacity(0.04),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: item.isRead
+                                  ? Colors.black.withOpacity(0.06)
+                                  : const Color(0xFF8B0000).withOpacity(0.2),
+                              width: item.isRead ? 1 : 1.5,
                             ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          item.title,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
-                                            color: Colors.black87,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: item.type == 'order'
+                                      ? const Color(0xFF10B981).withOpacity(0.12)
+                                      : item.type == 'promo'
+                                          ? const Color(0xFFC9A227).withOpacity(0.15)
+                                          : const Color(0xFF8B0000).withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  item.type == 'order'
+                                      ? Icons.local_shipping_rounded
+                                      : item.type == 'promo'
+                                          ? Icons.local_offer_rounded
+                                          : Icons.notifications_active_rounded,
+                                  size: 20,
+                                  color: item.type == 'order'
+                                      ? const Color(0xFF10B981)
+                                      : item.type == 'promo'
+                                          ? const Color(0xFFB8860B)
+                                          : const Color(0xFF8B0000),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.title,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
+                                              color: Colors.black87,
+                                            ),
                                           ),
                                         ),
+                                        if (!item.isRead)
+                                          Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFF8B0000),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.body,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black.withOpacity(0.6),
+                                        height: 1.35,
                                       ),
-                                      if (!item.isRead)
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Color(0xFF8B0000),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item.body,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black.withOpacity(0.6),
-                                      height: 1.35,
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _formatTime(item.timestamp),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black.withOpacity(0.4),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _formatTime(item.timestamp),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black.withOpacity(0.4),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -251,6 +317,32 @@ class NotificationsView extends StatelessWidget {
               }),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(NotificationController ctrl, String id, String label, String current) {
+    final isSelected = id == current;
+    return GestureDetector(
+      onTap: () => ctrl.setFilter(id),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF8B0000) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF8B0000) : Colors.black.withOpacity(0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
         ),
       ),
     );
