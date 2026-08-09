@@ -116,7 +116,7 @@ class _RegisterViewState extends State<RegisterView>
                       () => _ctrl.errorMessage.value != null
                           ? Column(
                               children: [
-                                _buildError(),
+                                _buildError(_ctrl.errorMessage.value!),
                                 const SizedBox(height: 12),
                               ],
                             )
@@ -140,32 +140,30 @@ class _RegisterViewState extends State<RegisterView>
   }
 
   // ── ERROR BANNER ──────────────────────────────────────────────────────────────
-  Widget _buildError() {
-    return Obx(
-      () => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withOpacity(0.30)),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 16,
-              color: AppColors.primary,
+  Widget _buildError(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.30)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 16,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(fontSize: 12, color: AppColors.primary),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                _ctrl.errorMessage.value ?? '',
-                style: TextStyle(fontSize: 12, color: AppColors.primary),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

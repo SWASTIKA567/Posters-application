@@ -35,10 +35,13 @@ class ApiService {
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
-      );
+      ).timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e is Exception && e.toString().contains('Exception: ')) {
+        rethrow;
+      }
+      throw Exception('Server unreachable. Please check if the backend is running.');
     }
   }
 
@@ -49,10 +52,16 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      );
+      ).timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e is Exception && e.toString().contains('Exception: ')) {
+        final str = e.toString().replaceFirst('Exception: ', '');
+        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
+          throw Exception(str);
+        }
+      }
+      throw Exception('Unable to connect to server. Please check your connection.');
     }
   }
 
@@ -63,10 +72,16 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      );
+      ).timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e is Exception && e.toString().contains('Exception: ')) {
+        final str = e.toString().replaceFirst('Exception: ', '');
+        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
+          throw Exception(str);
+        }
+      }
+      throw Exception('Unable to connect to server. Please check your connection.');
     }
   }
 
@@ -77,10 +92,16 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      );
+      ).timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e is Exception && e.toString().contains('Exception: ')) {
+        final str = e.toString().replaceFirst('Exception: ', '');
+        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
+          throw Exception(str);
+        }
+      }
+      throw Exception('Unable to connect to server. Please check your connection.');
     }
   }
 
@@ -90,10 +111,16 @@ class ApiService {
       final response = await http.delete(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
-      );
+      ).timeout(const Duration(seconds: 15));
       return _processResponse(response);
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e is Exception && e.toString().contains('Exception: ')) {
+        final str = e.toString().replaceFirst('Exception: ', '');
+        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
+          throw Exception(str);
+        }
+      }
+      throw Exception('Unable to connect to server. Please check your connection.');
     }
   }
 
