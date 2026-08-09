@@ -24,7 +24,6 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   final HomeController ctrl = Get.put(HomeController());
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchCtrl = TextEditingController();
 
   int selectedIndex = 0;
@@ -74,9 +73,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: AppColors.bg,
-      drawer: _buildSandwichDrawer(),
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: selectedIndex,
         onTap: (index) {
@@ -215,31 +212,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  // ── HEADER WITH SANDWICH BAR ────────────────────────────────────────────────
+  // ── HEADER ───────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return Row(
       children: [
-        // Sandwich menu button
-        GestureDetector(
-          onTap: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(.06),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.black.withOpacity(.08)),
-            ),
-            child: const Icon(
-              Icons.menu_rounded,
-              color: Colors.black87,
-              size: 24,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-
         // Kechi Logo
         SizedBox(
           width: 105,
@@ -604,180 +580,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             },
           ),
       ],
-    );
-  }
-
-  // ── SANDWICH DRAWER ────────────────────────────────────────────────────────
-  Widget _buildSandwichDrawer() {
-    return Drawer(
-      backgroundColor: const Color(0xFF0D0608),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Drawer Header
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: const Color(0xFFC9A227).withOpacity(0.2),
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/kechi_logo.png',
-                    height: 38,
-                    fit: BoxFit.contain,
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-
-            // Category section title
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Row(
-                children: [
-                  const Text(
-                    "ALL CATEGORIES",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFC9A227),
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const Spacer(),
-                  Obx(() => Text(
-                        "${ctrl.categories.length - 1} styles",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white.withOpacity(0.4),
-                        ),
-                      )),
-                ],
-              ),
-            ),
-
-            // Categories List
-            Expanded(
-              child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: ctrl.categories.length,
-                itemBuilder: (_, index) {
-                  final cat = ctrl.categories[index];
-                  final title = cat['title']!;
-                  final icon = cat['icon']!;
-
-                  return Obx(() {
-                    final isSelected = (ctrl.selectedCategory.value ?? 'All') == title;
-
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF8B0000).withOpacity(0.4)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        border: isSelected
-                            ? Border.all(color: const Color(0xFFC9A227).withOpacity(0.5))
-                            : null,
-                      ),
-                      child: ListTile(
-                        dense: true,
-                        leading: Text(icon, style: const TextStyle(fontSize: 18)),
-                        title: Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? Colors.white : Colors.white70,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.chevron_right_rounded,
-                          size: 18,
-                          color: isSelected
-                              ? const Color(0xFFC9A227)
-                              : Colors.white.withOpacity(0.2),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop(); // Close drawer
-                          if (title == 'All') {
-                            ctrl.setCategory(null);
-                          } else {
-                            ctrl.setCategory(title);
-                            Get.to(() => CategoryPostersScreen(categoryTitle: title));
-                          }
-                        },
-                      ),
-                    );
-                  });
-                },
-              ),
-            ),
-
-            // Quick App Navigation footer
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.03),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.white.withOpacity(0.08),
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _drawerNavButton(Icons.upload_file_rounded, "Upload", () {
-                    Navigator.pop(context);
-                    Get.to(() => const UploadView());
-                  }),
-                  _drawerNavButton(Icons.shopping_cart_outlined, "Cart", () {
-                    Navigator.pop(context);
-                    Get.to(() => const CartView());
-                  }),
-                  _drawerNavButton(Icons.favorite_border_rounded, "Wishlist", () {
-                    Navigator.pop(context);
-                    Get.to(() => const WishlistView());
-                  }),
-                  _drawerNavButton(Icons.person_outline_rounded, "Profile", () {
-                    Navigator.pop(context);
-                    Get.to(() => const ProfileView());
-                  }),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerNavButton(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: const Color(0xFFC9A227), size: 20),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: Colors.white60),
-          ),
-        ],
-      ),
     );
   }
 
