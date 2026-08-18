@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
+import '../services/email_service.dart';
+import '../controller/notification_controller.dart';
+import '../controller/profile_controller.dart';
 
 class CartItem {
   final String? docId;
@@ -238,6 +241,14 @@ class OrderController extends GetxController {
       });
 
       if (res['success'] == true) {
+        _sendOrderNotifications(
+          trackingCode: trackingCode,
+          orderId: res['order']?['_id'] ?? 'ORD-1001',
+          grandTotal: grandTotal,
+          paymentMethod: paymentMethod,
+          itemsList: items.map((e) => e.toMap()).toList(),
+          recipientName: addr.name,
+        );
         items.clear();
         deliveryAddress.value = null;
         isPlacingOrder.value = false;
@@ -253,9 +264,11 @@ class OrderController extends GetxController {
       // Fallback local placement if offline / demo mode
       final addr = deliveryAddress.value!;
       final trackingCode = 'KCH-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      final orderId = 'ORD-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+      final itemsSnapshot = items.map((e) => e.toMap()).toList();
       orders.insert(0, {
-        'orderId': 'ORD-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}',
-        'items': items.map((e) => e.toMap()).toList(),
+        'orderId': orderId,
+        'items': itemsSnapshot,
         'deliveryAddress': addr.toMap(),
         'subtotal': subtotal,
         'deliveryCharge': deliveryCharge,
@@ -266,10 +279,52 @@ class OrderController extends GetxController {
         'trackingCode': trackingCode,
         'createdAt': DateTime.now().toIso8601String(),
       });
+
+      _sendOrderNotifications(
+        trackingCode: trackingCode,
+        orderId: orderId,
+        grandTotal: grandTotal,
+        paymentMethod: paymentMethod,
+        itemsList: itemsSnapshot,
+        recipientName: addr.name,
+      );
+
       items.clear();
       deliveryAddress.value = null;
       return true;
     }
+  }
+
+  void _sendOrderNotifications({
+    required String trackingCode,
+    required String orderId,
+    required double grandTotal,
+    required String paymentMethod,
+    required List<dynamic> itemsList,
+    required String recipientName,
+  }) {
+    if (Get.isRegistered<NotificationController>()) {
+      NotificationController.to.addNotification(
+        title: '🎉 Order Placed #$trackingCode',
+        body: 'Your Kechi poster print order is confirmed & receipt sent to your Gmail!',
+        type: 'order',
+      );
+    }
+
+    String userEmail = 'customer@gmail.com';
+    if (Get.isRegistered<ProfileController>() && ProfileController.to.emailCtrl.text.isNotEmpty) {
+      userEmail = ProfileController.to.emailCtrl.text.trim();
+    }
+
+    EmailService.sendOrderConfirmationEmail(
+      userEmail: userEmail,
+      userName: recipientName,
+      orderId: orderId,
+      trackingCode: trackingCode,
+      totalAmount: grandTotal,
+      paymentMethod: paymentMethod,
+      items: itemsList,
+    );
   }
 
   // ── Cancel Order (only if Pending) ────────────────────────────────────────

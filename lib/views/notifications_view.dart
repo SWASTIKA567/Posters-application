@@ -82,53 +82,6 @@ class NotificationsView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Push Notification Test Bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              color: const Color(0xFF8B0000).withOpacity(0.06),
-              child: Row(
-                children: [
-                  const Icon(Icons.notifications_active_rounded, color: Color(0xFF8B0000), size: 20),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      "Push Notifications Active",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF8B0000),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      notifCtrl.addNotification(
-                        title: '🚚 Order Update #KCH-84920',
-                        body: 'Your custom poster print is out for delivery! Rider arriving today.',
-                        type: 'order',
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        "Test Push Alert",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
             // Filter Tabs (All, Orders, Offers)
             Padding(
