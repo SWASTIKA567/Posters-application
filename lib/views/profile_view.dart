@@ -142,9 +142,31 @@ class _ProfileViewState extends State<ProfileView> {
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF555555)),
-        onPressed: () => Get.back(),
+      leading: Center(
+        child: GestureDetector(
+          onTap: () => Get.back(),
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black.withOpacity(0.08)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 16,
+              color: Colors.black87,
+            ),
+          ),
+        ),
       ),
       title: ShaderMask(
         shaderCallback: (bounds) => const LinearGradient(

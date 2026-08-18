@@ -27,15 +27,24 @@ class AddressView extends StatelessWidget {
                       GestureDetector(
                         onTap: () => Get.back(),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(.05),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.black.withOpacity(.08)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(.07),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: const Icon(
                             Icons.arrow_back_ios_new_rounded,
-                            color: Colors.black,
                             size: 18,
+                            color: Colors.black87,
                           ),
                         ),
                       ),

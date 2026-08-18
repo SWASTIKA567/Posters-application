@@ -13,34 +13,70 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fadeAnim;
-  late final Animation<Offset> _slideAnim;
+  late final AnimationController _controller;
+  late final Animation<double> _kDrop;
+  late final Animation<double> _kFade;
+  late final Animation<double> _echiSlide;
+  late final Animation<double> _echiFade;
+  late final Animation<double> _taglineFade;
 
   @override
   void initState() {
     super.initState();
 
-    // Make status bar transparent over the white background
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ));
 
-    _ctrl = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1400),
     );
 
-    _fadeAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    // K drops with bouncy elastic overshoot — first 60 % of timeline
+    _kDrop = Tween<double>(begin: -260, end: 0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      ),
+    );
 
-    _ctrl.forward();
+    // K fades in fast so you see it falling
+    _kFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.25, curve: Curves.easeOut),
+      ),
+    );
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    // "echi" slides in from left once K has landed
+    _echiSlide = Tween<double>(begin: -20, end: 0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.55, 0.9, curve: Curves.easeOut),
+      ),
+    );
+
+    // "echi" fades in together with the slide
+    _echiFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.55, 0.9, curve: Curves.easeOut),
+      ),
+    );
+
+    // Tagline appears last
+    _taglineFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.80, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _controller.forward();
+
+    Future.delayed(const Duration(milliseconds: 2600), () {
       if (!mounted) return;
       Get.off(
         () => const LoginScreen(),
@@ -52,43 +88,81 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SlideTransition(
-          position: _slideAnim,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Logo — no background, no shadow, just the image
-                Image.asset(
-                  'assets/kechi_logo.png',
-                  width: 200,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 16),
-                // Tagline
-                Text(
-                  'create · express · vibe',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black.withOpacity(0.35),
-                    letterSpacing: 1.2,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          // Use a full-screen Stack with Clip.none so the K can
+          // genuinely travel from above the screen into its final position.
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // White background fill (safety net)
+              Container(color: Colors.white, width: size.width, height: size.height),
+
+              // ── K  ────────────────────────────────────────────────────────
+              // Positioned at horizontal centre, vertically centred - 10 px
+              // and shifted UP by _kDrop (starts at -260, ends at 0).
+              Positioned(
+                left: size.width / 2 - 45, // ~half the K width (90 h ≈ 80 w)
+                top: size.height / 2 - 55 + _kDrop.value,
+                child: Opacity(
+                  opacity: _kFade.value,
+                  child: Image.asset(
+                    'assets/kechi_K_only.png',
+                    height: 90,
+                    fit: BoxFit.contain,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
+
+              // ── echi  ────────────────────────────────────────────────────
+              // Sits immediately right of K, same vertical centre.
+              // Slides in from _echiSlide (starts at -20 extra left offset).
+              Positioned(
+                left: size.width / 2 + 38 + _echiSlide.value,
+                top: size.height / 2 - 35,   // echi height 70 → centre offset 35
+                child: Opacity(
+                  opacity: _echiFade.value,
+                  child: Image.asset(
+                    'assets/kechi_echi_only.png',
+                    height: 70,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              // ── Tagline  ─────────────────────────────────────────────────
+              Positioned(
+                left: 0,
+                right: 0,
+                top: size.height / 2 + 55,
+                child: Opacity(
+                  opacity: _taglineFade.value,
+                  child: Text(
+                    'create · express · vibe',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black.withOpacity(0.35),
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

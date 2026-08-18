@@ -218,8 +218,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       children: [
         // Kechi Logo
         SizedBox(
-          width: 105,
-          height: 40,
+          width: 165,
+          height: 56,
           child: Image.asset(
             'assets/kechi_logo.png',
             fit: BoxFit.contain,

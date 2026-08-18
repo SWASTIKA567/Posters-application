@@ -49,7 +49,7 @@ class CartView extends StatelessWidget {
                   const SizedBox(width: 14),
                   ShaderMask(
                     shaderCallback: (b) => const LinearGradient(
-                      colors: AppColors.logoGrad,
+                      colors: AppColors.primaryGrad,
                     ).createShader(b),
                     child: const Text(
                       "My Cart",

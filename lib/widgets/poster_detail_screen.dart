@@ -118,21 +118,24 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                     child: GestureDetector(
                       onTap: () => Get.back(),
                       child: Container(
-                        padding: const EdgeInsets.all(9),
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.black.withOpacity(.08)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
-                              blurRadius: 8,
+                              color: Colors.black.withOpacity(.07),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
                         child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Color(0xFF1A1A1A),
-                          size: 16,
+                          size: 18,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
