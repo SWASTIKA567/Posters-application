@@ -45,6 +45,12 @@ class ProfileController extends GetxController {
         cityCtrl.text = data['city'] ?? '';
         stateCtrl.text = data['state'] ?? '';
         pincodeCtrl.text = data['pincode'] ?? '';
+        if (phoneCtrl.text.isEmpty && data['phone'] != null) {
+          phoneCtrl.text = data['phone'];
+        }
+        if (nameCtrl.text.isEmpty && data['name'] != null) {
+          nameCtrl.text = data['name'];
+        }
       }
     } catch (e) {
       debugPrint('loadProfile error: $e');

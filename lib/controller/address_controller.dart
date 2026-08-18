@@ -73,6 +73,18 @@ class AddressController extends GetxController {
 
         OrderController.to.setAddress(address);
         OrderController.to.fetchAddresses();
+        
+        if (phoneCtrl.text.trim().isNotEmpty) {
+          try {
+            await ApiService.put('/users/profile', {
+              'phone': phoneCtrl.text.trim(),
+            });
+          } catch (_) {}
+        }
+        if (Get.isRegistered<ProfileController>()) {
+          ProfileController.to.loadProfile();
+        }
+
         isSaving.value = false;
 
         clearFields();

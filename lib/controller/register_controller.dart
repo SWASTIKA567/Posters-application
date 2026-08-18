@@ -5,6 +5,7 @@ import '../views/home_view.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/upload_controller.dart';
+import '../controller/profile_controller.dart';
 
 class RegisterController extends GetxController {
   final nameController = TextEditingController();
@@ -107,6 +108,10 @@ class RegisterController extends GetxController {
     if (!Get.isRegistered<UploadController>()) {
       Get.put(UploadController(), permanent: true);
     }
+    final profile = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    profile.loadProfile();
   }
 
   @override

@@ -7,12 +7,27 @@ import '../views/home_view.dart';
 import '../themes/app_colors.dart';
 import 'orders_view.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
   @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  late final ProfileController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    controller.loadProfile();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ProfileController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
