@@ -106,31 +106,31 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         children: [
           _Blob(
             ctrl: _blob1,
-            colors: const [Color(0xFF8B0000), Color(0xFFC9A227)],
+            colors: AppColors.primaryGrad,
             size: 260,
             top: -100,
             left: -80,
-            opacity: .40,
+            opacity: .10,
             dx: 20,
             dy: -30,
           ),
           _Blob(
             ctrl: _blob2,
-            colors: const [Color(0xFF6B1A1A), Color(0xFFAF3D1A)],
+            colors: AppColors.tealOrange,
             size: 220,
             bottom: 80,
             right: -60,
-            opacity: .40,
+            opacity: .08,
             dx: -20,
             dy: 20,
           ),
           _Blob(
             ctrl: _blob3,
-            colors: const [Color(0xFFC9A227), Color(0xFF8B0000)],
+            colors: AppColors.primaryGrad,
             size: 180,
             top: 350,
             left: -30,
-            opacity: .35,
+            opacity: .07,
             dx: 15,
             dy: -20,
           ),
@@ -258,7 +258,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF8B0000),
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                       constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
@@ -309,7 +309,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
           prefixIcon: Icon(
             Icons.search_rounded,
-            color: const Color(0xFF8B0000).withOpacity(0.8),
+            color: AppColors.primary.withOpacity(0.8),
             size: 22,
           ),
           suffixIcon: Obx(() => ctrl.searchQuery.value.isNotEmpty
@@ -343,7 +343,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           itemBuilder: (_, index) {
             final cat = ctrl.categories[index];
             final title = cat['title']!;
-            final icon = cat['icon']!;
             final isSelected = (selected == title);
 
             return GestureDetector(
@@ -359,39 +358,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF8B0000)
+                      ? AppColors.primary
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF8B0000)
+                        ? AppColors.primary
                         : Colors.black.withOpacity(0.1),
                     width: 1.2,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF8B0000).withOpacity(0.3),
+                            color: AppColors.primary.withOpacity(0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
                         ]
                       : [],
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(icon, style: const TextStyle(fontSize: 13)),
-                    const SizedBox(width: 6),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? Colors.white : Colors.black87,
-                      ),
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? Colors.white : Colors.black87,
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -431,7 +425,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B0000).withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
@@ -439,7 +433,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF8B0000),
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -550,13 +544,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF8B0000),
+                                    color: AppColors.primary,
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFC9A227).withOpacity(0.15),
+                                    color: AppColors.primary.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -564,7 +558,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF8B0000),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -599,7 +593,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               children: [
                 ShaderMask(
                   shaderCallback: (b) => const LinearGradient(
-                    colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
+                    colors: AppColors.primaryGrad,
                   ).createShader(b),
                   child: Text(
                     "Print it.\nFrame it.\nLove it.",
@@ -650,7 +644,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
           gradient: const LinearGradient(
-            colors: [Color(0xFF8B0000), Color(0xFFC9A227)],
+            colors: AppColors.primaryGrad,
           ),
         ),
         child: Row(

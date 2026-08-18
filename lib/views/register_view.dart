@@ -173,16 +173,11 @@ class _RegisterViewState extends State<RegisterView>
     return Column(
       children: [
         // Kechi logo image
-        Container(
+        Image.asset(
+          'assets/kechi_logo.png',
           width: 200,
           height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Image.asset(
-            'assets/kechi_logo.png',
-            fit: BoxFit.contain,
-          ),
+          fit: BoxFit.contain,
         ),
         const SizedBox(height: 10),
         AnimatedBuilder(
