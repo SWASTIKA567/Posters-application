@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Use http://10.0.2.2:5000 for Android Emulator, http://localhost:5000 for iOS simulator/Web/Desktop
@@ -12,11 +13,35 @@ class ApiService {
     return 'http://localhost:5000/api/v1';
   }
 
+  static const String _tokenKey = 'auth_token';
   static String? _authToken;
 
-  static void setAuthToken(String? token) {
+  static Future<void> setAuthToken(String? token) async {
     _authToken = token;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (token != null && token.isNotEmpty) {
+        await prefs.setString(_tokenKey, token);
+      } else {
+        await prefs.remove(_tokenKey);
+      }
+    } catch (e) {
+      debugPrint('Storage notice: $e');
+    }
   }
+
+  static Future<String?> loadSavedToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString(_tokenKey);
+      return _authToken;
+    } catch (e) {
+      debugPrint('Storage notice: $e');
+      return _authToken;
+    }
+  }
+
+  static bool get isAuthenticated => _authToken != null && _authToken!.isNotEmpty;
 
   static String? get authToken => _authToken;
 

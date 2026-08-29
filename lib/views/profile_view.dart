@@ -535,7 +535,7 @@ class _ProfileViewState extends State<ProfileView> {
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
             onTap: () async {
-              ApiService.setAuthToken(null);
+              await ApiService.setAuthToken(null);
               Get.offAll(() => const LoginScreen());
             },
             child: const Padding(

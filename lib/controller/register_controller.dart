@@ -82,7 +82,7 @@ class RegisterController extends GetxController {
       });
 
       if (res['success'] == true && res['token'] != null) {
-        ApiService.setAuthToken(res['token']);
+        await ApiService.setAuthToken(res['token']);
 
         isLoading.value = false;
         _initControllers();

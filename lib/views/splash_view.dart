@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import 'login_view.dart';
+import 'home_view.dart';
+import '../services/api_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -63,14 +65,30 @@ class _SplashScreenState extends State<SplashScreen>
 
     _ctrl.forward();
 
-    Future.delayed(const Duration(milliseconds: 6500), () {
-      if (!mounted) return;
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    // Wait for the splash logo animation to complete
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!mounted) return;
+
+    final token = await ApiService.loadSavedToken();
+    if (!mounted) return;
+
+    if (token != null && token.isNotEmpty) {
+      Get.off(
+        () => const HomeView(),
+        transition: Transition.fade,
+        duration: const Duration(milliseconds: 800),
+      );
+    } else {
       Get.off(
         () => const LoginScreen(),
         transition: Transition.fade,
-        duration: const Duration(milliseconds: 1000),
+        duration: const Duration(milliseconds: 800),
       );
-    });
+    }
   }
 
   @override

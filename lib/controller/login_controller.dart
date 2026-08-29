@@ -52,8 +52,8 @@ class LoginController extends GetxController {
       });
 
       if (res['success'] == true && res['token'] != null) {
-        // Save JWT token in ApiService
-        ApiService.setAuthToken(res['token']);
+        // Save JWT token in ApiService & SharedPreferences
+        await ApiService.setAuthToken(res['token']);
 
         isLoading.value = false;
         _initControllers();

@@ -106,7 +106,7 @@ class ProfileController extends GetxController {
     try {
       final res = await ApiService.delete('/users/account');
       if (res['success'] == true) {
-        ApiService.setAuthToken(null);
+        await ApiService.setAuthToken(null);
         isDeleting.value = false;
         Get.offAll(() => const LoginScreen());
         Get.snackbar(
