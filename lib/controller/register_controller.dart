@@ -100,14 +100,19 @@ class RegisterController extends GetxController {
     }
   }
 
+  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+
   // ── Google Sign-In ─────────────────────────────────────────────────────────
   Future<void> loginWithGoogle() async {
     isGoogleLoading.value = true;
     errorMessage.value = null;
 
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         // User canceled Google Sign-In sheet
@@ -141,7 +146,7 @@ class RegisterController extends GetxController {
         return; // User simply closed the picker
       }
       errorMessage.value = err.contains('ApiException: 10')
-          ? 'Google Sign-In configuration notice: SHA-1 fingerprint needed in Firebase Console.'
+          ? 'Google Sign-In notice: SHA-1 fingerprint needs to be added in Firebase Console.'
           : err;
       debugPrint('Google sign-in error: $e');
     }
