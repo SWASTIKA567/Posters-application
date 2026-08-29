@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:collection/collection.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/order_controller.dart';
 import '../themes/app_colors.dart';
@@ -116,7 +115,13 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                     top: topPad + 10,
                     left: 16,
                     child: GestureDetector(
-                      onTap: () => Get.back(),
+                      onTap: () {
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          Get.back();
+                        }
+                      },
                       child: Container(
                         width: 42,
                         height: 42,

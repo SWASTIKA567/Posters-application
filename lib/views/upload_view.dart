@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -61,7 +60,13 @@ class _Header extends StatelessWidget {
       children: [
         // back button — same style as notification button in HomeView
         GestureDetector(
-          onTap: () => Get.back(),
+          onTap: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Get.back();
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(

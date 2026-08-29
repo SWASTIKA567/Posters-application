@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:collection/collection.dart';
 import '../controller/wishlist_controller.dart';
 import '../themes/app_colors.dart'; // adjust path if needed
 import 'category_poster_screen.dart';

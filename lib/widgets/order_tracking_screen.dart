@@ -8,26 +8,11 @@ class OrderTrackingScreen extends StatelessWidget {
 
   const OrderTrackingScreen({super.key, required this.order});
 
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':    return const Color(0xFFF59E0B);
-      case 'confirmed':  return const Color(0xFF3B82F6);
-      case 'processing': return const Color(0xFF8B0000);
-      case 'shipped':    return const Color(0xFF06B6D4);
-      case 'delivered':  return const Color(0xFF10B981);
-      case 'cancelled':  return const Color(0xFFEF4444);
-      default:           return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final status = (order['status'] ?? 'Pending').toString();
     final trackingCode = (order['trackingCode'] ?? 'KCH-849201').toString();
     final addressMap = order['deliveryAddress'] as Map<String, dynamic>?;
-    final itemsList = order['items'] as List?;
-    final grandTotal = order['grandTotal'] ?? 0;
-    final paymentMethod = order['paymentMethod'] ?? 'Cash on Delivery';
 
     final steps = [
       {'title': 'Order Placed',        'desc': 'Your order has been received.',             'time': 'Step 1'},
@@ -52,7 +37,13 @@ class OrderTrackingScreen extends StatelessWidget {
         elevation: 0,
         leading: Center(
           child: GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Get.back();
+              }
+            },
             child: Container(
               width: 38,
               height: 38,

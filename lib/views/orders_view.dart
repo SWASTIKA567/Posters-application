@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/order_controller.dart';
+import '../controller/navigation_controller.dart';
 import '../themes/app_colors.dart';
 import '../widgets/order_tracking_screen.dart';
 
@@ -244,7 +245,13 @@ class OrdersView extends StatelessWidget {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        Get.back();
+                      }
+                    },
                     child: Container(
                       width: 42,
                       height: 42,
@@ -354,7 +361,7 @@ class OrdersView extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
                           GestureDetector(
-                            onTap: () => Get.back(),
+                            onTap: () => NavigationController.to.handleBack(context),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),

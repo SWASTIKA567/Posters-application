@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
-import '../views/home_view.dart';
+import '../views/login_view.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get to => Get.find();
@@ -108,7 +108,7 @@ class ProfileController extends GetxController {
       if (res['success'] == true) {
         ApiService.setAuthToken(null);
         isDeleting.value = false;
-        Get.offAll(() => const HomeView());
+        Get.offAll(() => const LoginScreen());
         Get.snackbar(
           'Account Deleted',
           'Your account and all associated data have been permanently removed.',

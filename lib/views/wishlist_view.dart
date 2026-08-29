@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/wishlist_controller.dart';
+import '../controller/navigation_controller.dart';
 import '../themes/app_colors.dart';
 
 class WishlistView extends StatelessWidget {
@@ -12,7 +13,7 @@ class WishlistView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Obx(() {
         if (ctrl.wishlist.isEmpty) {
           return _buildEmptyState();
@@ -22,14 +23,14 @@ class WishlistView extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
       leading: Center(
         child: GestureDetector(
-          onTap: () => Get.back(),
+          onTap: () => NavigationController.to.handleBack(context),
           child: Container(
             width: 38,
             height: 38,

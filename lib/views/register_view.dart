@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 import '../controller/register_controller.dart';
 import '../themes/app_colors.dart';
+import 'login_view.dart' show LoginScreen;
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -431,7 +432,13 @@ class _RegisterViewState extends State<RegisterView>
           const TextSpan(text: 'already have an account? '),
           WidgetSpan(
             child: GestureDetector(
-              onTap: () => Get.back(),
+              onTap: () {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  Get.off(() => const LoginScreen());
+                }
+              },
               child: Text(
                 'sign in',
                 style: TextStyle(

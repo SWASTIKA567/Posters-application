@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../controller/profile_controller.dart';
-import '../views/home_view.dart';
+import '../controller/navigation_controller.dart';
+import 'login_view.dart' show LoginScreen;
 import '../themes/app_colors.dart';
 import 'orders_view.dart';
 
@@ -39,7 +40,7 @@ class _ProfileViewState extends State<ProfileView> {
         }
         return CustomScrollView(
           slivers: [
-            _buildAppBar(controller),
+            _buildAppBar(context, controller),
             SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -137,14 +138,14 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  SliverAppBar _buildAppBar(ProfileController controller) {
+  SliverAppBar _buildAppBar(BuildContext context, ProfileController controller) {
     return SliverAppBar(
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
       leading: Center(
         child: GestureDetector(
-          onTap: () => Get.back(),
+          onTap: () => NavigationController.to.handleBack(context),
           child: Container(
             width: 38,
             height: 38,
@@ -535,7 +536,7 @@ class _ProfileViewState extends State<ProfileView> {
             borderRadius: BorderRadius.circular(14),
             onTap: () async {
               ApiService.setAuthToken(null);
-              Get.offAll(() => const HomeView());
+              Get.offAll(() => const LoginScreen());
             },
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 14),

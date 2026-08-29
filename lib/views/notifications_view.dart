@@ -25,7 +25,13 @@ class NotificationsView extends StatelessWidget {
         elevation: 0,
         leading: Center(
           child: GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Get.back();
+              }
+            },
             child: Container(
               width: 38,
               height: 38,

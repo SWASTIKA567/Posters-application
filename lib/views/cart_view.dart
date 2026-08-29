@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../themes/app_colors.dart';
+import '../controller/navigation_controller.dart';
 import 'select_address_view.dart';
 import '../controller/order_controller.dart';
 import '../widgets/payment_checkout_sheet.dart';
@@ -23,7 +24,7 @@ class CartView extends StatelessWidget {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () => NavigationController.to.handleBack(context),
                     child: Container(
                       width: 42,
                       height: 42,

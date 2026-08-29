@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/home_controller.dart';
+import '../controller/navigation_controller.dart';
 import '../widgets/poster_card.dart';
-import '../widgets/custom_bottom_navbar.dart';
-import '../widgets/category_poster_screen.dart';
 import '../widgets/poster_detail_screen.dart';
+import '../widgets/custom_bottom_navbar.dart';
 import '../themes/app_colors.dart';
 import '../views/upload_view.dart';
 import 'cart_view.dart';
@@ -16,7 +16,8 @@ import 'notifications_view.dart';
 import '../controller/notification_controller.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  final int initialIndex;
+  const HomeView({super.key, this.initialIndex = 0});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -24,9 +25,8 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   final HomeController ctrl = Get.put(HomeController());
+  final NavigationController navCtrl = NavigationController.to;
   final TextEditingController _searchCtrl = TextEditingController();
-
-  int selectedIndex = 0;
 
   late AnimationController _blob1;
   late AnimationController _blob2;
@@ -36,6 +36,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    if (widget.initialIndex != 0) {
+      navCtrl.selectedIndex.value = widget.initialIndex;
+    }
 
     _blob1 = AnimationController(
       vsync: this,
@@ -72,37 +75,41 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      bottomNavigationBar: CustomBottomNavBar(
-        selectedIndex: selectedIndex,
-        onTap: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-          switch (index) {
-            case 0:
-              Get.offAll(() => const HomeView());
-              break;
-
-            case 1:
-              Get.to(() => const CartView());
-              break;
-
-            case 2:
-              Get.to(() => const WishlistView());
-              break;
-
-            case 3:
-              Get.to(() => const ProfileView());
-              break;
+    return Obx(
+      () => PopScope(
+        canPop: navCtrl.selectedIndex.value == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            navCtrl.goToHome();
           }
         },
-        onCenterTap: () {
-          Get.to(() => const UploadView());
-        },
+        child: Scaffold(
+          backgroundColor: AppColors.bg,
+          bottomNavigationBar: CustomBottomNavBar(
+            selectedIndex: navCtrl.selectedIndex.value,
+            onTap: (index) {
+              navCtrl.changeTab(index);
+            },
+            onCenterTap: () {
+              Get.to(() => const UploadView());
+            },
+          ),
+          body: IndexedStack(
+            index: navCtrl.selectedIndex.value,
+            children: [
+              _buildHomeBody(),
+              const CartView(),
+              const WishlistView(),
+              const ProfileView(),
+            ],
+          ),
+        ),
       ),
-      body: Stack(
+    );
+  }
+
+  Widget _buildHomeBody() {
+    return Stack(
         children: [
           _Blob(
             ctrl: _blob1,
@@ -208,8 +215,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   // ── HEADER ───────────────────────────────────────────────────────────────────

@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../services/email_service.dart';
 import '../controller/notification_controller.dart';
@@ -87,10 +85,6 @@ class UserAddress {
 
 class OrderController extends GetxController {
   static OrderController get to => Get.find();
-
-  static const String _emailJsServiceId = 'YOUR_EMAILJS_SERVICE_ID';
-  static const String _emailJsTemplateId = 'YOUR_EMAILJS_TEMPLATE_ID';
-  static const String _emailJsPublicKey = 'YOUR_EMAILJS_PUBLIC_KEY';
 
   // ── Cart ──────────────────────────────────────────────────────────────────
   final RxList<CartItem> items = <CartItem>[].obs;
