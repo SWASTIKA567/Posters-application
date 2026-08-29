@@ -84,40 +84,62 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _ctrl,
-          builder: (context, _) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // K — bounces in from slightly above
-                Transform.translate(
-                  offset: Offset(0, _kY.value),
-                  child: Opacity(
-                    opacity: _kOpacity.value,
-                    child: Image.asset(
-                      'assets/kechi_K_only.png',
-                      height: 90,
-                      fit: BoxFit.contain,
+        child: Padding(
+          // slight upward nudge for optical centering
+          padding: const EdgeInsets.only(bottom: 60),
+          child: AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, _) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // K — bounces in from slightly above
+                      Transform.translate(
+                        offset: Offset(0, _kY.value),
+                        child: Opacity(
+                          opacity: _kOpacity.value,
+                          child: Image.asset(
+                            'assets/kechi_K_only.png',
+                            height: 90,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      // echi — fades in once K has landed
+                      Opacity(
+                        opacity: _echiOpacity.value,
+                        child: Image.asset(
+                          'assets/kechi_echi_only.png',
+                          height: 70,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Opacity(
+                    opacity: _echiOpacity.value,
+                    child: Text(
+                      'create · express · vibe',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black.withOpacity(0.35),
+                        letterSpacing: 1.4,
+                      ),
                     ),
                   ),
-                ),
-
-                const SizedBox(width: 6),
-
-                // echi — fades in once K has landed
-                Opacity(
-                  opacity: _echiOpacity.value,
-                  child: Image.asset(
-                    'assets/kechi_echi_only.png',
-                    height: 70,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

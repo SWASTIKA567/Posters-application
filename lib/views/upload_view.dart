@@ -142,7 +142,7 @@ class _Header extends StatelessWidget {
 }
 
 // ─── STEP LABEL ───────────────────────────────────────────────────────────────
-// Matches _sectionTitle() style from HomeView + gradient number accent
+// Matches _sectionTitle() style from HomeView
 class _StepLabel extends StatelessWidget {
   final String number;
   final String label;
@@ -150,46 +150,13 @@ class _StepLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        ShaderMask(
-          shaderCallback: (b) => const LinearGradient(
-            colors: AppColors.primaryGrad,
-          ).createShader(b),
-          child: const Text(
-            // number is small gradient accent beside the black section title
-            '', // placeholder — actual text below via Stack trick
-            style: TextStyle(fontSize: 0),
-          ),
-        ),
-        // gradient step number
-        ShaderMask(
-          shaderCallback: (b) => const LinearGradient(
-            colors: AppColors.primaryGrad,
-          ).createShader(b),
-          child: Text(
-            number,
-            style: const TextStyle(
-              color: Colors.white, // overridden by ShaderMask
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.5,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // section title — same as _sectionTitle() in HomeView
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: Colors.black,
-          ),
-        ),
-      ],
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: Colors.black,
+      ),
     );
   }
 }
