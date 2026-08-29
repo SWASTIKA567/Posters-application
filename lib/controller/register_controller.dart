@@ -106,10 +106,17 @@ class RegisterController extends GetxController {
     errorMessage.value = null;
 
     try {
-      await GoogleSignIn.instance.initialize();
-      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
-      final String? idToken = googleUser.authentication.idToken;
+      if (googleUser == null) {
+        // User canceled Google Sign-In sheet
+        isGoogleLoading.value = false;
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
 
       final res = await ApiService.post('/auth/google', {
         'idToken': idToken,

@@ -5,12 +5,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // Use http://10.0.2.2:5000 for Android Emulator, http://localhost:5000 for iOS simulator/Web/Desktop
-  // or your local Wi-Fi IP (e.g. http://192.168.1.X:5000) when running on physical device.
+  // Set to your laptop's local network Wi-Fi IP so phones on the same Wi-Fi can connect.
+  // For production / deployment, replace with your cloud backend URL (e.g. Render, Railway, AWS).
+  static const String serverHost = '192.168.1.4'; // Your PC's Wi-Fi IPv4 address
+  static const String serverPort = '5000';
+
   static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:5000/api/v1';
-    if (Platform.isAndroid) return 'http://10.0.2.2:5000/api/v1';
-    return 'http://localhost:5000/api/v1';
+    if (kIsWeb) return 'http://localhost:$serverPort/api/v1';
+    return 'http://$serverHost:$serverPort/api/v1';
   }
 
   static const String _tokenKey = 'auth_token';
