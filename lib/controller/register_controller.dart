@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 import '../views/home_view.dart';
 import '../controller/order_controller.dart';
@@ -19,6 +20,7 @@ class RegisterController extends GetxController {
   final confirmPasswordFocus = FocusNode();
 
   final isLoading = false.obs;
+  final isGoogleLoading = false.obs;
   final obscurePassword = true.obs;
   final obscureConfirmPassword = true.obs;
   final nameFocused = false.obs;
@@ -95,6 +97,46 @@ class RegisterController extends GetxController {
       isLoading.value = false;
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
       debugPrint('Register error: $e');
+    }
+  }
+
+  // ── Google Sign-In ─────────────────────────────────────────────────────────
+  Future<void> loginWithGoogle() async {
+    isGoogleLoading.value = true;
+    errorMessage.value = null;
+
+    try {
+      await GoogleSignIn.instance.initialize();
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
+
+      final String? idToken = googleUser.authentication.idToken;
+
+      final res = await ApiService.post('/auth/google', {
+        'idToken': idToken,
+        'email': googleUser.email,
+        'name': googleUser.displayName,
+        'picture': googleUser.photoUrl,
+      });
+
+      if (res['success'] == true && res['token'] != null) {
+        await ApiService.setAuthToken(res['token']);
+        isGoogleLoading.value = false;
+        _initControllers();
+        Get.off(() => const HomeView());
+      } else {
+        isGoogleLoading.value = false;
+        errorMessage.value = res['message'] ?? 'Google sign-in failed.';
+      }
+    } catch (e) {
+      isGoogleLoading.value = false;
+      final err = e.toString().replaceAll('Exception: ', '');
+      if (err.toLowerCase().contains('cancel') || err.toLowerCase().contains('canceled')) {
+        return; // User simply closed the picker
+      }
+      errorMessage.value = err.contains('ApiException: 10')
+          ? 'Google Sign-In configuration notice: SHA-1 fingerprint needed in Firebase Console.'
+          : err;
+      debugPrint('Google sign-in error: $e');
     }
   }
 

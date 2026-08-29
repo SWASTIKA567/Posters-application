@@ -128,15 +128,16 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
 
-                      const SizedBox(width: 6),
-
-                      // echi — fades in once K has landed
-                      Opacity(
-                        opacity: _echiOpacity.value,
-                        child: Image.asset(
-                          'assets/kechi_echi_only.png',
-                          height: 70,
-                          fit: BoxFit.contain,
+                      // echi — fades in closer to K
+                      Transform.translate(
+                        offset: const Offset(-3, 0),
+                        child: Opacity(
+                          opacity: _echiOpacity.value,
+                          child: Image.asset(
+                            'assets/kechi_echi_only.png',
+                            height: 70,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ],
