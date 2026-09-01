@@ -162,26 +162,17 @@ class OrderController extends GetxController {
 
   // ── Add Item ───────────────────────────────────────────────────────────────
   Future<void> addItem(CartItem item) async {
-    try {
-      final res = await ApiService.post('/cart', item.toMap());
-      if (res['success'] == true && res['item'] != null) {
-        final docId = res['item']['_id'];
-        items.add(
-          CartItem(
-            docId: docId,
-            imageUrl: item.imageUrl,
-            size: item.size,
-            quantity: item.quantity,
-            totalPrice: item.totalPrice,
-            addedAt: item.addedAt,
-          ),
-        );
-      } else {
-        items.add(item);
-      }
-    } catch (e) {
-      debugPrint('addItem error: $e');
-      items.add(item);
+    final res = await ApiService.post('/cart', item.toMap());
+    if (res['success'] == true && res['item'] != null) {
+      final docId = res['item']['_id'];
+      items.add(CartItem(
+        docId: docId,
+        imageUrl: item.imageUrl,
+        size: item.size,
+        quantity: item.quantity,
+        totalPrice: item.totalPrice,
+        addedAt: item.addedAt,
+      ));
     }
   }
 

@@ -114,46 +114,31 @@ class UploadController extends GetxController {
       uploadedImageUrl.value = url;
     }
 
-    // 2. Save order to backend via API
+    // 2. Add to cart via OrderController — it handles API call + local state
+    //    (no direct ApiService.post here to avoid double cart entries)
     try {
-      final res = await ApiService.post('/cart', {
-        'imageUrl': uploadedImageUrl.value,
-        'size': selectedSize.label,
-        'quantity': quantity.value,
-        'totalPrice': totalPrice,
-      });
+      final newItem = CartItem(
+        imageUrl: uploadedImageUrl.value,
+        size: selectedSize.label,
+        quantity: quantity.value,
+        totalPrice: totalPrice,
+        addedAt: DateTime.now(),
+      );
 
-      if (res['success'] == true) {
-        // 3. Update local cart in OrderController
-        final String docId = res['item']?['_id'] ?? '';
-        OrderController.to.addItem(
-          CartItem(
-            docId: docId,
-            imageUrl: uploadedImageUrl.value,
-            size: selectedSize.label,
-            quantity: quantity.value,
-            totalPrice: totalPrice,
-            addedAt: DateTime.now(),
-          ),
-        );
+      await OrderController.to.addItem(newItem);
 
-        isAddingToCart.value = false;
+      isAddingToCart.value = false;
 
-        // 4. Success feedback
-        Get.snackbar(
-          '🎉 Added to Cart!',
-          '${quantity.value}× ${selectedSize.label} poster added.',
-          backgroundColor: const Color(0xFF10B981),
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
+      Get.snackbar(
+        '🎉 Added to Cart!',
+        '${quantity.value}× ${selectedSize.label} poster added.',
+        backgroundColor: const Color(0xFF10B981),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
 
-        // Reset for next upload
-        _reset();
-      } else {
-        isAddingToCart.value = false;
-        Get.snackbar('Error', res['message'] ?? 'Failed to add item to cart');
-      }
+      // Reset for next upload
+      _reset();
     } catch (e) {
       isAddingToCart.value = false;
       Get.snackbar(
