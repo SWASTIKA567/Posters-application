@@ -123,6 +123,77 @@ class LoginController extends GetxController {
     }
   }
 
+  // ── Forgot Password / OTP ──────────────────────────────────────────────────
+  final isOtpSending = false.obs;
+  final isResettingPassword = false.obs;
+
+  Future<bool> sendForgotPasswordOtp(String email) async {
+    if (email.trim().isEmpty) {
+      Get.snackbar('Email Required', 'Please enter your registered email address.');
+      return false;
+    }
+    try {
+      isOtpSending.value = true;
+      final res = await ApiService.post('/auth/forgot-password', {
+        'email': email.trim(),
+      });
+      isOtpSending.value = false;
+      if (res['success'] == true) {
+        Get.snackbar(
+          '🔐 OTP Sent',
+          'A 6-digit verification code has been sent to $email',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+        );
+        return true;
+      } else {
+        Get.snackbar('Error', res['message'] ?? 'Failed to send OTP');
+        return false;
+      }
+    } catch (e) {
+      isOtpSending.value = false;
+      Get.snackbar('Error', e.toString().replaceAll('Exception: ', ''));
+      return false;
+    }
+  }
+
+  Future<bool> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    if (otp.trim().isEmpty || newPassword.trim().isEmpty) {
+      Get.snackbar('Missing Fields', 'Please enter the OTP and your new password.');
+      return false;
+    }
+    try {
+      isResettingPassword.value = true;
+      final res = await ApiService.post('/auth/reset-password', {
+        'email': email.trim(),
+        'otp': otp.trim(),
+        'newPassword': newPassword.trim(),
+      });
+      isResettingPassword.value = false;
+      if (res['success'] == true) {
+        Get.snackbar(
+          '🎉 Password Reset',
+          'Your password has been reset successfully! You can now log in.',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+        return true;
+      } else {
+        Get.snackbar('Reset Failed', res['message'] ?? 'Invalid or expired OTP');
+        return false;
+      }
+    } catch (e) {
+      isResettingPassword.value = false;
+      Get.snackbar('Error', e.toString().replaceAll('Exception: ', ''));
+      return false;
+    }
+  }
+
   void _initControllers() {
     if (!Get.isRegistered<WishlistController>()) {
       Get.put(WishlistController(), permanent: true);

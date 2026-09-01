@@ -326,8 +326,8 @@ class _LoginScreenState extends State<LoginScreen>
     return Align(
       alignment: Alignment.centerRight,
       child: GestureDetector(
-        onTap: () {},
-        child: Text(
+        onTap: () => _showForgotPasswordSheet(context),
+        child: const Text(
           'forgot password?',
           style: TextStyle(
             fontSize: 12,
@@ -335,6 +335,18 @@ class _LoginScreenState extends State<LoginScreen>
             color: AppColors.primary,
           ),
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _ForgotPasswordSheet(
+        initialEmail: _ctrl.emailController.text.trim(),
+        loginCtrl: _ctrl,
       ),
     );
   }
@@ -759,3 +771,278 @@ class _InputField extends StatelessWidget {
     );
   }
 }
+
+// ─── FORGOT PASSWORD & OTP SHEET ──────────────────────────────────────────────
+class _ForgotPasswordSheet extends StatefulWidget {
+  final String initialEmail;
+  final LoginController loginCtrl;
+
+  const _ForgotPasswordSheet({
+    required this.initialEmail,
+    required this.loginCtrl,
+  });
+
+  @override
+  State<_ForgotPasswordSheet> createState() => _ForgotPasswordSheetState();
+}
+
+class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
+  late final TextEditingController _emailCtrl;
+  final _otpCtrl = TextEditingController();
+  final _newPassCtrl = TextEditingController();
+
+  bool _otpSent = false;
+  bool _obscurePass = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailCtrl = TextEditingController(text: widget.initialEmail);
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _otpCtrl.dispose();
+    _newPassCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSendOtp() async {
+    final email = _emailCtrl.text.trim();
+    if (email.isEmpty) {
+      Get.snackbar('Email Required', 'Please enter your registered email.');
+      return;
+    }
+    final success = await widget.loginCtrl.sendForgotPasswordOtp(email);
+    if (success) {
+      setState(() => _otpSent = true);
+    }
+  }
+
+  Future<void> _handleResetPassword() async {
+    final email = _emailCtrl.text.trim();
+    final otp = _otpCtrl.text.trim();
+    final newPass = _newPassCtrl.text.trim();
+
+    final success = await widget.loginCtrl.resetPasswordWithOtp(
+      email: email,
+      otp: otp,
+      newPassword: newPass,
+    );
+    if (success) {
+      if (mounted) Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.lock_reset_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Reset Password',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    Text(
+                      _otpSent
+                          ? 'Enter 6-digit code & new password'
+                          : 'Enter your email to receive an OTP',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+
+            // Step 1: Email
+            TextField(
+              controller: _emailCtrl,
+              enabled: !_otpSent,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Registered Email',
+                hintText: 'you@kechi.app',
+                prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                filled: true,
+                fillColor: _otpSent ? Colors.grey.shade100 : const Color(0xFFF8F8F8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                ),
+              ),
+            ),
+
+            if (_otpSent) ...[
+              const SizedBox(height: 14),
+              // Step 2: 6-Digit OTP Field
+              TextField(
+                controller: _otpCtrl,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style: const TextStyle(
+                  letterSpacing: 6,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+                decoration: InputDecoration(
+                  labelText: '6-Digit OTP Code',
+                  counterText: '',
+                  prefixIcon: const Icon(Icons.pin_rounded, size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFFF8F8F8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Step 3: New Password Field
+              TextField(
+                controller: _newPassCtrl,
+                obscureText: _obscurePass,
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePass
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF8F8F8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                  ),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 22),
+
+            // Action Button
+            Obx(
+              () {
+                final isLoading = _otpSent
+                    ? widget.loginCtrl.isResettingPassword.value
+                    : widget.loginCtrl.isOtpSending.value;
+
+                return SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : (_otpSent ? _handleResetPassword : _handleSendOtp),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            _otpSent ? 'Reset Password →' : 'Send 6-Digit OTP →',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                );
+              },
+            ),
+
+            if (_otpSent) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton(
+                  onPressed: _handleSendOtp,
+                  child: Text(
+                    'Didn\'t receive code? Resend OTP',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary.withOpacity(0.85),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
