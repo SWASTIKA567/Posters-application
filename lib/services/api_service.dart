@@ -149,6 +149,10 @@ class ApiService {
   // ── Multipart File Upload ───────────────────────────────────────────────────
   static Future<String?> uploadImage(File imageFile) async {
     try {
+      if (_authToken == null || _authToken!.isEmpty) {
+        await loadSavedToken();
+      }
+
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/upload'),
@@ -169,10 +173,10 @@ class ApiService {
       if (data['success'] == true && data['imageUrl'] != null) {
         return data['imageUrl'] as String;
       }
-      return null;
+      throw Exception(data['message'] ?? 'Image upload failed');
     } catch (e) {
       debugPrint('Upload Image Exception: $e');
-      return null;
+      rethrow;
     }
   }
 
