@@ -5,15 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // Set to your laptop's local network Wi-Fi IP so phones on the same Wi-Fi can connect.
-  // For production / deployment, replace with your cloud backend URL (e.g. Render, Railway, AWS).
-  static const String serverHost = '10.124.203.155'; // Your PC's Wi-Fi IPv4 address
-  static const String serverPort = '5000';
+  // Production cloud backend URL deployed on Render
+  static const String liveBackendUrl = 'https://poster-backend-tjd5.onrender.com/api/v1';
 
-  static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:$serverPort/api/v1';
-    return 'http://$serverHost:$serverPort/api/v1';
-  }
+  static String get baseUrl => liveBackendUrl;
 
   static const String _tokenKey = 'auth_token';
   static String? _authToken;
