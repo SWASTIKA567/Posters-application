@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   // Set to your laptop's local network Wi-Fi IP so phones on the same Wi-Fi can connect.
   // For production / deployment, replace with your cloud backend URL (e.g. Render, Railway, AWS).
-  static const String serverHost = '192.168.1.4'; // Your PC's Wi-Fi IPv4 address
+  static const String serverHost = '10.124.203.155'; // Your PC's Wi-Fi IPv4 address
   static const String serverPort = '5000';
 
   static String get baseUrl {
