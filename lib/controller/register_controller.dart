@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 import '../views/home_view.dart';
+import '../views/otp_view.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/upload_controller.dart';
@@ -48,7 +49,7 @@ class RegisterController extends GetxController {
   void toggleConfirmPasswordVisibility() =>
       obscureConfirmPassword.value = !obscureConfirmPassword.value;
 
-  // ── Register User via REST API ──────────────────────────────────────────────
+  // ── Register User with OTP Flow ─────────────────────────────────────────────
   Future<void> registerWithEmail() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
@@ -77,30 +78,44 @@ class RegisterController extends GetxController {
     errorMessage.value = null;
 
     try {
-      final res = await ApiService.post('/auth/register', {
-        'name': name,
+      // Step 1: Request 6-digit OTP for signup verification
+      final res = await ApiService.post('/auth/send-otp', {
         'email': email,
-        'password': password,
+        'purpose': 'verification',
       });
 
-      if (res['success'] == true && res['token'] != null) {
-        await ApiService.setAuthToken(res['token']);
+      isLoading.value = false;
 
-        isLoading.value = false;
-        _initControllers();
-        Get.off(() => const HomeView());
+      if (res['success'] == true) {
+        Get.snackbar(
+          '🔐 Verification Code Sent',
+          'A 6-digit OTP code has been sent to $email',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+
+        // Navigate to dedicated OTP verification screen
+        Get.to(() => OtpView(
+              email: email,
+              purpose: OtpPurpose.signUp,
+              name: name,
+              password: password,
+            ));
       } else {
-        isLoading.value = false;
-        errorMessage.value = res['message'] ?? 'Registration failed. Try again.';
+        errorMessage.value = res['message'] ?? 'Failed to send OTP code.';
       }
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      debugPrint('Register error: $e');
+      debugPrint('Register OTP error: $e');
     }
   }
 
-  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    serverClientId: '526759954364-9llb9jo5itjo05pttivn13ohkieiih2h.apps.googleusercontent.com',
+  );
 
   // ── Google Sign-In ─────────────────────────────────────────────────────────
   Future<void> loginWithGoogle() async {
