@@ -5,10 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // Production cloud backend URL deployed on Render
+  // Normal Local Backend (Direct Gmail SMTP, 100% instant delivery to ANY email)
+  static const String emulatorUrl = 'http://10.0.2.2:5000/api/v1';
   static const String liveBackendUrl = 'https://poster-backend-tjd5.onrender.com/api/v1';
 
-  static String get baseUrl => liveBackendUrl;
+  static String get baseUrl => emulatorUrl;
 
   static const String _tokenKey = 'auth_token';
   static String? _authToken;
