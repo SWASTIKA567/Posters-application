@@ -7,6 +7,9 @@ import '../controller/navigation_controller.dart';
 import 'login_view.dart' show LoginScreen;
 import '../themes/app_colors.dart';
 import 'orders_view.dart';
+import 'select_address_view.dart';
+import 'address_view.dart';
+import '../controller/address_controller.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -83,44 +86,7 @@ class _ProfileViewState extends State<ProfileView> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildSection(
-                          title: 'Delivery address',
-                          icon: Icons.location_on_outlined,
-                          accentColor: const Color(0xFF00796B),
-                          children: [
-                            _buildFieldRow(
-                              icon: Icons.home_outlined,
-                              label: 'Address',
-                              controller: controller.addressCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: const Color(0xFF00796B),
-                              maxLines: 2,
-                            ),
-                            _buildFieldRow(
-                              icon: Icons.location_city_outlined,
-                              label: 'City',
-                              controller: controller.cityCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: const Color(0xFF00796B),
-                            ),
-                            _buildFieldRow(
-                              icon: Icons.map_outlined,
-                              label: 'State',
-                              controller: controller.stateCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: const Color(0xFF00796B),
-                            ),
-                            _buildFieldRow(
-                              icon: Icons.pin_outlined,
-                              label: 'Pincode',
-                              controller: controller.pincodeCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: const Color(0xFF00796B),
-                              keyboardType: TextInputType.number,
-                              isLast: true,
-                            ),
-                          ],
-                        ),
+                        _buildDeliveryAddressSection(controller),
                         const SizedBox(height: 16),
                         _buildSaveButton(controller),
                         const SizedBox(height: 12),
@@ -267,6 +233,270 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
+  }
+
+  Widget _buildDeliveryAddressSection(ProfileController controller) {
+    return Obx(() {
+      final selected = controller.selectedAddress.value;
+      final isEditing = controller.isEditMode.value;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFEEEEEE), width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF00796B)),
+                  const SizedBox(width: 5),
+                  const Text(
+                    "DELIVERY ADDRESS",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF00796B),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Get.to(() => const SelectAddressView()),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00796B).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            selected != null ? Icons.swap_horiz_rounded : Icons.add_rounded,
+                            size: 14,
+                            color: const Color(0xFF00796B),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            selected != null ? "Change" : "Add",
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF00796B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            if (selected != null) ...[
+              // Active Selected Address Card
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00796B).withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF00796B).withOpacity(0.18)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selected.name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle_rounded, size: 11, color: Color(0xFF10B981)),
+                                SizedBox(width: 3),
+                                Text(
+                                  "Active",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.phone_outlined, size: 12, color: Colors.black.withOpacity(0.4)),
+                          const SizedBox(width: 4),
+                          Text(
+                            selected.phone,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black.withOpacity(0.6),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        selected.fullAddress,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.black.withOpacity(0.75),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Action buttons row: "Change Address" & "+ Add Other Address"
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Get.to(() => const SelectAddressView()),
+                        icon: const Icon(Icons.check_box_outlined, size: 14, color: Color(0xFF00796B)),
+                        label: const Text(
+                          "Change Address",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF00796B)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          side: BorderSide(color: const Color(0xFF00796B).withOpacity(0.3)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (!Get.isRegistered<AddressController>()) Get.put(AddressController());
+                          AddressController.to.clearFields();
+                          AddressController.to.prefillFromProfile();
+                          Get.to(() => const AddressView());
+                        },
+                        icon: const Icon(Icons.add_location_alt_outlined, size: 14, color: Colors.white),
+                        label: const Text(
+                          "Add Other",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00796B),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Empty State
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      "No delivery address added yet.",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black.withOpacity(0.4),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (!Get.isRegistered<AddressController>()) Get.put(AddressController());
+                        AddressController.to.clearFields();
+                        AddressController.to.prefillFromProfile();
+                        Get.to(() => const AddressView());
+                      },
+                      icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                      label: const Text(
+                        "Add Address",
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00796B),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (isEditing) ...[
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              _buildFieldRow(
+                icon: Icons.home_outlined,
+                label: 'Address Line',
+                controller: controller.addressCtrl,
+                isEditing: true,
+                accentColor: const Color(0xFF00796B),
+                maxLines: 2,
+              ),
+              _buildFieldRow(
+                icon: Icons.location_city_outlined,
+                label: 'City',
+                controller: controller.cityCtrl,
+                isEditing: true,
+                accentColor: const Color(0xFF00796B),
+              ),
+              _buildFieldRow(
+                icon: Icons.map_outlined,
+                label: 'State',
+                controller: controller.stateCtrl,
+                isEditing: true,
+                accentColor: const Color(0xFF00796B),
+              ),
+              _buildFieldRow(
+                icon: Icons.pin_outlined,
+                label: 'Pincode',
+                controller: controller.pincodeCtrl,
+                isEditing: true,
+                accentColor: const Color(0xFF00796B),
+                keyboardType: TextInputType.number,
+                isLast: true,
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildSection({

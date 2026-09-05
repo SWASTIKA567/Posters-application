@@ -50,6 +50,7 @@ class UserAddress {
   final String city;
   final String state;
   final String pincode;
+  final bool isDefault;
 
   UserAddress({
     this.id,
@@ -59,6 +60,7 @@ class UserAddress {
     required this.city,
     required this.state,
     required this.pincode,
+    this.isDefault = false,
   });
 
   String get fullAddress => '$addressLine, $city, $state - $pincode';
@@ -71,6 +73,7 @@ class UserAddress {
         city: map['city'] ?? '',
         state: map['state'] ?? '',
         pincode: map['pincode'] ?? '',
+        isDefault: map['isDefault'] ?? false,
       );
 
   Map<String, dynamic> toMap() => {
@@ -80,6 +83,7 @@ class UserAddress {
         'city': city,
         'state': state,
         'pincode': pincode,
+        'isDefault': isDefault,
       };
 }
 
@@ -101,7 +105,23 @@ class OrderController extends GetxController {
   final Rx<UserAddress?> deliveryAddress = Rx<UserAddress?>(null);
   final RxList<UserAddress> savedAddresses = <UserAddress>[].obs;
 
-  void setAddress(UserAddress address) => deliveryAddress.value = address;
+  Future<void> setAddress(UserAddress address) async {
+    deliveryAddress.value = address;
+
+    // Sync with ProfileController immediately
+    if (Get.isRegistered<ProfileController>()) {
+      ProfileController.to.setSelectedAddress(address);
+    }
+
+    // Persist as default on backend
+    if (address.id != null) {
+      try {
+        await ApiService.patch('/addresses/${address.id}/default', {});
+      } catch (e) {
+        debugPrint('setDefaultAddress notice: $e');
+      }
+    }
+  }
 
   // ── Orders ────────────────────────────────────────────────────────────────
   final RxList<Map<String, dynamic>> orders = <Map<String, dynamic>>[].obs;
@@ -129,8 +149,20 @@ class OrderController extends GetxController {
             .map((d) => UserAddress.fromMap(d['_id'], Map<String, dynamic>.from(d)))
             .toList();
 
-        if (deliveryAddress.value == null && savedAddresses.isNotEmpty) {
-          deliveryAddress.value = savedAddresses.first;
+        if (savedAddresses.isNotEmpty) {
+          // Select the default address or first one
+          final defaultAddr = savedAddresses.firstWhereOrNull((a) => a.isDefault) ?? savedAddresses.first;
+          if (deliveryAddress.value == null || !savedAddresses.any((a) => a.id == deliveryAddress.value?.id)) {
+            deliveryAddress.value = defaultAddr;
+          }
+          if (Get.isRegistered<ProfileController>() && deliveryAddress.value != null) {
+            ProfileController.to.setSelectedAddress(deliveryAddress.value!);
+          }
+        } else {
+          deliveryAddress.value = null;
+          if (Get.isRegistered<ProfileController>()) {
+            ProfileController.to.clearSelectedAddress();
+          }
         }
       }
     } catch (e) {

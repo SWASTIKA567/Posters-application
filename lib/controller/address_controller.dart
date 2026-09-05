@@ -57,6 +57,7 @@ class AddressController extends GetxController {
         'city': cityCtrl.text.trim(),
         'state': stateCtrl.text.trim(),
         'pincode': pincodeCtrl.text.trim(),
+        'isDefault': true,
       });
 
       if (res['success'] == true && res['address'] != null) {
@@ -69,10 +70,11 @@ class AddressController extends GetxController {
           city: data['city'] ?? '',
           state: data['state'] ?? '',
           pincode: data['pincode'] ?? '',
+          isDefault: data['isDefault'] ?? true,
         );
 
-        OrderController.to.setAddress(address);
-        OrderController.to.fetchAddresses();
+        await OrderController.to.setAddress(address);
+        await OrderController.to.fetchAddresses();
         
         if (phoneCtrl.text.trim().isNotEmpty) {
           try {
@@ -82,6 +84,7 @@ class AddressController extends GetxController {
           } catch (_) {}
         }
         if (Get.isRegistered<ProfileController>()) {
+          ProfileController.to.setSelectedAddress(address);
           ProfileController.to.loadProfile();
         }
 

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../themes/app_colors.dart';
 import '../controller/order_controller.dart';
 import '../controller/address_controller.dart';
+import '../controller/profile_controller.dart';
 import 'address_view.dart';
 
 class SelectAddressView extends StatelessWidget {
@@ -21,7 +22,7 @@ class SelectAddressView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header
+            // Custom Header with "Add Other" button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Row(
@@ -61,11 +62,49 @@ class SelectAddressView extends StatelessWidget {
                       colors: AppColors.logoGrad,
                     ).createShader(b),
                     child: const Text(
-                      "Select Address",
+                      "Delivery Address",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Top "+ Add" quick button
+                  GestureDetector(
+                    onTap: () {
+                      addressCtrl.clearFields();
+                      addressCtrl.prefillFromProfile();
+                      Get.to(() => const AddressView());
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: AppColors.primaryGrad),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                          SizedBox(width: 4),
+                          Text(
+                            "Add Other",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -110,11 +149,29 @@ class SelectAddressView extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Please add a delivery address to complete your order.",
+                            "Please add an address to deliver your posters.",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black.withOpacity(.4),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              addressCtrl.clearFields();
+                              addressCtrl.prefillFromProfile();
+                              Get.to(() => const AddressView());
+                            },
+                            icon: const Icon(Icons.add_location_alt_outlined, color: Colors.white, size: 18),
+                            label: const Text(
+                              "Add Address Now",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                           ),
                         ],
@@ -138,13 +195,15 @@ class SelectAddressView extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : Colors.black.withOpacity(.04),
+                              : Colors.black.withOpacity(.06),
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(.04),
-                            blurRadius: 10,
+                            color: isSelected
+                                ? AppColors.primary.withOpacity(.10)
+                                : Colors.black.withOpacity(.04),
+                            blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -153,38 +212,49 @@ class SelectAddressView extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          onTap: () {
-                            orderCtrl.setAddress(address);
-                            Get.back(); // Return to cart
+                          onTap: () async {
+                            await orderCtrl.setAddress(address);
+                            if (Get.isRegistered<ProfileController>()) {
+                              ProfileController.to.setSelectedAddress(address);
+                            }
+                            Get.snackbar(
+                              '✅ Address Selected',
+                              '${address.name}\'s address selected for delivery & profile.',
+                              duration: const Duration(milliseconds: 1600),
+                              backgroundColor: const Color(0xFF10B981),
+                              colorText: Colors.white,
+                              snackPosition: SnackPosition.BOTTOM,
+                              margin: const EdgeInsets.all(16),
+                              borderRadius: 14,
+                            );
+                            await Future.delayed(const Duration(milliseconds: 350));
+                            Get.back();
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(18),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Selection indicator (Radio style)
-                                Container(
+                                // Checkbox selection indicator
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
                                   margin: const EdgeInsets.only(top: 2),
-                                  width: 20,
-                                  height: 20,
+                                  width: 24,
+                                  height: 24,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
+                                    color: isSelected ? AppColors.primary : Colors.transparent,
                                     border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : Colors.black26,
+                                      color: isSelected ? AppColors.primary : Colors.black38,
                                       width: 2,
                                     ),
                                   ),
                                   child: isSelected
-                                      ? Center(
-                                          child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppColors.primary,
-                                            ),
+                                      ? const Center(
+                                          child: Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.white,
                                           ),
                                         )
                                       : null,
@@ -198,58 +268,76 @@ class SelectAddressView extends StatelessWidget {
                                     children: [
                                       Row(
                                         children: [
-                                          Text(
-                                            address.name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.black,
+                                          Expanded(
+                                            child: Text(
+                                              address.name,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.black,
+                                              ),
                                             ),
                                           ),
-                                          if (isSelected) ...[
-                                            const SizedBox(width: 8),
+                                          if (isSelected)
                                             Container(
                                               padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 2,
+                                                horizontal: 10,
+                                                vertical: 3,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: AppColors.primary.withOpacity(.1),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: const Text(
-                                                "Active",
-                                                style: TextStyle(
-                                                  color: AppColors.primary,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF10B981).withOpacity(.12),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: const Color(0xFF10B981).withOpacity(.3),
                                                 ),
                                               ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.check_circle, size: 12, color: Color(0xFF10B981)),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    "Selected",
+                                                    style: TextStyle(
+                                                      color: Color(0xFF10B981),
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.w800,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ]
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        address.phone,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.black.withOpacity(.5),
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.phone_outlined, size: 14, color: Colors.black.withOpacity(.4)),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            address.phone,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black.withOpacity(.6),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         address.fullAddress,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.black.withOpacity(.7),
+                                          color: Colors.black.withOpacity(.75),
                                           height: 1.4,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+
+                                const SizedBox(width: 10),
 
                                 // Delete button
                                 GestureDetector(
@@ -278,18 +366,17 @@ class SelectAddressView extends StatelessWidget {
               }),
             ),
 
-            // "Add New Address" Bottom Button
+            // "Add Other Address" Bottom Button
             Padding(
               padding: const EdgeInsets.all(24),
               child: GestureDetector(
                 onTap: () {
-                  // Reset form fields before opening new address form
                   addressCtrl.clearFields();
                   addressCtrl.prefillFromProfile();
                   Get.to(() => const AddressView());
                 },
                 child: Container(
-                  height: 62,
+                  height: 60,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     gradient: const LinearGradient(
@@ -314,7 +401,7 @@ class SelectAddressView extends StatelessWidget {
                         ),
                         SizedBox(width: 10),
                         Text(
-                          "Add New Address",
+                          "Add Other Address",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../views/login_view.dart';
+import '../controller/order_controller.dart';
 
 class ProfileController extends GetxController {
   static ProfileController get to => Get.find();
@@ -14,6 +15,8 @@ class ProfileController extends GetxController {
   final stateCtrl = TextEditingController();
   final pincodeCtrl = TextEditingController();
 
+  final Rx<UserAddress?> selectedAddress = Rx<UserAddress?>(null);
+
   final isLoading = false.obs;
   final isSaving = false.obs;
   final isDeleting = false.obs;
@@ -23,6 +26,22 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     loadProfile();
+  }
+
+  void setSelectedAddress(UserAddress address) {
+    selectedAddress.value = address;
+    addressCtrl.text = address.addressLine;
+    cityCtrl.text = address.city;
+    stateCtrl.text = address.state;
+    pincodeCtrl.text = address.pincode;
+  }
+
+  void clearSelectedAddress() {
+    selectedAddress.value = null;
+    addressCtrl.clear();
+    cityCtrl.clear();
+    stateCtrl.clear();
+    pincodeCtrl.clear();
   }
 
   Future<void> loadProfile() async {
@@ -40,17 +59,22 @@ class ProfileController extends GetxController {
       if (addrRes['success'] == true &&
           addrRes['addresses'] != null &&
           (addrRes['addresses'] as List).isNotEmpty) {
-        final data = addrRes['addresses'][0];
-        addressCtrl.text = data['addressLine'] ?? '';
-        cityCtrl.text = data['city'] ?? '';
-        stateCtrl.text = data['state'] ?? '';
-        pincodeCtrl.text = data['pincode'] ?? '';
-        if (phoneCtrl.text.isEmpty && data['phone'] != null) {
-          phoneCtrl.text = data['phone'];
+        final list = (addrRes['addresses'] as List)
+            .map((d) => UserAddress.fromMap(d['_id'], Map<String, dynamic>.from(d)))
+            .toList();
+
+        // Pick default address or first one
+        final chosen = list.firstWhereOrNull((a) => a.isDefault) ?? list.first;
+        setSelectedAddress(chosen);
+
+        if (Get.isRegistered<OrderController>()) {
+          OrderController.to.savedAddresses.value = list;
+          if (OrderController.to.deliveryAddress.value == null) {
+            OrderController.to.deliveryAddress.value = chosen;
+          }
         }
-        if (nameCtrl.text.isEmpty && data['name'] != null) {
-          nameCtrl.text = data['name'];
-        }
+      } else {
+        clearSelectedAddress();
       }
     } catch (e) {
       debugPrint('loadProfile error: $e');
@@ -70,14 +94,36 @@ class ProfileController extends GetxController {
       });
 
       if (addressCtrl.text.trim().isNotEmpty) {
-        await ApiService.post('/addresses', {
-          'name': nameCtrl.text.trim(),
-          'phone': phoneCtrl.text.trim(),
-          'addressLine': addressCtrl.text.trim(),
-          'city': cityCtrl.text.trim(),
-          'state': stateCtrl.text.trim(),
-          'pincode': pincodeCtrl.text.trim(),
-        });
+        if (selectedAddress.value?.id != null) {
+          // Update existing selected address
+          await ApiService.put('/addresses/${selectedAddress.value!.id}', {
+            'name': nameCtrl.text.trim(),
+            'phone': phoneCtrl.text.trim(),
+            'addressLine': addressCtrl.text.trim(),
+            'city': cityCtrl.text.trim(),
+            'state': stateCtrl.text.trim(),
+            'pincode': pincodeCtrl.text.trim(),
+          });
+        } else {
+          // Create new address
+          final addrRes = await ApiService.post('/addresses', {
+            'name': nameCtrl.text.trim(),
+            'phone': phoneCtrl.text.trim(),
+            'addressLine': addressCtrl.text.trim(),
+            'city': cityCtrl.text.trim(),
+            'state': stateCtrl.text.trim(),
+            'pincode': pincodeCtrl.text.trim(),
+            'isDefault': true,
+          });
+          if (addrRes['success'] == true && addrRes['address'] != null) {
+            final d = addrRes['address'];
+            final newAddr = UserAddress.fromMap(d['_id'], Map<String, dynamic>.from(d));
+            setSelectedAddress(newAddr);
+          }
+        }
+        if (Get.isRegistered<OrderController>()) {
+          OrderController.to.fetchAddresses();
+        }
       }
 
       isEditMode.value = false;
