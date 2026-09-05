@@ -47,32 +47,7 @@ class NotificationController extends GetxController {
   static NotificationController get to => Get.find();
 
   // ── Notifications List ──────────────────────────────────────────────────────
-  final RxList<AppNotification> notifications = <AppNotification>[
-    AppNotification(
-      id: '1',
-      title: '🎉 Welcome to Kechi!',
-      body: 'Explore high-resolution wall posters or upload your own photos to frame!',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      type: 'system',
-      isRead: false,
-    ),
-    AppNotification(
-      id: '2',
-      title: '🔥 Special Offer: 20% OFF',
-      body: 'Use code KECHI20 at checkout for 20% discount on Matisse collection posters.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      type: 'promo',
-      isRead: false,
-    ),
-    AppNotification(
-      id: '3',
-      title: '✨ Custom Print Ready',
-      body: 'Your uploaded posters are printed on 300 GSM matte paper with rich pigment inks.',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      type: 'system',
-      isRead: true,
-    ),
-  ].obs;
+  final RxList<AppNotification> notifications = <AppNotification>[].obs;
 
   // ── Selected Filter ('all', 'order', 'promo', 'system') ──────────────────────
   final RxString selectedFilter = 'all'.obs;
