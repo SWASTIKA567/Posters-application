@@ -550,7 +550,7 @@ class _QtyButton extends StatelessWidget {
           gradient: const LinearGradient(colors: AppColors.primaryGrad),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Icon(Icons.remove, color: Colors.white, size: 20),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }

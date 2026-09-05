@@ -165,7 +165,7 @@ class ApiService {
         await http.MultipartFile.fromPath('image', imageFile.path),
       );
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
       final response = await http.Response.fromStream(streamedResponse);
       final data = _processResponse(response);
 

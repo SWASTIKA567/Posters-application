@@ -117,6 +117,11 @@ class UploadController extends GetxController {
     // 2. Add to cart via OrderController — it handles API call + local state
     //    (no direct ApiService.post here to avoid double cart entries)
     try {
+      // Ensure OrderController is registered (it may not be if navigating directly to UploadView)
+      if (!Get.isRegistered<OrderController>()) {
+        Get.put(OrderController(), permanent: true);
+      }
+
       final newItem = CartItem(
         imageUrl: uploadedImageUrl.value,
         size: selectedSize.label,

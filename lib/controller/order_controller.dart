@@ -173,6 +173,8 @@ class OrderController extends GetxController {
         totalPrice: item.totalPrice,
         addedAt: item.addedAt,
       ));
+    } else {
+      throw Exception(res['message'] ?? 'Failed to add item to cart');
     }
   }
 
