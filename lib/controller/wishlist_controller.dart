@@ -21,13 +21,26 @@ class WishlistController extends GetxController {
     final alreadyAdded = wishlist.any((item) => item.title == title);
     if (alreadyAdded) return;
 
+    // ✅ Optimistic update — add instantly to UI (no waiting for API)
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final tempItem = WishlistItem(
+      docId: tempId,
+      title: title,
+      image: image,
+    );
+    wishlist.add(tempItem);
+
+    // Sync with backend in background
     try {
       await ApiService.post('/wishlist/toggle', {
         'title': title,
         'image': image,
       });
+      // Refresh to get real docId from server
       await fetchWishlist();
     } catch (e) {
+      // Revert optimistic update on failure
+      wishlist.removeWhere((item) => item.id == tempItem.id);
       debugPrint('addToWishlist error: $e');
     }
   }
@@ -50,10 +63,15 @@ class WishlistController extends GetxController {
   }
 
   Future<void> removeWishlist(String docId) async {
+    // ✅ Optimistic update — remove instantly from UI
+    final removed = wishlist.firstWhereOrNull((item) => item.id == docId);
+    wishlist.removeWhere((item) => item.id == docId);
+
     try {
       await ApiService.delete('/wishlist/$docId');
-      await fetchWishlist();
     } catch (e) {
+      // Revert — add back if delete failed
+      if (removed != null) wishlist.add(removed);
       debugPrint('removeWishlist error: $e');
     }
   }
