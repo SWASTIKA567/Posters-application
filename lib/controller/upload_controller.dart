@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../controller/order_controller.dart';
+import '../views/cart_view.dart';
 
 class PosterSize {
   final String label; // "A3", "A4", "A5"
@@ -139,7 +140,14 @@ class UploadController extends GetxController {
         '${quantity.value}× ${selectedSize.label} poster added.',
         backgroundColor: const Color(0xFF10B981),
         colorText: Colors.white,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 4),
+        mainButton: TextButton(
+          onPressed: () => Get.to(() => const CartView()),
+          child: const Text(
+            'VIEW CART',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
       );
 
       // Reset for next upload

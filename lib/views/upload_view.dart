@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../controller/order_controller.dart';
 import '../controller/upload_controller.dart';
 import '../themes/app_colors.dart';
+import 'cart_view.dart';
 
 class UploadView extends StatelessWidget {
   const UploadView({super.key});
@@ -96,51 +97,54 @@ class _Header extends StatelessWidget {
         ),
         const Spacer(),
         // cart badge — notification icon style from HomeView
-        Obx(() {
-          final count = OrderController.to.totalItems;
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(.05),
-                  borderRadius: BorderRadius.circular(12),
+        GestureDetector(
+          onTap: () => Get.to(() => const CartView()),
+          child: Obx(() {
+            final count = OrderController.to.totalItems;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: Colors.black,
+                    size: 22,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: Colors.black,
-                  size: 22,
-                ),
-              ),
-              if (count > 0)
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: AppColors.primaryGrad,
+                if (count > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: AppColors.primaryGrad,
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        count > 9 ? '9+' : '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                      child: Center(
+                        child: Text(
+                          count > 9 ? '9+' : '$count',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          );
-        }),
+              ],
+            );
+          }),
+        ),
       ],
     );
   }

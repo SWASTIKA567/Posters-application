@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
@@ -161,8 +162,31 @@ class ApiService {
         request.headers['Authorization'] = 'Bearer $_authToken';
       }
 
+      final pathLower = imageFile.path.toLowerCase();
+      String subType = 'jpeg';
+      if (pathLower.endsWith('.png')) {
+        subType = 'png';
+      } else if (pathLower.endsWith('.webp')) {
+        subType = 'webp';
+      } else if (pathLower.endsWith('.gif')) {
+        subType = 'gif';
+      } else if (pathLower.endsWith('.heic')) {
+        subType = 'heic';
+      } else if (pathLower.endsWith('.heif')) {
+        subType = 'heif';
+      } else {
+        subType = 'jpeg';
+      }
+
+      final fileName = 'poster_${DateTime.now().millisecondsSinceEpoch}.$subType';
+
       request.files.add(
-        await http.MultipartFile.fromPath('image', imageFile.path),
+        await http.MultipartFile.fromPath(
+          'image',
+          imageFile.path,
+          filename: fileName,
+          contentType: MediaType('image', subType),
+        ),
       );
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
