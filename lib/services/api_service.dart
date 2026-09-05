@@ -58,7 +58,7 @@ class ApiService {
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
       if (e is Exception && e.toString().contains('Exception: ')) {
@@ -75,7 +75,7 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
       if (e is Exception && e.toString().contains('Exception: ')) {
@@ -95,7 +95,7 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
       if (e is Exception && e.toString().contains('Exception: ')) {
@@ -115,7 +115,7 @@ class ApiService {
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
         body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
       if (e is Exception && e.toString().contains('Exception: ')) {
@@ -134,7 +134,7 @@ class ApiService {
       final response = await http.delete(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
       if (e is Exception && e.toString().contains('Exception: ')) {
