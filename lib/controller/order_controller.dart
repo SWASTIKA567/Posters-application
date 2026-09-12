@@ -230,6 +230,8 @@ class OrderController extends GetxController {
   Future<bool> placeOrder({
     String paymentMethod = 'Cash on Delivery',
     String paymentStatus = 'Pay on Delivery',
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
   }) async {
     if (items.isEmpty) return false;
 
@@ -257,6 +259,8 @@ class OrderController extends GetxController {
         'paymentMethod': paymentMethod,
         'paymentStatus': paymentStatus,
         'trackingCode': trackingCode,
+        if (razorpayPaymentId != null) 'razorpayPaymentId': razorpayPaymentId,
+        if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
       });
 
       if (res['success'] == true) {

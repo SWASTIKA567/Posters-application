@@ -54,6 +54,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     _finalizeOrder(
       paymentMethod: 'Razorpay Online (${response.paymentId ?? "UPI"})',
       paymentStatus: 'Paid',
+      razorpayPaymentId: response.paymentId,
+      razorpayOrderId: response.orderId,
     );
   }
 
@@ -123,10 +125,14 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   Future<void> _finalizeOrder({
     required String paymentMethod,
     required String paymentStatus,
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
   }) async {
     final success = await widget.ctrl.placeOrder(
       paymentMethod: paymentMethod,
       paymentStatus: paymentStatus,
+      razorpayPaymentId: razorpayPaymentId,
+      razorpayOrderId: razorpayOrderId,
     );
 
     if (mounted) setState(() => _isProcessing = false);
