@@ -11,14 +11,16 @@ class OrderTrackingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = (order['status'] ?? 'Pending').toString();
-    final trackingCode = (order['trackingCode'] ?? 'KCH-849201').toString();
+    final waybill = (order['waybillNumber'] ?? order['trackingCode'] ?? 'SFX849201824').toString();
+    final courierPartner = (order['courierPartner'] ?? 'Shadowfax Express').toString();
+    final trackingUrl = (order['trackingUrl'] ?? 'https://tracker.shadowfax.in/track?orderId=$waybill').toString();
     final addressMap = order['deliveryAddress'] as Map<String, dynamic>?;
 
     final steps = [
       {'title': 'Order Placed',        'desc': 'Your order has been received.',             'time': 'Step 1'},
       {'title': 'Printing & Quality', 'desc': 'Kechi high-resolution poster print in progress.', 'time': 'Step 2'},
-      {'title': 'Shipped & In Transit','desc': 'Handed over to courier partner.',          'time': 'Step 3'},
-      {'title': 'Out for Delivery',    'desc': 'Rider is on the way to your address.',      'time': 'Step 4'},
+      {'title': 'Shipped & In Transit','desc': 'Handed over to $courierPartner.',          'time': 'Step 3'},
+      {'title': 'Out for Delivery',    'desc': 'Shadowfax rider is out for delivery.',      'time': 'Step 4'},
       {'title': 'Delivered',           'desc': 'Package delivered to recipient.',            'time': 'Step 5'},
     ];
 
@@ -101,14 +103,20 @@ class OrderTrackingScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "TRACKING NUMBER",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white70,
-                          letterSpacing: 1.2,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            courierPartner.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -127,25 +135,35 @@ class OrderTrackingScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "SHADOWFAX WAYBILL (AWB)",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white70,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Text(
-                        trackingCode,
+                        waybill,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
-                          letterSpacing: 1,
+                          letterSpacing: 1.1,
                         ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Clipboard.setData(ClipboardData(text: trackingCode));
+                          Clipboard.setData(ClipboardData(text: waybill));
                           Get.snackbar(
-                            'Copied!',
-                            'Tracking code copied to clipboard.',
+                            'AWB Copied!',
+                            'Shadowfax Waybill #$waybill copied to clipboard.',
                             backgroundColor: Colors.black,
                             colorText: Colors.white,
                             duration: const Duration(seconds: 2),
@@ -158,16 +176,48 @@ class OrderTrackingScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Divider(color: Colors.white24, height: 1),
                   const SizedBox(height: 12),
-                  const Row(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.local_shipping_outlined, color: Colors.white, size: 16),
-                      SizedBox(width: 8),
-                      Text(
-                        "Estimated Delivery: 2 - 4 Business Days",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                      const Row(
+                        children: [
+                          Icon(Icons.flash_on_rounded, color: Colors.white, size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            "Express Delivery (2-4 Days)",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: trackingUrl));
+                          Get.snackbar(
+                            'Tracking Link Copied',
+                            'Paste into your browser to track live on Shadowfax.',
+                            backgroundColor: Colors.black,
+                            colorText: Colors.white,
+                            duration: const Duration(seconds: 3),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            "Track Online",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF8B0000),
+                            ),
+                          ),
                         ),
                       ),
                     ],
