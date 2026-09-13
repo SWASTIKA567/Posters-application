@@ -453,12 +453,6 @@ class _PriceSummary extends StatelessWidget {
               label: 'Delivery Charges',
               value: '₹${OrderController.deliveryCharge.toInt()}',
             ),
-            const SizedBox(height: 12),
-            _Row(
-              label: 'Payment Method',
-              value: 'Cash on Delivery',
-              valueColor: const Color(0xFF00796B),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
               child: Divider(
@@ -502,8 +496,7 @@ class _PriceSummary extends StatelessWidget {
 class _Row extends StatelessWidget {
   final String label;
   final String value;
-  final Color? valueColor;
-  const _Row({required this.label, required this.value, this.valueColor});
+  const _Row({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -516,8 +509,8 @@ class _Row extends StatelessWidget {
         ),
         Text(
           value,
-          style: TextStyle(
-            color: valueColor ?? Colors.black,
+          style: const TextStyle(
+            color: Colors.black,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),

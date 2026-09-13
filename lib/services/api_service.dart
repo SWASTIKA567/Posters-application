@@ -6,9 +6,19 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
+  // Set to true for local testing, false for Render cloud deployment
+  static const bool useLocalBackend = true;
+
   static const String liveBackendUrl = 'https://poster-backend-tjd5.onrender.com/api/v1';
 
-  static String get baseUrl => liveBackendUrl;
+  static String get baseUrl {
+    if (!useLocalBackend) return liveBackendUrl;
+    // Android emulator uses 10.0.2.2 to reach host PC localhost:5000
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'http://10.0.2.2:5000/api/v1';
+    }
+    return 'http://localhost:5000/api/v1';
+  }
 
   static const String _tokenKey = 'auth_token';
   static String? _authToken;
