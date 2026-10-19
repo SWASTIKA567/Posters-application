@@ -49,7 +49,7 @@ class PushNotificationService {
       const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
       await _localNotifications.initialize(
-        initSettings,
+        settings: initSettings,
         onDidReceiveNotificationResponse: (NotificationResponse response) {
           debugPrint('Notification clicked with payload: ${response.payload}');
           // If payload contains order info, navigate to orders screen
@@ -85,10 +85,10 @@ class PushNotificationService {
         final android = message.notification?.android;
         if (notification != null && android != null && !kIsWeb) {
           _localNotifications.show(
-            notification.hashCode,
-            title,
-            body,
-            NotificationDetails(
+            id: notification.hashCode,
+            title: title,
+            body: body,
+            notificationDetails: NotificationDetails(
               android: AndroidNotificationDetails(
                 _channel.id,
                 _channel.name,

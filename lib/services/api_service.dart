@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Set to true for local testing, false for Render cloud deployment
-  static const bool useLocalBackend = true;
+  static const bool useLocalBackend = false;
 
   static const String liveBackendUrl = 'https://poster-backend-tjd5.onrender.com/api/v1';
 

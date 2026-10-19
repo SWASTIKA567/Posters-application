@@ -89,7 +89,9 @@ class _ProfileViewState extends State<ProfileView> {
                         _buildDeliveryAddressSection(controller),
                         const SizedBox(height: 16),
                         _buildSaveButton(controller),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
+                        _buildLegalAndSupportSection(),
+                        const SizedBox(height: 14),
                         _buildLogoutCard(),
                         const SizedBox(height: 32),
                       ],
@@ -749,6 +751,249 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLegalAndSupportSection() {
+    return _buildSection(
+      title: 'Legal, Policies & Support',
+      icon: Icons.shield_outlined,
+      accentColor: AppColors.primary,
+      children: [
+        _buildPolicyRow(
+          icon: Icons.local_shipping_outlined,
+          title: 'Shipping & Delivery Policy',
+          subtitle: 'Dispatched in 24-48h, 3-5 days delivery',
+          onTap: () => _showPolicyModal(
+            title: 'Shipping & Delivery Policy',
+            content: '''
+• Courier Partner: We partner with Shadowfax Express for fast and reliable pan-India delivery.
+
+• Dispatch Timeline: Custom posters are printed, quality inspected, and packaged in protective safety tubes within 24 to 48 hours of order confirmation.
+
+• Delivery Time: Estimated delivery takes 3 to 5 business days depending on destination pincode.
+
+• Shipping Charges: Standard flat delivery fee of ₹49 across all serviceable Indian pincodes.
+
+• Real-Time Tracking: A live Shadowfax AWB tracking code and direct tracking link are provided in the app for every placed order.
+''',
+          ),
+        ),
+        _buildPolicyRow(
+          icon: Icons.currency_rupee_rounded,
+          title: 'Cancellation & Refund Policy',
+          subtitle: 'Easy refunds within 5-7 business days',
+          onTap: () => _showPolicyModal(
+            title: 'Cancellation & Refund Policy',
+            content: '''
+• Order Cancellation: You can cancel your order directly from the app while its status is "Pending". Once production has started, custom printed products cannot be cancelled.
+
+• Damaged / Defective Posters: If your poster arrives damaged, bent, or has a printing defect, contact our support team within 48 hours of delivery with photos for an immediate 100% free reprint or full refund.
+
+• Refund Timeline: Approved refunds are processed to your original payment method (Bank Account, UPI, Card) within 5 to 7 working days.
+''',
+          ),
+        ),
+        _buildPolicyRow(
+          icon: Icons.privacy_tip_outlined,
+          title: 'Privacy Policy',
+          subtitle: 'How we protect your data & artwork',
+          onTap: () => _showPolicyModal(
+            title: 'Privacy Policy',
+            content: '''
+• Information We Collect: Name, email address, contact phone, delivery addresses, and customer-uploaded image files for custom printing.
+
+• Use of Information: Data is strictly used to fulfill and ship your poster orders, generate tax receipts, and send delivery status updates.
+
+• Security & Deletion: We never sell or share customer data with unauthorized third parties. You have the right to permanently delete your account and all associated data at any time from your Profile settings.
+''',
+          ),
+        ),
+        _buildPolicyRow(
+          icon: Icons.description_outlined,
+          title: 'Terms & Conditions',
+          subtitle: 'User agreement & print specifications',
+          onTap: () => _showPolicyModal(
+            title: 'Terms & Conditions',
+            content: '''
+• Custom Prints: By uploading an image to Kechi, you confirm that you own or hold the appropriate rights to print the content.
+
+• Color & Quality: Posters are printed on high-grade 300 GSM archival stock using premium pigment inks. Subtle color variations may occur between backlit phone screens and physical prints.
+
+• Payment Security: All online transactions are processed through Razorpay's PCI-DSS compliant secure payment gateway.
+''',
+          ),
+        ),
+        _buildPolicyRow(
+          icon: Icons.headset_mic_outlined,
+          title: 'Contact & Customer Support',
+          subtitle: 'support@kechi.app • Mon-Sat 10am-7pm',
+          isLast: true,
+          onTap: () => _showPolicyModal(
+            title: 'Contact Us',
+            content: '''
+• Business Name: Kechi Posters
+• Customer Support Email: support@kechi.app
+• Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST
+• Response Time: We typically respond to queries within 2 to 4 business hours.
+• Grievance Redressal: For any unresolved order concerns, write to us directly at support@kechi.app with your Order / Tracking ID.
+''',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPolicyRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: AppColors.primary, size: 16),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF222222),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF888888),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Color(0xFFCCCCCC),
+                  size: 12,
+                ),
+              ],
+            ),
+          ),
+          if (!isLast)
+            const Divider(
+              height: 1,
+              indent: 58,
+              endIndent: 14,
+              color: Color(0xFFF0F0F0),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showPolicyModal({required String title, required String content}) {
+    Get.bottomSheet(
+      Container(
+        constraints: BoxConstraints(
+          maxHeight: Get.height * 0.75,
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  onPressed: () => Get.back(),
+                ),
+              ],
+            ),
+            const Divider(height: 12),
+            const SizedBox(height: 8),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Text(
+                  content.trim(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.6,
+                    color: Color(0xFF444444),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text(
+                  "Close",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 
