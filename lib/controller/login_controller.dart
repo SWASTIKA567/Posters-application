@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
+import '../services/push_notification_service.dart';
 import '../controller/order_controller.dart';
 import '../controller/wishlist_controller.dart';
 import '../views/home_view.dart';
@@ -211,6 +212,7 @@ class LoginController extends GetxController {
         ? Get.find<ProfileController>()
         : Get.put(ProfileController(), permanent: true);
     profile.loadProfile();
+    PushNotificationService.syncFcmToken();
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'login_view.dart';
 import 'home_view.dart';
 import '../services/api_service.dart';
+import '../services/push_notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -77,6 +78,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
+      PushNotificationService.syncFcmToken();
       Get.off(
         () => const HomeView(),
         transition: Transition.fade,

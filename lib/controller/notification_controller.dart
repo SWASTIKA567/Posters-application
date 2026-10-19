@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppNotification {
   final String id;
@@ -46,6 +48,8 @@ class AppNotification {
 class NotificationController extends GetxController {
   static NotificationController get to => Get.find();
 
+  static const String _storageKey = 'stored_notifications';
+
   // ── Notifications List ──────────────────────────────────────────────────────
   final RxList<AppNotification> notifications = <AppNotification>[].obs;
 
@@ -60,6 +64,39 @@ class NotificationController extends GetxController {
     final filter = selectedFilter.value;
     if (filter == 'all') return notifications;
     return notifications.where((n) => n.type == filter).toList().obs;
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadFromStorage();
+  }
+
+  // ── Persistence: Load from Phone Storage ────────────────────────────────────
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedList = prefs.getStringList(_storageKey);
+      if (savedList != null && savedList.isNotEmpty) {
+        notifications.value = savedList.map((itemStr) {
+          final map = jsonDecode(itemStr) as Map<String, dynamic>;
+          return AppNotification.fromMap(map);
+        }).toList();
+      }
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+    }
+  }
+
+  // ── Persistence: Save to Phone Storage ──────────────────────────────────────
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stringList = notifications.map((n) => jsonEncode(n.toMap())).toList();
+      await prefs.setStringList(_storageKey, stringList);
+    } catch (e) {
+      debugPrint('Error saving notifications: $e');
+    }
   }
 
   // ── Add New Notification & Trigger Push Snackbar ───────────────────────────
@@ -84,6 +121,7 @@ class NotificationController extends GetxController {
     // Insert at beginning of list
     notifications.insert(0, notif);
     notifications.refresh();
+    _saveToStorage();
 
     // Show Push Banner Snackbar if enabled
     if (showPushBanner) {
@@ -134,6 +172,7 @@ class NotificationController extends GetxController {
     if (idx != -1 && !notifications[idx].isRead) {
       notifications[idx].isRead = true;
       notifications.refresh();
+      _saveToStorage();
     }
   }
 
@@ -148,6 +187,7 @@ class NotificationController extends GetxController {
     }
     if (updated) {
       notifications.refresh();
+      _saveToStorage();
     }
   }
 
@@ -155,12 +195,14 @@ class NotificationController extends GetxController {
   void deleteNotification(String id) {
     notifications.removeWhere((n) => n.id == id);
     notifications.refresh();
+    _saveToStorage();
   }
 
   // ── Clear All Notifications ─────────────────────────────────────────────────
   void clearAll() {
     notifications.clear();
     notifications.refresh();
+    _saveToStorage();
   }
 
   // ── Set Filter ──────────────────────────────────────────────────────────────
