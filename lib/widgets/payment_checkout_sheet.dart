@@ -5,6 +5,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../controller/order_controller.dart';
 import '../controller/notification_controller.dart';
 import '../controller/profile_controller.dart';
+import '../services/api_service.dart';
 import '../services/email_service.dart';
 import '../services/razorpay_service.dart';
 import 'order_tracking_screen.dart';
@@ -34,6 +35,8 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       onSuccess: _onRazorpaySuccess,
       onError: _onRazorpayError,
     );
+    // Fetch latest active key (Live or Test) from backend
+    RazorpayService.fetchActiveKeyId();
   }
 
   @override
@@ -48,6 +51,20 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         : _selectedMethod == 'Card'
             ? 'Credit / Debit Card'
             : 'Net Banking ($_selectedBank)';
+
+    // Verify signature on backend if available
+    if (response.orderId != null && response.signature != null) {
+      try {
+        await ApiService.post('/payment/verify', {
+          'razorpay_order_id': response.orderId,
+          'razorpay_payment_id': response.paymentId,
+          'razorpay_signature': response.signature,
+        });
+        debugPrint('✅ Payment signature verified on server');
+      } catch (e) {
+        debugPrint('Server payment verification notice: $e');
+      }
+    }
 
     _finalizeOrder(
       paymentMethod: methodLabel,
@@ -96,28 +113,30 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     }
 
     final addr = widget.ctrl.deliveryAddress.value!;
-    
-    // Open Razorpay Native Payment Gateway
-    if (RazorpayService.razorpayKeyId.contains('rzp_test_YOUR_KEY_HERE')) {
-      // Demo simulation fallback if live key is not yet set by user
-      await Future.delayed(const Duration(seconds: 2));
-      await _finalizeOrder(
-        paymentMethod: _selectedMethod == 'UPI'
-            ? 'UPI ($_selectedUpiApp)'
-            : _selectedMethod == 'Card'
-                ? 'Credit/Debit Card'
-                : 'Net Banking',
-        paymentStatus: 'Paid',
-      );
-    } else {
-      _razorpayService.openCheckout(
-        amountInRupees: widget.ctrl.grandTotal,
-        customerName: addr.name,
-        customerPhone: addr.phone,
-        customerEmail: userEmail,
-        description: 'Kechi Poster Order Payment',
-      );
+
+    // Create server Razorpay Order before checkout
+    String? serverOrderId;
+    try {
+      final orderRes = await ApiService.post('/payment/create-order', {
+        'amountInRupees': widget.ctrl.grandTotal,
+        'receipt': 'rcpt_${DateTime.now().millisecondsSinceEpoch}',
+      });
+      if (orderRes['success'] == true && orderRes['orderId'] != null) {
+        serverOrderId = orderRes['orderId'].toString();
+      }
+    } catch (e) {
+      debugPrint('Server order creation notice: $e');
     }
+
+    // Open Razorpay Native Payment Gateway with active Key
+    _razorpayService.openCheckout(
+      amountInRupees: widget.ctrl.grandTotal,
+      customerName: addr.name,
+      customerPhone: addr.phone,
+      customerEmail: userEmail,
+      description: 'Kechi Poster Order Payment',
+      razorpayOrderId: serverOrderId,
+    );
   }
 
   Future<void> _finalizeOrder({

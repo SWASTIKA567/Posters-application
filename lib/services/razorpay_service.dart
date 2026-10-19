@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'api_service.dart';
 
 class RazorpayService {
   late Razorpay _razorpay;
 
-  // Insert your Razorpay Live or Test Key ID here (from dashboard.razorpay.com)
-  static const String razorpayKeyId = 'rzp_test_Tb4zmMRS7gw1ts';
+  // Fallback test key if backend is unreachable
+  static String _activeKeyId = 'rzp_test_Tb4zmMRS7gw1ts';
+
+  static String get razorpayKeyId => _activeKeyId;
+
+  /// Fetches the current active Razorpay Key ID (Live or Test) from backend
+  static Future<String> fetchActiveKeyId() async {
+    try {
+      final res = await ApiService.get('/payment/config');
+      if (res['success'] == true && res['keyId'] != null && res['keyId'].toString().isNotEmpty) {
+        _activeKeyId = res['keyId'].toString().trim();
+        debugPrint('💳 Razorpay Key dynamically loaded from backend: $_activeKeyId');
+      }
+    } catch (e) {
+      debugPrint('Notice loading Razorpay config from backend: $e');
+    }
+    return _activeKeyId;
+  }
 
   Function(PaymentSuccessResponse)? onSuccessCallback;
   Function(PaymentFailureResponse)? onErrorCallback;
@@ -29,10 +46,12 @@ class RazorpayService {
     required String customerPhone,
     required String customerEmail,
     required String description,
+    String? razorpayOrderId,
   }) {
     final options = {
-      'key': razorpayKeyId,
-      'amount': (amountInRupees * 100).toInt(), // Razorpay expects amount in paise (1 INR = 100 paise)
+      'key': _activeKeyId,
+      'amount': (amountInRupees * 100).toInt(), // Amount in paise
+      if (razorpayOrderId != null && razorpayOrderId.isNotEmpty) 'order_id': razorpayOrderId,
       'name': 'Kechi Posters',
       'description': description,
       'prefill': {
