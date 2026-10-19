@@ -1,4 +1,4 @@
-package com.example.poster_application
+package com.kechi.poster
 
 import io.flutter.embedding.android.FlutterActivity
 

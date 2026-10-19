@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:526759954364:android:f21e769e9798c5e26ccdb9",
+        "android_client_info": {
+          "package_name": "com.kechi.poster"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "526759954364-3mhhc777ohsvklr07be10t6g1u1pj23t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kechi.poster",
+            "certificate_hash": "6e32613d284bba03ea121c1ec74f3223fa01bbb7"
+          }
+        },
+        {
+          "client_id": "526759954364-9llb9jo5itjo05pttivn13ohkieiih2h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6uHdSwCRKqzu5a0709asIODgWynnqEe8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "526759954364-9llb9jo5itjo05pttivn13ohkieiih2h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
