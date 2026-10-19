@@ -87,7 +87,18 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                   // Hero image
                   Hero(
                     tag: 'poster_${widget.title}',
-                    child: Image.asset(widget.image, fit: BoxFit.cover),
+                    child: widget.image.startsWith('http')
+                        ? Image.network(
+                            widget.image,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1E1E28),
+                              child: const Center(
+                                child: Icon(Icons.broken_image_rounded, size: 48, color: Colors.white38),
+                              ),
+                            ),
+                          )
+                        : Image.asset(widget.image, fit: BoxFit.cover),
                   ),
 
                   // Top gradient for back/wishlist button legibility

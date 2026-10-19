@@ -64,7 +64,31 @@ class PosterCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // ── IMAGE ──────────────────────────────────────────
-            Image.asset(image, fit: BoxFit.cover),
+            image.startsWith('http')
+                ? Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: const Color(0xFF1E1E28),
+                      child: const Center(
+                        child: Icon(Icons.broken_image_rounded, color: Colors.white38),
+                      ),
+                    ),
+                    loadingBuilder: (ctx, child, progress) {
+                      if (progress == null) return child;
+                      return Container(
+                        color: const Color(0xFF1E1E28),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : Image.asset(image, fit: BoxFit.cover),
 
             // ── FEATURED: centred title with gradient overlay ──
             if (isFeatured)

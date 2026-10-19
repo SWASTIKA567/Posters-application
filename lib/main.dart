@@ -10,6 +10,7 @@ import 'controller/upload_controller.dart';
 import 'controller/profile_controller.dart';
 import 'controller/notification_controller.dart';
 import 'controller/navigation_controller.dart';
+import 'controller/home_controller.dart';
 import 'views/splash_view.dart';
 
 void main() async {
@@ -26,6 +27,7 @@ void main() async {
   // Initialize Controllers
   Get.put(NavigationController(), permanent: true);
   Get.put(NotificationController(), permanent: true);
+  Get.put(HomeController(), permanent: true);
   Get.put(WishlistController(), permanent: true);
   Get.put(UploadController(), permanent: true);
   Get.put(OrderController(), permanent: true);

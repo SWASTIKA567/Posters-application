@@ -10,6 +10,7 @@ import 'orders_view.dart';
 import 'select_address_view.dart';
 import 'address_view.dart';
 import '../controller/address_controller.dart';
+import 'admin_posters_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -54,6 +55,15 @@ class _ProfileViewState extends State<ProfileView> {
                       children: [
                         const SizedBox(height: 12),
                         _buildOrderHistoryCard(),
+                        Obx(() {
+                          if (!controller.isAdminUser.value) return const SizedBox.shrink();
+                          return Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              _buildAdminPortalCard(controller),
+                            ],
+                          );
+                        }),
                         const SizedBox(height: 12),
                         _buildSection(
                           title: 'Personal info',
@@ -93,6 +103,20 @@ class _ProfileViewState extends State<ProfileView> {
                         _buildLegalAndSupportSection(),
                         const SizedBox(height: 14),
                         _buildLogoutCard(),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: GestureDetector(
+                            onLongPress: () => _showSecretAdminLoginDialog(controller),
+                            child: const Text(
+                              'Kechi • Version 1.0.0',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFFCCCCCC),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -750,6 +774,290 @@ class _ProfileViewState extends State<ProfileView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAdminPortalCard(ProfileController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E1E28), Color(0xFF2D1525)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            if (controller.isAdminUnlocked.value) {
+              Get.to(() => const AdminPostersView());
+            } else {
+              _showAdminPasswordPrompt(controller);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.admin_panel_settings_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Store Manager / Admin',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Obx(() => Icon(
+                                controller.isAdminUnlocked.value
+                                    ? Icons.lock_open_rounded
+                                    : Icons.lock_outline_rounded,
+                                color: controller.isAdminUnlocked.value ? Colors.green : Colors.amber,
+                                size: 14,
+                              )),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Add new posters & categories to catalog',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white54,
+                  size: 15,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAdminPasswordPrompt(ProfileController controller) {
+    final pwdCtrl = TextEditingController();
+    final isVerifying = false.obs;
+    final errorMsg = ''.obs;
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.shield_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text('Admin Verification', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your Admin Password to access Store Manager:',
+              style: TextStyle(fontSize: 13, color: Color(0xFF555555)),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: pwdCtrl,
+              obscureText: true,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Admin Password',
+                prefixIcon: const Icon(Icons.key_rounded, size: 20),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            Obx(() => errorMsg.value.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      errorMsg.value,
+                      style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  )
+                : const SizedBox.shrink()),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          Obx(
+            () => ElevatedButton(
+              onPressed: isVerifying.value
+                  ? null
+                  : () async {
+                      if (pwdCtrl.text.isEmpty) {
+                        errorMsg.value = 'Password cannot be empty';
+                        return;
+                      }
+                      isVerifying.value = true;
+                      errorMsg.value = '';
+
+                      final success = await controller.verifyAdminPassword(
+                        controller.emailCtrl.text,
+                        pwdCtrl.text,
+                      );
+                      isVerifying.value = false;
+
+                      if (success) {
+                        Get.back();
+                        Get.to(() => const AdminPostersView());
+                      } else {
+                        errorMsg.value = 'Invalid password. Access denied.';
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: isVerifying.value
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Unlock', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSecretAdminLoginDialog(ProfileController controller) {
+    final emailCtrl = TextEditingController(text: controller.emailCtrl.text);
+    final pwdCtrl = TextEditingController();
+    final isVerifying = false.obs;
+    final errorMsg = ''.obs;
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.admin_panel_settings_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text('Admin Login', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Sign in to Store Manager Portal:',
+              style: TextStyle(fontSize: 13, color: Color(0xFF555555)),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Admin Email',
+                prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: pwdCtrl,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Admin Password',
+                prefixIcon: const Icon(Icons.key_rounded, size: 20),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            Obx(() => errorMsg.value.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      errorMsg.value,
+                      style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  )
+                : const SizedBox.shrink()),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          Obx(
+            () => ElevatedButton(
+              onPressed: isVerifying.value
+                  ? null
+                  : () async {
+                      if (emailCtrl.text.isEmpty || pwdCtrl.text.isEmpty) {
+                        errorMsg.value = 'Please enter both email and password';
+                        return;
+                      }
+                      isVerifying.value = true;
+                      errorMsg.value = '';
+
+                      final success = await controller.verifyAdminPassword(
+                        emailCtrl.text,
+                        pwdCtrl.text,
+                      );
+                      isVerifying.value = false;
+
+                      if (success) {
+                        Get.back();
+                        Get.to(() => const AdminPostersView());
+                      } else {
+                        errorMsg.value = 'Invalid admin credentials. Access denied.';
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: isVerifying.value
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Authenticate', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
       ),
     );
   }

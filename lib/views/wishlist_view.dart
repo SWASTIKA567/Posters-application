@@ -199,7 +199,18 @@ class _WishlistCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Poster image
-          Image.asset(item.image, fit: BoxFit.cover),
+          item.image.startsWith('http')
+              ? Image.network(
+                  item.image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF1E1E28),
+                    child: const Center(
+                      child: Icon(Icons.broken_image_rounded, color: Colors.white38),
+                    ),
+                  ),
+                )
+              : Image.asset(item.image, fit: BoxFit.cover),
 
           // Bottom gradient + title
           Positioned(

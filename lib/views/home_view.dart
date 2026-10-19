@@ -520,11 +520,23 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       Expanded(
                         child: ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                          child: Image.asset(
-                            poster["image"]!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
+                          child: poster["image"]!.startsWith('http')
+                              ? Image.network(
+                                  poster["image"]!,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFF1E1E28),
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image_rounded, color: Colors.white38),
+                                    ),
+                                  ),
+                                )
+                              : Image.asset(
+                                  poster["image"]!,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                       Padding(

@@ -21,11 +21,44 @@ class ProfileController extends GetxController {
   final isSaving = false.obs;
   final isDeleting = false.obs;
   final isEditMode = false.obs;
+  final isAdminUser = false.obs;
+  final isAdminUnlocked = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     loadProfile();
+  }
+
+  Future<void> checkAdminStatus() async {
+    try {
+      final res = await ApiService.get('/auth/check-admin-status');
+      if (res != null && res['isAdminEmail'] == true) {
+        isAdminUser.value = true;
+      } else {
+        isAdminUser.value = false;
+      }
+    } catch (_) {
+      isAdminUser.value = false;
+    }
+  }
+
+  Future<bool> verifyAdminPassword(String email, String password) async {
+    try {
+      final res = await ApiService.post('/auth/verify-admin', {
+        'email': email.trim(),
+        'password': password.trim(),
+      });
+      if (res != null && res['isAdmin'] == true) {
+        isAdminUnlocked.value = true;
+        isAdminUser.value = true;
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Admin verify error: $e');
+      return false;
+    }
   }
 
   void setSelectedAddress(UserAddress address) {
@@ -53,6 +86,8 @@ class ProfileController extends GetxController {
         nameCtrl.text = user['name'] ?? '';
         emailCtrl.text = user['email'] ?? '';
         phoneCtrl.text = user['phone'] ?? '';
+        // Check if user is configured as admin on backend
+        await checkAdminStatus();
       }
 
       final addrRes = await ApiService.get('/addresses');
