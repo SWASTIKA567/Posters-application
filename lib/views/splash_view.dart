@@ -78,6 +78,12 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().loadProfile();
+      }
+      if (Get.isRegistered<OrderController>()) {
+        Get.find<OrderController>().fetchOrders();
+      }
       PushNotificationService.syncFcmToken();
       Get.off(
         () => const HomeView(),

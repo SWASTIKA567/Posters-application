@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+import 'services/api_service.dart';
 import 'services/push_notification_service.dart';
 import 'controller/order_controller.dart';
 import 'controller/wishlist_controller.dart';
@@ -23,6 +24,9 @@ void main() async {
 
   // Register background push message listener
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Load saved auth session before starting controllers
+  await ApiService.loadSavedToken();
 
   // Initialize Controllers
   Get.put(NavigationController(), permanent: true);

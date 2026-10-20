@@ -67,35 +67,40 @@ class _ProfileViewState extends State<ProfileView> {
                           );
                         }),
                         const SizedBox(height: 12),
-                        _buildSection(
-                          title: 'Personal info',
-                          icon: Icons.person_outline,
-                          accentColor: AppColors.primary,
-                          children: [
-                            _buildFieldRow(
-                              icon: Icons.badge_outlined,
-                              label: 'Full name',
-                              controller: controller.nameCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: AppColors.primary,
-                            ),
-                            _buildFieldRow(
-                              icon: Icons.mail_outline,
-                              label: 'Email',
-                              controller: controller.emailCtrl,
-                              isEditing: false,
-                              accentColor: AppColors.primary,
-                            ),
-                            _buildFieldRow(
-                              icon: Icons.phone_outlined,
-                              label: 'Phone',
-                              controller: controller.phoneCtrl,
-                              isEditing: controller.isEditMode.value,
-                              accentColor: AppColors.primary,
-                              keyboardType: TextInputType.phone,
-                              isLast: true,
-                            ),
-                          ],
+                        Obx(
+                          () => _buildSection(
+                            title: 'Personal info',
+                            icon: Icons.person_outline,
+                            accentColor: AppColors.primary,
+                            children: [
+                              _buildFieldRow(
+                                icon: Icons.badge_outlined,
+                                label: 'Full name',
+                                controller: controller.nameCtrl,
+                                overrideValue: controller.userName.value,
+                                isEditing: controller.isEditMode.value,
+                                accentColor: AppColors.primary,
+                              ),
+                              _buildFieldRow(
+                                icon: Icons.mail_outline,
+                                label: 'Email',
+                                controller: controller.emailCtrl,
+                                overrideValue: controller.userEmail.value,
+                                isEditing: false,
+                                accentColor: AppColors.primary,
+                              ),
+                              _buildFieldRow(
+                                icon: Icons.phone_outlined,
+                                label: 'Phone',
+                                controller: controller.phoneCtrl,
+                                overrideValue: controller.userPhone.value,
+                                isEditing: controller.isEditMode.value,
+                                accentColor: AppColors.primary,
+                                keyboardType: TextInputType.phone,
+                                isLast: true,
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 12),
                         _buildDeliveryAddressSection(controller),
@@ -210,57 +215,85 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Widget _buildAvatarSection(ProfileController controller) {
-    final name = controller.nameCtrl.text;
-    final initials = name.trim().isEmpty
-        ? '?'
-        : name.trim().split(' ').map((e) => e[0]).take(2).join().toUpperCase();
+    return Obx(() {
+      final name = controller.userName.value.isNotEmpty
+          ? controller.userName.value
+          : controller.nameCtrl.text.trim();
+      final email = controller.userEmail.value.isNotEmpty
+          ? controller.userEmail.value
+          : controller.emailCtrl.text.trim();
+      final photo = controller.userPhotoUrl.value;
+      final initials = name.isEmpty
+          ? '?'
+          : name.split(' ').where((e) => e.isNotEmpty).map((e) => e[0]).take(2).join().toUpperCase();
 
-    return Container(
-      width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: AppColors.primaryGrad,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
+      return Container(
+        width: double.infinity,
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: AppColors.primaryGrad,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
+              child: photo.isNotEmpty
+                  ? ClipOval(
+                      child: Image.network(
+                        photo,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Text(
+                            initials.isEmpty ? 'K' : initials,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        initials.isEmpty ? 'K' : initials,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            name.isEmpty ? 'User' : name,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
+            const SizedBox(height: 10),
+            Text(
+              name.isEmpty ? 'Kechi Member' : name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A1A),
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            controller.emailCtrl.text,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
-          ),
-        ],
-      ),
-    );
+            if (email.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                email,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildDeliveryAddressSection(ProfileController controller) {
@@ -572,6 +605,7 @@ class _ProfileViewState extends State<ProfileView> {
     required TextEditingController controller,
     required bool isEditing,
     required Color accentColor,
+    String? overrideValue,
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
     bool isLast = false,
@@ -579,6 +613,10 @@ class _ProfileViewState extends State<ProfileView> {
     final iconBg = accentColor == AppColors.primary
         ? const Color(0xFFFFF3F0)
         : const Color(0xFFE8F5F0);
+
+    final displayVal = (overrideValue != null && overrideValue.isNotEmpty)
+        ? overrideValue
+        : controller.text.trim();
 
     return Column(
       children: [
@@ -648,16 +686,16 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                           const SizedBox(height: 1),
                           Text(
-                            controller.text.isEmpty
+                            displayVal.isEmpty
                                 ? 'Not added yet'
-                                : controller.text,
+                                : displayVal,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: controller.text.isEmpty
+                              color: displayVal.isEmpty
                                   ? const Color(0xFFBBBBBB)
                                   : const Color(0xFF222222),
-                              fontStyle: controller.text.isEmpty
+                              fontStyle: displayVal.isEmpty
                                   ? FontStyle.italic
                                   : FontStyle.normal,
                             ),

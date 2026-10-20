@@ -150,9 +150,16 @@ class ApiService {
     return msg;
   }
 
+  static Future<void> _ensureToken() async {
+    if (_authToken == null || _authToken!.isEmpty) {
+      await loadSavedToken();
+    }
+  }
+
   // ── GET Request ─────────────────────────────────────────────────────────────
   static Future<dynamic> get(String endpoint) async {
     try {
+      await _ensureToken();
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
@@ -166,6 +173,7 @@ class ApiService {
   // ── POST Request ────────────────────────────────────────────────────────────
   static Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
     try {
+      await _ensureToken();
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
@@ -180,6 +188,7 @@ class ApiService {
   // ── PUT Request ─────────────────────────────────────────────────────────────
   static Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
     try {
+      await _ensureToken();
       final response = await http.put(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
@@ -194,6 +203,7 @@ class ApiService {
   // ── PATCH Request ────────────────────────────────────────────────────────────
   static Future<dynamic> patch(String endpoint, Map<String, dynamic> body) async {
     try {
+      await _ensureToken();
       final response = await http.patch(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),
@@ -208,6 +218,7 @@ class ApiService {
   // ── DELETE Request ──────────────────────────────────────────────────────────
   static Future<dynamic> delete(String endpoint) async {
     try {
+      await _ensureToken();
       final response = await http.delete(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers(),

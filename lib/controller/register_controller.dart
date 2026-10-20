@@ -152,7 +152,7 @@ class RegisterController extends GetxController {
       if (res['success'] == true && res['token'] != null) {
         await ApiService.setAuthToken(res['token']);
         isGoogleLoading.value = false;
-        _initControllers();
+        _initControllers(res['user'] != null ? Map<String, dynamic>.from(res['user']) : null);
         Get.off(() => const HomeView());
       } else {
         isGoogleLoading.value = false;
@@ -172,7 +172,7 @@ class RegisterController extends GetxController {
     }
   }
 
-  void _initControllers() {
+  void _initControllers([Map<String, dynamic>? userData]) {
     if (!Get.isRegistered<WishlistController>()) {
       Get.put(WishlistController(), permanent: true);
     }
@@ -185,6 +185,9 @@ class RegisterController extends GetxController {
     final profile = Get.isRegistered<ProfileController>()
         ? Get.find<ProfileController>()
         : Get.put(ProfileController(), permanent: true);
+    if (userData != null) {
+      profile.setUser(userData);
+    }
     profile.loadProfile();
     PushNotificationService.syncFcmToken();
   }

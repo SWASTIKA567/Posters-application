@@ -17,12 +17,34 @@ class ProfileController extends GetxController {
 
   final Rx<UserAddress?> selectedAddress = Rx<UserAddress?>(null);
 
+  final RxString userName = ''.obs;
+  final RxString userEmail = ''.obs;
+  final RxString userPhone = ''.obs;
+  final RxString userPhotoUrl = ''.obs;
+
   final isLoading = false.obs;
   final isSaving = false.obs;
   final isDeleting = false.obs;
   final isEditMode = false.obs;
   final isAdminUser = false.obs;
   final isAdminUnlocked = false.obs;
+
+  void setUser(Map<String, dynamic> user) {
+    final name = (user['name'] ?? '').toString();
+    final email = (user['email'] ?? '').toString();
+    final phone = (user['phone'] ?? '').toString();
+    final photo = (user['photoUrl'] ?? '').toString();
+
+    userName.value = name;
+    userEmail.value = email;
+    userPhone.value = phone;
+    userPhotoUrl.value = photo;
+
+    if (name.isNotEmpty) nameCtrl.text = name;
+    if (email.isNotEmpty) emailCtrl.text = email;
+    if (phone.isNotEmpty) phoneCtrl.text = phone;
+    update();
+  }
 
   @override
   void onInit() {
@@ -80,12 +102,12 @@ class ProfileController extends GetxController {
   Future<void> loadProfile() async {
     isLoading.value = true;
     try {
+      if (ApiService.authToken == null || ApiService.authToken!.isEmpty) {
+        await ApiService.loadSavedToken();
+      }
       final res = await ApiService.get('/users/profile');
       if (res['success'] == true && res['user'] != null) {
-        final user = res['user'];
-        nameCtrl.text = user['name'] ?? '';
-        emailCtrl.text = user['email'] ?? '';
-        phoneCtrl.text = user['phone'] ?? '';
+        setUser(Map<String, dynamic>.from(res['user']));
         // Check if user is configured as admin on backend
         await checkAdminStatus();
       }
@@ -127,6 +149,9 @@ class ProfileController extends GetxController {
         'name': nameCtrl.text.trim(),
         'phone': phoneCtrl.text.trim(),
       });
+
+      userName.value = nameCtrl.text.trim();
+      userPhone.value = phoneCtrl.text.trim();
 
       if (addressCtrl.text.trim().isNotEmpty) {
         if (selectedAddress.value?.id != null) {
