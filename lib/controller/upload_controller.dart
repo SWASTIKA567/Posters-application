@@ -29,9 +29,9 @@ class UploadController extends GetxController {
 
   // ── Size ──────────────────────────────────────────────────────────────────
   final List<PosterSize> sizes = const [
-    PosterSize(label: 'A5', dimensions: '14.8 × 21 cm', price: 49),
-    PosterSize(label: 'A4', dimensions: '21 × 29.7 cm', price: 79),
-    PosterSize(label: 'A3', dimensions: '29.7 × 42 cm', price: 109),
+    PosterSize(label: 'A5', dimensions: '14.8 × 21 cm', price: 39),
+    PosterSize(label: 'A4', dimensions: '21 × 29.7 cm', price: 59),
+    PosterSize(label: 'A3', dimensions: '29.7 × 42 cm', price: 99),
   ];
 
   final RxInt selectedSizeIndex = 1.obs; // default A4

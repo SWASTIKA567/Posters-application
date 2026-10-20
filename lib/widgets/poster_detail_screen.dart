@@ -34,13 +34,13 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
   double _priceFor(String size) {
     switch (size) {
       case 'A5':
-        return 49.0;
+        return 39.0;
       case 'A4':
-        return 79.0;
+        return 59.0;
       case 'A3':
-        return 109.0;
+        return 99.0;
       default:
-        return 79.0;
+        return 59.0;
     }
   }
 

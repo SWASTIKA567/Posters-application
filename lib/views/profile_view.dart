@@ -1107,30 +1107,30 @@ class _ProfileViewState extends State<ProfileView> {
         _buildPolicyRow(
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
-          subtitle: 'How we protect your data & artwork',
+          subtitle: 'Awaiting merchant content • Tap to view',
+          isGrey: true,
           onTap: () => _showPolicyModal(
             title: 'Privacy Policy',
             content: '''
-• Information We Collect: Name, email address, contact phone, delivery addresses, and customer-uploaded image files for custom printing.
+[Privacy Policy - Awaiting Content Update]
 
-• Use of Information: Data is strictly used to fulfill and ship your poster orders, generate tax receipts, and send delivery status updates.
-
-• Security & Deletion: We never sell or share customer data with unauthorized third parties. You have the right to permanently delete your account and all associated data at any time from your Profile settings.
+This section is prepared for Kechi Posters Privacy Policy.
+Your custom content will be inserted here.
 ''',
           ),
         ),
         _buildPolicyRow(
           icon: Icons.description_outlined,
           title: 'Terms & Conditions',
-          subtitle: 'User agreement & print specifications',
+          subtitle: 'Awaiting merchant content • Tap to view',
+          isGrey: true,
           onTap: () => _showPolicyModal(
             title: 'Terms & Conditions',
             content: '''
-• Custom Prints: By uploading an image to Kechi, you confirm that you own or hold the appropriate rights to print the content.
+[Terms & Conditions - Awaiting Content Update]
 
-• Color & Quality: Posters are printed on high-grade 300 GSM archival stock using premium pigment inks. Subtle color variations may occur between backlit phone screens and physical prints.
-
-• Payment Security: All online transactions are processed through Razorpay's PCI-DSS compliant secure payment gateway.
+This section is prepared for Kechi Posters Terms & Conditions.
+Your custom content will be inserted here.
 ''',
           ),
         ),
@@ -1160,7 +1160,13 @@ class _ProfileViewState extends State<ProfileView> {
     required String subtitle,
     required VoidCallback onTap,
     bool isLast = false,
+    bool isGrey = false,
   }) {
+    final iconBg = isGrey ? Colors.grey.shade100 : AppColors.primary.withOpacity(0.08);
+    final iconColor = isGrey ? Colors.grey.shade600 : AppColors.primary;
+    final titleColor = isGrey ? Colors.grey.shade700 : const Color(0xFF222222);
+    final subColor = isGrey ? Colors.grey.shade500 : const Color(0xFF888888);
+
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -1173,38 +1179,61 @@ class _ProfileViewState extends State<ProfileView> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(8),
+                    border: isGrey ? Border.all(color: Colors.grey.shade300, width: 0.8) : null,
                   ),
-                  child: Icon(icon, color: AppColors.primary, size: 16),
+                  child: Icon(icon, color: iconColor, size: 16),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF222222),
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: titleColor,
+                            ),
+                          ),
+                          if (isGrey) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                "Pending Content",
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF888888),
+                          color: subColor,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFFCCCCCC),
+                  color: isGrey ? Colors.grey.shade400 : const Color(0xFFCCCCCC),
                   size: 12,
                 ),
               ],

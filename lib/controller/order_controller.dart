@@ -397,5 +397,63 @@ class OrderController extends GetxController {
       );
     }
   }
+
+  // ── Submit Defect Replacement Request ─────────────────────────────────────
+  Future<bool> submitReplacementRequest({
+    required String orderId,
+    required String reason,
+    required List<String> photos,
+  }) async {
+    try {
+      final res = await ApiService.post('/orders/$orderId/replacement', {
+        'reason': reason,
+        'photos': photos,
+      });
+
+      if (res['success'] == true) {
+        final repData = res['order']?['replacementRequest'] ?? {
+          'status': 'Requested',
+          'reason': reason,
+          'photos': photos,
+          'requestedAt': DateTime.now().toIso8601String(),
+        };
+
+        final idx = orders.indexWhere(
+          (o) => (o['_id'] ?? o['orderId']).toString() == orderId,
+        );
+        if (idx != -1) {
+          final updated = Map<String, dynamic>.from(orders[idx]);
+          updated['replacementRequest'] = repData;
+          orders[idx] = updated;
+          orders.refresh();
+        }
+
+        Get.snackbar(
+          '✅ Replacement Requested',
+          'Your defect report has been received. Our team will verify and dispatch a 100% free reprint.',
+          backgroundColor: Colors.green.shade800,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Could not submit replacement request.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        ApiService.cleanErrorMessage(e),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+  }
 }
 
