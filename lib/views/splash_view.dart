@@ -6,6 +6,8 @@ import 'login_view.dart';
 import 'home_view.dart';
 import '../services/api_service.dart';
 import '../services/push_notification_service.dart';
+import '../controller/profile_controller.dart';
+import '../controller/order_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
