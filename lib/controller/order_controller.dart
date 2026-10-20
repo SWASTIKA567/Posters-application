@@ -96,7 +96,10 @@ class OrderController extends GetxController {
   int get totalItems => items.fold(0, (sum, item) => sum + item.quantity);
 
   // ── Pricing ───────────────────────────────────────────────────────────────
-  static const double deliveryCharge = 49.0;
+  static const double baseDeliveryCharge = 39.0;
+
+  // Free delivery on 7 or more posters!
+  double get deliveryCharge => totalItems >= 7 ? 0.0 : (items.isEmpty ? 0.0 : baseDeliveryCharge);
 
   double get subtotal => items.fold(0.0, (sum, item) => sum + item.totalPrice);
   double get grandTotal => items.isEmpty ? 0.0 : subtotal + deliveryCharge;

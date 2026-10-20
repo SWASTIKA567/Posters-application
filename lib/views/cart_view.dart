@@ -447,11 +447,56 @@ class _PriceSummary extends StatelessWidget {
         ),
         child: Column(
           children: [
+            // Free Delivery unlock banner
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: ctrl.deliveryCharge == 0.0
+                    ? Colors.green.shade50
+                    : const Color(0xFF8B0000).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: ctrl.deliveryCharge == 0.0
+                      ? Colors.green.shade300
+                      : const Color(0xFF8B0000).withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    ctrl.deliveryCharge == 0.0
+                        ? Icons.check_circle_rounded
+                        : Icons.local_shipping_outlined,
+                    size: 16,
+                    color: ctrl.deliveryCharge == 0.0
+                        ? Colors.green.shade800
+                        : const Color(0xFF8B0000),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      ctrl.deliveryCharge == 0.0
+                          ? "🎉 You unlocked FREE Delivery!"
+                          : "Add ${7 - ctrl.totalItems} more poster(s) to get FREE Delivery!",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: ctrl.deliveryCharge == 0.0
+                            ? Colors.green.shade800
+                            : const Color(0xFF8B0000),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             _Row(label: 'Subtotal', value: '₹${ctrl.subtotal.toInt()}'),
             const SizedBox(height: 12),
             _Row(
               label: 'Delivery Charges',
-              value: '₹${OrderController.deliveryCharge.toInt()}',
+              value: ctrl.deliveryCharge == 0.0 ? 'FREE' : '₹${ctrl.deliveryCharge.toInt()}',
+              isHighlight: ctrl.deliveryCharge == 0.0,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -496,7 +541,8 @@ class _PriceSummary extends StatelessWidget {
 class _Row extends StatelessWidget {
   final String label;
   final String value;
-  const _Row({required this.label, required this.value});
+  final bool isHighlight;
+  const _Row({required this.label, required this.value, this.isHighlight = false});
 
   @override
   Widget build(BuildContext context) {
@@ -509,10 +555,10 @@ class _Row extends StatelessWidget {
         ),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: isHighlight ? const Color(0xFF10B981) : Colors.black,
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: isHighlight ? FontWeight.w800 : FontWeight.w600,
           ),
         ),
       ],

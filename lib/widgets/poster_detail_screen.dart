@@ -29,27 +29,24 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
   // Selected size — default A4
   String _selectedSize = 'A4';
 
-  /// Parses "₹49" → 49.0  (this is the A4 base price)
-  double get _basePrice =>
-      double.tryParse(widget.price.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0.0;
-
-  /// Price multiplier per size
-  double _multiplierFor(String size) {
+  /// Exact official pricing per size:
+  /// A5 = ₹49, A4 = ₹79, A3 = ₹109
+  double _priceFor(String size) {
     switch (size) {
       case 'A5':
-        return 0.75; // cheaper — smaller
+        return 49.0;
       case 'A4':
-        return 1.0;
+        return 79.0;
       case 'A3':
-        return 1.5; // bigger — pricier
+        return 109.0;
       default:
-        return 1.0;
+        return 79.0;
     }
   }
 
-  double get _currentPrice => _basePrice * _multiplierFor(_selectedSize);
+  double get _currentPrice => _priceFor(_selectedSize);
 
-  String get _currentPriceFormatted => '₹${_currentPrice.toStringAsFixed(0)}';
+  String get _currentPriceFormatted => '₹${_currentPrice.toInt()}';
 
   /// Approximate physical dimensions label
   String _dimensionFor(String size) {
@@ -318,8 +315,7 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                     Row(
                       children: _sizes.map((size) {
                         final isSelected = size == _selectedSize;
-                        final sizePrice = (_basePrice * _multiplierFor(size))
-                            .toStringAsFixed(0);
+                        final sizePrice = _priceFor(size).toInt().toString();
 
                         return Expanded(
                           child: GestureDetector(

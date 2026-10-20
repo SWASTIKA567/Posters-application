@@ -1071,34 +1071,36 @@ class _ProfileViewState extends State<ProfileView> {
         _buildPolicyRow(
           icon: Icons.local_shipping_outlined,
           title: 'Shipping & Delivery Policy',
-          subtitle: 'Dispatched in 24-48h, 3-5 days delivery',
+          subtitle: 'Dispatched in 24-48h • ₹39 flat fee (Free on 7+)',
           onTap: () => _showPolicyModal(
             title: 'Shipping & Delivery Policy',
             content: '''
-• Courier Partner: We partner with Shadowfax Express for fast and reliable pan-India delivery.
+• Courier Partner: We partner with Shadowfax Express for reliable, tracked pan-India delivery.
 
-• Dispatch Timeline: Custom posters are printed, quality inspected, and packaged in protective safety tubes within 24 to 48 hours of order confirmation.
+• Dispatch Timeline: Custom posters are printed, quality inspected, and packaged in rigid protective safety tubes within 24 to 48 hours of order confirmation.
 
 • Delivery Time: Estimated delivery takes 3 to 5 business days depending on destination pincode.
 
-• Shipping Charges: Standard flat delivery fee of ₹49 across all serviceable Indian pincodes.
+• Shipping Charges: Standard flat delivery fee of ₹39. Orders with 7 or more posters receive 100% FREE Delivery across India.
 
-• Real-Time Tracking: A live Shadowfax AWB tracking code and direct tracking link are provided in the app for every placed order.
+• Real-Time Tracking: A live Shadowfax AWB tracking code and direct tracking link are provided in the app for every order.
 ''',
           ),
         ),
         _buildPolicyRow(
           icon: Icons.currency_rupee_rounded,
-          title: 'Cancellation & Refund Policy',
-          subtitle: 'Easy refunds within 5-7 business days',
+          title: 'Cancellation & Replacement Policy',
+          subtitle: '2-hour free cancellation • Free replacement for defects',
           onTap: () => _showPolicyModal(
-            title: 'Cancellation & Refund Policy',
+            title: 'Cancellation & Replacement Policy',
             content: '''
-• Order Cancellation: You can cancel your order directly from the app while its status is "Pending". Once production has started, custom printed products cannot be cancelled.
+• 2-Hour Cancellation Window: You can cancel your order directly from the app within 2 hours of placing it. After 2 hours, custom posters automatically enter high-definition printing production and cancellation is locked.
 
-• Damaged / Defective Posters: If your poster arrives damaged, bent, or has a printing defect, contact our support team within 48 hours of delivery with photos for an immediate 100% free reprint or full refund.
+• Personalized Custom Products: Because posters are custom-printed on demand with personalized dimensions and graphics, sales are final once production begins.
 
-• Refund Timeline: Approved refunds are processed to your original payment method (Bank Account, UPI, Card) within 5 to 7 working days.
+• Defective / Damaged Posters (Strict 24-Hour Reporting): In the rare event your poster arrives damaged, bent, or with a printing defect, report it to support.kechi@gmail.com within 24 hours of delivery along with unboxing photos/video. Claims reported after 24 hours of delivery cannot be accepted.
+
+• 100% Free Replacement: For any verified genuine defect or damage, we ship an immediate 100% Free Replacement (Reprint) to your doorstep at zero extra charge. No monetary refunds are issued after delivery.
 ''',
           ),
         ),
@@ -1135,16 +1137,16 @@ class _ProfileViewState extends State<ProfileView> {
         _buildPolicyRow(
           icon: Icons.headset_mic_outlined,
           title: 'Contact & Customer Support',
-          subtitle: 'support@kechi.app • Mon-Sat 10am-7pm',
+          subtitle: 'support.kechi@gmail.com • Mon-Sat 10am-7pm',
           isLast: true,
           onTap: () => _showPolicyModal(
             title: 'Contact Us',
             content: '''
 • Business Name: Kechi Posters
-• Customer Support Email: support@kechi.app
+• Customer Support Email: support.kechi@gmail.com
 • Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST
 • Response Time: We typically respond to queries within 2 to 4 business hours.
-• Grievance Redressal: For any unresolved order concerns, write to us directly at support@kechi.app with your Order / Tracking ID.
+• Grievance Redressal: For any unresolved order concerns, write to us directly at support.kechi@gmail.com with your Order / Tracking ID.
 ''',
           ),
         ),

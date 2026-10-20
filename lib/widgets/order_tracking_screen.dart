@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../controller/order_controller.dart';
 import '../themes/app_colors.dart';
 
 class OrderTrackingScreen extends StatelessWidget {
@@ -407,14 +408,186 @@ class OrderTrackingScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
+            // 2-Hour Cancellation Window / Policy Info
+            if (sLower == 'pending') ...[
+              Builder(
+                builder: (context) {
+                  DateTime? orderTime;
+                  try {
+                    if (order['createdAt'] != null) {
+                      orderTime = DateTime.parse(order['createdAt'].toString());
+                    }
+                  } catch (_) {}
+
+                  final diffHours = orderTime != null
+                      ? DateTime.now().difference(orderTime).inHours
+                      : 0;
+
+                  final canCancel = diffHours < 2;
+
+                  if (canCancel) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.timer_outlined, size: 16, color: Colors.red.shade800),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Free cancellation available within 2 hours of order placement.",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                final confirm = await Get.dialog<bool>(
+                                  AlertDialog(
+                                    title: const Text('Cancel Order?'),
+                                    content: const Text('Are you sure you want to cancel this poster order?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Get.back(result: false), child: const Text('Keep Order')),
+                                      ElevatedButton(
+                                        onPressed: () => Get.back(result: true),
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                        child: const Text('Yes, Cancel', style: TextStyle(color: Colors.white)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  final orderId = order['orderId'] ?? order['_id'];
+                                  if (orderId != null) {
+                                    await OrderController.to.cancelOrder(orderId.toString());
+                                    Get.back();
+                                  }
+                                }
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.red.shade400),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: Text('Cancel Order', style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.lock_outline_rounded, size: 16, color: Colors.grey.shade700),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Order is now in high-definition printing production. Custom items cannot be cancelled after 2 hours.",
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
+            ] else if (sLower == 'delivered') ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.verified_rounded, size: 18, color: Colors.green.shade800),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Order Delivered! For any defect or damage, report to support.kechi@gmail.com within 24 hours for a 100% Free Replacement.",
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green.shade800),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Support & Contact Button
             GestureDetector(
               onTap: () {
-                Get.snackbar(
-                  'Kechi Support',
-                  'Support helpline: +91 1800-KECHI-HELP',
-                  backgroundColor: const Color(0xFF8B0000),
-                  colorText: Colors.white,
+                Get.bottomSheet(
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Kechi Customer Support",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Have a question about your order or need a free replacement for a defective print?",
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.email_outlined, color: Color(0xFF8B0000)),
+                              SizedBox(width: 10),
+                              Text(
+                                "support.kechi@gmail.com",
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "• Operating hours: Mon - Sat, 10 AM - 7 PM\n• Please mention your Order ID for faster resolution.",
+                          style: TextStyle(fontSize: 12, color: Colors.black45, height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
               child: Container(
