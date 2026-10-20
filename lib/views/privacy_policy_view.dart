@@ -115,7 +115,7 @@ class PrivacyPolicyView extends StatelessWidget {
               number: "1",
               title: "Who We Are",
               content:
-                  "Kechi is a poster-selling platform based in Ghaziabad, National Capital Region (NCR), India. We sell printed posters in A3, A4, and A5 sizes and, where available, offer customised poster creation services.\n\nIf you have any questions about this Privacy Policy or how we handle your data, please contact us at:\n• Entity: Kechi\n• Email: support.kechi@gmail.com\n• Contact / WhatsApp: +91 9520266789\n• Location: Ghaziabad, NCR, India",
+                  "Kechi is a poster-selling platform based in Ghaziabad, National Capital Region (NCR), India. We sell printed posters in A3, A4, and A5 sizes and, where available, offer customised poster creation services.\n\nIf you have any questions about this Privacy Policy or how we handle your data, please contact us at:\n• Entity: Kechi\n• Email: support.kechi@gmail.com\n• Contact / WhatsApp: +91 9520266789\n• Operating / Studio Address: Mahagunpuram, Ghaziabad, Uttar Pradesh - 201015\n• Registered Office Address: 7 Acheetpur Udideeh, PO - Uri Ka Deeh, Pratapgarh, Uttar Pradesh - 230402",
             ),
 
             _buildSection(
@@ -199,7 +199,7 @@ class PrivacyPolicyView extends StatelessWidget {
               number: "13",
               title: "Grievance Officer",
               content:
-                  "In accordance with the Information Technology Act, 2000 and applicable rules, the details of the Grievance Officer are:\n\n• Designation: Grievance Officer, Kechi\n• Email: support.kechi@gmail.com\n• Phone / WhatsApp: +91 9520266789\n• Location: Ghaziabad, NCR, India\n\nWe will acknowledge your complaint within 48 hours and resolve it within 30 days.",
+                  "In accordance with the Information Technology Act, 2000 and applicable rules, the details of the Grievance Officer are:\n\n• Designation: Grievance Officer, Kechi\n• Email: support.kechi@gmail.com\n• Phone / WhatsApp: +91 9520266789\n• Operating / Studio Address: Mahagunpuram, Ghaziabad, Uttar Pradesh - 201015\n• Registered Office Address: 7 Acheetpur Udideeh, PO - Uri Ka Deeh, Pratapgarh, Uttar Pradesh - 230402\n\nWe will acknowledge your complaint within 48 hours and resolve it within 30 days.",
               isLast: true,
             ),
 

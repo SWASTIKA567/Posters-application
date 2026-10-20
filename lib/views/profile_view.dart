@@ -1126,13 +1126,11 @@ class _ProfileViewState extends State<ProfileView> {
           onTap: () => _showPolicyModal(
             title: 'Contact Us',
             content: '''
-• Entity Name: Kechi Posters
 • Customer Support Email: support.kechi@gmail.com
-• Contact / WhatsApp: +91 9520266789
-• Registered Address: Ghaziabad, NCR, India
+• Phone / WhatsApp: +91 9520266789
 • Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST
-• Response Time: Within 24-48 business hours.
-• Grievance Redressal: Write to support.kechi@gmail.com or call +91 9520266789.
+• Response Time: We respond to queries within 24 to 48 business hours.
+• Grievance: For any unresolved concerns, write to us directly at support.kechi@gmail.com or call +91 9520266789.
 ''',
           ),
         ),

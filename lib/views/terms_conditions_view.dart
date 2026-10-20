@@ -228,7 +228,7 @@ class TermsConditionsView extends StatelessWidget {
               number: "18",
               title: "Contact Us",
               content:
-                  "For questions, complaints, or support related to these Terms or any order, please contact us:\n\n• Entity: Kechi Posters\n• Email: support.kechi@gmail.com\n• Contact / WhatsApp: +91 9520266789\n• Location: Ghaziabad, NCR, India\n• Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST\n\nWe aim to respond to all queries within 2 business days.",
+                  "For questions, complaints, or support related to these Terms or any order, please contact us:\n\n• Entity: Kechi Posters\n• Email: support.kechi@gmail.com\n• Contact / WhatsApp: +91 9520266789\n• Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST\n\nWe aim to respond to all queries within 2 business days.",
               isLast: true,
             ),
 
