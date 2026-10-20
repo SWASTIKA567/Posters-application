@@ -9,6 +9,8 @@ import '../services/api_service.dart';
 import '../services/email_service.dart';
 import '../services/razorpay_service.dart';
 import 'order_tracking_screen.dart';
+import '../views/privacy_policy_view.dart';
+import '../views/terms_conditions_view.dart';
 
 class PaymentCheckoutSheet extends StatefulWidget {
   final OrderController ctrl;
@@ -387,6 +389,47 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  "By placing order, you agree to ",
+                  style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500),
+                ),
+                GestureDetector(
+                  onTap: () => Get.to(() => const TermsConditionsView()),
+                  child: Text(
+                    "Terms & Conditions",
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Text(
+                  " & ",
+                  style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500),
+                ),
+                GestureDetector(
+                  onTap: () => Get.to(() => const PrivacyPolicyView()),
+                  child: Text(
+                    "Privacy Policy",
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ],

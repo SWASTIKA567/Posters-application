@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import '../controller/register_controller.dart';
 import '../themes/app_colors.dart';
 import 'login_view.dart' show LoginScreen;
+import 'privacy_policy_view.dart';
+import 'terms_conditions_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -542,7 +545,9 @@ class _RegisterViewState extends State<RegisterView>
             style: TextStyle(
               color: AppColors.primary.withOpacity(0.65),
               fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
             ),
+            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const TermsConditionsView()),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
@@ -550,7 +555,9 @@ class _RegisterViewState extends State<RegisterView>
             style: TextStyle(
               color: AppColors.primary.withOpacity(0.65),
               fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
             ),
+            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const PrivacyPolicyView()),
           ),
         ],
       ),

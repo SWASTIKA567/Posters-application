@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import '../controller/login_controller.dart';
 import 'register_view.dart';
+import 'privacy_policy_view.dart';
+import 'terms_conditions_view.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -551,7 +554,9 @@ class _LoginScreenState extends State<LoginScreen>
             style: TextStyle(
               color: AppColors.primary.withOpacity(0.65),
               fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
             ),
+            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const TermsConditionsView()),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
@@ -559,7 +564,9 @@ class _LoginScreenState extends State<LoginScreen>
             style: TextStyle(
               color: AppColors.primary.withOpacity(0.65),
               fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
             ),
+            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const PrivacyPolicyView()),
           ),
         ],
       ),

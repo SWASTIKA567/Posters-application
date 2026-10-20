@@ -11,6 +11,8 @@ import 'select_address_view.dart';
 import 'address_view.dart';
 import '../controller/address_controller.dart';
 import 'admin_posters_view.dart';
+import 'privacy_policy_view.dart';
+import 'terms_conditions_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -1107,46 +1109,30 @@ class _ProfileViewState extends State<ProfileView> {
         _buildPolicyRow(
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
-          subtitle: 'Awaiting merchant content • Tap to view',
-          isGrey: true,
-          onTap: () => _showPolicyModal(
-            title: 'Privacy Policy',
-            content: '''
-[Privacy Policy - Awaiting Content Update]
-
-This section is prepared for Kechi Posters Privacy Policy.
-Your custom content will be inserted here.
-''',
-          ),
+          subtitle: 'DPDPA 2023 & IT Act compliant • Tap to view',
+          onTap: () => Get.to(() => const PrivacyPolicyView()),
         ),
         _buildPolicyRow(
           icon: Icons.description_outlined,
           title: 'Terms & Conditions',
-          subtitle: 'Awaiting merchant content • Tap to view',
-          isGrey: true,
-          onTap: () => _showPolicyModal(
-            title: 'Terms & Conditions',
-            content: '''
-[Terms & Conditions - Awaiting Content Update]
-
-This section is prepared for Kechi Posters Terms & Conditions.
-Your custom content will be inserted here.
-''',
-          ),
+          subtitle: 'User agreement, print & returns • Tap to view',
+          onTap: () => Get.to(() => const TermsConditionsView()),
         ),
         _buildPolicyRow(
           icon: Icons.headset_mic_outlined,
           title: 'Contact & Customer Support',
-          subtitle: 'support.kechi@gmail.com • Mon-Sat 10am-7pm',
+          subtitle: 'support.kechi@gmail.com • +91 9520266789',
           isLast: true,
           onTap: () => _showPolicyModal(
             title: 'Contact Us',
             content: '''
-• Business Name: Kechi Posters
+• Entity Name: Kechi Posters
 • Customer Support Email: support.kechi@gmail.com
+• Contact / WhatsApp: +91 9520266789
+• Registered Address: Ghaziabad, NCR, India
 • Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST
-• Response Time: We typically respond to queries within 2 to 4 business hours.
-• Grievance Redressal: For any unresolved order concerns, write to us directly at support.kechi@gmail.com with your Order / Tracking ID.
+• Response Time: Within 24-48 business hours.
+• Grievance Redressal: Write to support.kechi@gmail.com or call +91 9520266789.
 ''',
           ),
         ),
