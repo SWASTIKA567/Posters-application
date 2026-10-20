@@ -206,7 +206,7 @@ class OrderController extends GetxController {
         addedAt: item.addedAt,
       ));
     } else {
-      throw Exception(res['message'] ?? 'Failed to add item to cart');
+      throw Exception(ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to add item to cart'));
     }
   }
 
@@ -279,7 +279,12 @@ class OrderController extends GetxController {
         return true;
       } else {
         isPlacingOrder.value = false;
-        Get.snackbar('Error', res['message'] ?? 'Failed to place order.');
+        Get.snackbar(
+          'Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to place order.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
@@ -375,15 +380,15 @@ class OrderController extends GetxController {
       } else {
         Get.snackbar(
           'Cannot Cancel',
-          res['message'] ?? 'Only Pending orders can be cancelled.',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Only Pending orders can be cancelled.'),
           backgroundColor: Colors.orange.shade800,
           colorText: Colors.white,
         );
       }
     } catch (e) {
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

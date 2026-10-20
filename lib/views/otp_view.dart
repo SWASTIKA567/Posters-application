@@ -185,13 +185,16 @@ class _OtpViewState extends State<OtpView> with TickerProviderStateMixin {
         _focusNodes[0].requestFocus();
       } else {
         setState(() {
-          _errorMessage = res['message'] ?? 'Failed to resend OTP.';
+          _errorMessage = ApiService.cleanErrorMessage(
+            res['message'],
+            defaultMessage: 'Failed to resend OTP. Please try again.',
+          );
         });
       }
     } catch (e) {
       setState(() {
         _isResending = false;
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = ApiService.cleanErrorMessage(e);
       });
     }
   }
@@ -271,14 +274,17 @@ class _OtpViewState extends State<OtpView> with TickerProviderStateMixin {
           Get.back(result: true);
         } else {
           setState(() {
-            _errorMessage = res['message'] ?? 'Invalid OTP. Please check the code.';
+            _errorMessage = ApiService.cleanErrorMessage(
+              res['message'],
+              defaultMessage: 'Invalid OTP. Please check the code.',
+            );
           });
         }
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = ApiService.cleanErrorMessage(e);
       });
     }
   }

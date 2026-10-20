@@ -47,18 +47,22 @@ class RazorpayService {
     required String customerEmail,
     required String description,
     String? razorpayOrderId,
+    String? paymentMethod,
+    String? upiApp,
   }) {
-    final options = {
+    final prefillMap = <String, dynamic>{
+      'contact': customerPhone,
+      'email': customerEmail,
+      'name': customerName,
+    };
+
+    final options = <String, dynamic>{
       'key': _activeKeyId,
       'amount': (amountInRupees * 100).toInt(), // Amount in paise
       if (razorpayOrderId != null && razorpayOrderId.isNotEmpty) 'order_id': razorpayOrderId,
       'name': 'Kechi Posters',
       'description': description,
-      'prefill': {
-        'contact': customerPhone,
-        'email': customerEmail,
-        'name': customerName,
-      },
+      'prefill': prefillMap,
       'theme': {
         'color': '#8B0000', // Kechi crimson brand color
       },
@@ -66,6 +70,31 @@ class RazorpayService {
         'wallets': ['paytm', 'gpay', 'phonepe']
       }
     };
+
+    // If customer selected UPI in our UI, trigger Direct UPI Intent flow (Swiggy / Zomato style)
+    if (paymentMethod == 'UPI') {
+      prefillMap['method'] = 'upi';
+      options['_'] = {'flow': 'intent'};
+
+      if (upiApp != null) {
+        final lower = upiApp.toLowerCase();
+        if (lower.contains('google') || lower.contains('gpay')) {
+          options['upi_app'] = 'com.google.android.apps.nbu.paisa.user';
+        } else if (lower.contains('phonepe')) {
+          options['upi_app'] = 'com.phonepe.app';
+        } else if (lower.contains('paytm')) {
+          options['upi_app'] = 'net.one97.paytm';
+        } else if (lower.contains('bhim')) {
+          options['upi_app'] = 'in.org.npci.upiapp';
+        } else if (lower.contains('cred')) {
+          options['upi_app'] = 'com.cred.club';
+        }
+      }
+    } else if (paymentMethod == 'Card') {
+      prefillMap['method'] = 'card';
+    } else if (paymentMethod == 'NetBanking') {
+      prefillMap['method'] = 'netbanking';
+    }
 
     try {
       _razorpay.open(options);

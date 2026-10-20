@@ -63,11 +63,14 @@ class LoginController extends GetxController {
         Get.off(() => const HomeView());
       } else {
         isLoading.value = false;
-        errorMessage.value = res['message'] ?? 'Login failed. Try again.';
+        errorMessage.value = ApiService.cleanErrorMessage(
+          res['message'],
+          defaultMessage: 'Login failed. Please check your credentials.',
+        );
       }
     } catch (e) {
       isLoading.value = false;
-      errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      errorMessage.value = ApiService.cleanErrorMessage(e);
       debugPrint('Login error: $e');
     }
   }
@@ -112,17 +115,18 @@ class LoginController extends GetxController {
         Get.off(() => const HomeView());
       } else {
         isGoogleLoading.value = false;
-        errorMessage.value = res['message'] ?? 'Google sign-in failed.';
+        errorMessage.value = ApiService.cleanErrorMessage(
+          res['message'],
+          defaultMessage: 'Google sign-in failed. Please try again.',
+        );
       }
     } catch (e) {
       isGoogleLoading.value = false;
-      final err = e.toString().replaceAll('Exception: ', '');
+      final err = ApiService.cleanErrorMessage(e);
       if (err.toLowerCase().contains('cancel') || err.toLowerCase().contains('canceled')) {
         return; // User simply closed the picker
       }
-      errorMessage.value = err.contains('ApiException: 10')
-          ? 'Google Sign-In notice: SHA-1 fingerprint needs to be added in Firebase Console.'
-          : err;
+      errorMessage.value = err;
       debugPrint('Google sign-in error: $e');
     }
   }
@@ -151,12 +155,22 @@ class LoginController extends GetxController {
         );
         return true;
       } else {
-        Get.snackbar('Error', res['message'] ?? 'Failed to send OTP');
+        Get.snackbar(
+          'Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to send OTP.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
       isOtpSending.value = false;
-      Get.snackbar('Error', e.toString().replaceAll('Exception: ', ''));
+      Get.snackbar(
+        'Notice',
+        ApiService.cleanErrorMessage(e),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+      );
       return false;
     }
   }
@@ -188,12 +202,22 @@ class LoginController extends GetxController {
         );
         return true;
       } else {
-        Get.snackbar('Reset Failed', res['message'] ?? 'Invalid or expired OTP');
+        Get.snackbar(
+          'Reset Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Invalid or expired OTP.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
       isResettingPassword.value = false;
-      Get.snackbar('Error', e.toString().replaceAll('Exception: ', ''));
+      Get.snackbar(
+        'Notice',
+        ApiService.cleanErrorMessage(e),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+      );
       return false;
     }
   }

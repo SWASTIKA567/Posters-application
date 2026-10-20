@@ -171,8 +171,8 @@ class ProfileController extends GetxController {
       );
     } catch (e) {
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: const Color(0xFFD32F2F),
         colorText: Colors.white,
       );
@@ -198,13 +198,18 @@ class ProfileController extends GetxController {
         );
       } else {
         isDeleting.value = false;
-        Get.snackbar('Error', res['message'] ?? 'Failed to delete account.');
+        Get.snackbar(
+          'Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to delete account.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       isDeleting.value = false;
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

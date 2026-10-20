@@ -104,11 +104,14 @@ class RegisterController extends GetxController {
               password: password,
             ));
       } else {
-        errorMessage.value = res['message'] ?? 'Failed to send OTP code.';
+        errorMessage.value = ApiService.cleanErrorMessage(
+          res['message'],
+          defaultMessage: 'Failed to send OTP code. Please try again.',
+        );
       }
     } catch (e) {
       isLoading.value = false;
-      errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      errorMessage.value = ApiService.cleanErrorMessage(e);
       debugPrint('Register OTP error: $e');
     }
   }
@@ -153,17 +156,18 @@ class RegisterController extends GetxController {
         Get.off(() => const HomeView());
       } else {
         isGoogleLoading.value = false;
-        errorMessage.value = res['message'] ?? 'Google sign-in failed.';
+        errorMessage.value = ApiService.cleanErrorMessage(
+          res['message'],
+          defaultMessage: 'Google sign-in failed. Please try again.',
+        );
       }
     } catch (e) {
       isGoogleLoading.value = false;
-      final err = e.toString().replaceAll('Exception: ', '');
+      final err = ApiService.cleanErrorMessage(e);
       if (err.toLowerCase().contains('cancel') || err.toLowerCase().contains('canceled')) {
         return; // User simply closed the picker
       }
-      errorMessage.value = err.contains('ApiException: 10')
-          ? 'Google Sign-In notice: SHA-1 fingerprint needs to be added in Firebase Console.'
-          : err;
+      errorMessage.value = err;
       debugPrint('Google sign-in error: $e');
     }
   }

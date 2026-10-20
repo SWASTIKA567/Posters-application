@@ -82,8 +82,8 @@ class UploadController extends GetxController {
     } catch (e) {
       isUploading.value = false;
       Get.snackbar(
-        'Upload Failed',
-        e.toString().replaceAll('Exception: ', ''),
+        'Upload Notice',
+        ApiService.cleanErrorMessage(e, defaultMessage: 'Could not upload image. Please try again.'),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );
@@ -155,8 +155,8 @@ class UploadController extends GetxController {
     } catch (e) {
       isAddingToCart.value = false;
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

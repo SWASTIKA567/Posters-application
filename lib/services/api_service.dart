@@ -61,6 +61,95 @@ class ApiService {
     return headers;
   }
 
+  // ── Clean Error Message Formatter ──────────────────────────────────────────
+  /// Transforms any backend, network, database, or technical exception into a
+  /// clean, polite, customer-facing message. No technical stack traces or
+  /// developer jargon are ever shown to the user.
+  static String cleanErrorMessage(
+    dynamic error, {
+    String defaultMessage = 'Something went wrong. Please try again.',
+  }) {
+    if (error == null) return defaultMessage;
+
+    String msg = error.toString().trim();
+    if (msg.startsWith('Exception: ')) {
+      msg = msg.substring(11).trim();
+    }
+
+    final lower = msg.toLowerCase();
+
+    // 1. Connection / Network / DNS / Timeout / Offline errors
+    if (lower.contains('socketexception') ||
+        lower.contains('failed host lookup') ||
+        lower.contains('connection refused') ||
+        lower.contains('connection reset') ||
+        lower.contains('network is unreachable') ||
+        lower.contains('clientexception') ||
+        lower.contains('handshakeexception') ||
+        lower.contains('timeoutexception') ||
+        lower.contains('connection closed') ||
+        lower.contains('network error') ||
+        lower.contains('os error') ||
+        lower.contains('backend is running') ||
+        lower.contains('unable to connect') ||
+        lower.contains('server unreachable')) {
+      return 'Unable to connect. Please check your internet connection and try again.';
+    }
+
+    // 2. Server 500 / Bad Gateway / Cloud sleep / HTML responses
+    if (lower.contains('formatexception') ||
+        lower.contains('<!doctype') ||
+        lower.contains('<html') ||
+        lower.contains('502 bad gateway') ||
+        lower.contains('503 service') ||
+        lower.contains('504 gateway') ||
+        lower.contains('internal server error') ||
+        lower.contains('bad gateway') ||
+        lower.contains('gateway time-out') ||
+        lower.contains('service unavailable') ||
+        lower.contains('an error occurred (50')) {
+      return 'Our servers are temporarily busy. Please try again in a moment.';
+    }
+
+    // 3. Database / Technical stack trace errors
+    if (lower.contains('e11000') ||
+        lower.contains('mongo') ||
+        lower.contains('cast to') ||
+        lower.contains('referenceerror') ||
+        lower.contains('typeerror') ||
+        lower.contains('syntaxerror') ||
+        lower.contains('null check operator') ||
+        lower.contains('unhandled') ||
+        lower.contains('stack trace') ||
+        lower.contains('internal error')) {
+      return 'Something went wrong. Please try again shortly.';
+    }
+
+    // 4. Session / JWT Token errors
+    if (lower.contains('jwt expired') ||
+        lower.contains('jwt malformed') ||
+        lower.contains('invalid token') ||
+        lower.contains('token has expired') ||
+        lower.contains('not authorized')) {
+      return 'Your session has expired. Please log in again.';
+    }
+
+    // 5. Firebase / Google Sign-in technical codes
+    if (lower.contains('apiexception: 10') || lower.contains('sign_in_failed')) {
+      return 'Google sign-in could not be completed. Please try again or use email.';
+    }
+    if (lower.contains('sign_in_canceled') || lower.contains('user cancelled')) {
+      return 'Sign-in was cancelled.';
+    }
+
+    // If cleaned string is empty or looks like raw code
+    if (msg.isEmpty || (msg.length > 150 && (lower.contains('{') || lower.contains('at ')))) {
+      return defaultMessage;
+    }
+
+    return msg;
+  }
+
   // ── GET Request ─────────────────────────────────────────────────────────────
   static Future<dynamic> get(String endpoint) async {
     try {
@@ -70,10 +159,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
-      if (e is Exception && e.toString().contains('Exception: ')) {
-        rethrow;
-      }
-      throw Exception('Server unreachable. Please check if the backend is running.');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
@@ -87,13 +173,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
-      if (e is Exception && e.toString().contains('Exception: ')) {
-        final str = e.toString().replaceFirst('Exception: ', '');
-        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
-          throw Exception(str);
-        }
-      }
-      throw Exception('Unable to connect to server. Please check your connection.');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
@@ -107,13 +187,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
-      if (e is Exception && e.toString().contains('Exception: ')) {
-        final str = e.toString().replaceFirst('Exception: ', '');
-        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
-          throw Exception(str);
-        }
-      }
-      throw Exception('Unable to connect to server. Please check your connection.');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
@@ -127,13 +201,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
-      if (e is Exception && e.toString().contains('Exception: ')) {
-        final str = e.toString().replaceFirst('Exception: ', '');
-        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
-          throw Exception(str);
-        }
-      }
-      throw Exception('Unable to connect to server. Please check your connection.');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
@@ -146,13 +214,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 35));
       return _processResponse(response);
     } catch (e) {
-      if (e is Exception && e.toString().contains('Exception: ')) {
-        final str = e.toString().replaceFirst('Exception: ', '');
-        if (!str.startsWith('Network error') && !str.startsWith('ClientException')) {
-          throw Exception(str);
-        }
-      }
-      throw Exception('Unable to connect to server. Please check your connection.');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
@@ -206,21 +268,34 @@ class ApiService {
       if (data['success'] == true && data['imageUrl'] != null) {
         return data['imageUrl'] as String;
       }
-      throw Exception(data['message'] ?? 'Image upload failed');
+      throw Exception(cleanErrorMessage(data['message'] ?? 'Image upload failed.'));
     } catch (e) {
-      debugPrint('Upload Image Exception: $e');
-      rethrow;
+      debugPrint('Upload Image Notice: $e');
+      throw Exception(cleanErrorMessage(e));
     }
   }
 
   // ── Helper Response Handler ─────────────────────────────────────────────────
   static dynamic _processResponse(http.Response response) {
-    final body = jsonDecode(response.body);
+    dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } catch (_) {
+      if (response.statusCode >= 500) {
+        throw Exception('Our servers are temporarily busy. Please try again shortly.');
+      }
+      throw Exception('Unable to complete request. Please try again.');
+    }
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     } else {
-      final message = body['message'] ?? 'An error occurred (${response.statusCode})';
-      throw Exception(message);
+      String? message;
+      if (body is Map && body.containsKey('message')) {
+        message = body['message']?.toString();
+      }
+      message ??= 'Request could not be completed (${response.statusCode})';
+      throw Exception(cleanErrorMessage(message));
     }
   }
 }

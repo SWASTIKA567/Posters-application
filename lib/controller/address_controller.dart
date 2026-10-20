@@ -101,13 +101,18 @@ class AddressController extends GetxController {
         );
       } else {
         isSaving.value = false;
-        Get.snackbar('Error', res['message'] ?? 'Failed to save address.');
+        Get.snackbar(
+          'Notice',
+          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to save address.'),
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       isSaving.value = false;
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );
@@ -131,8 +136,8 @@ class AddressController extends GetxController {
       );
     } catch (e) {
       Get.snackbar(
-        'Error',
-        e.toString().replaceAll('Exception: ', ''),
+        'Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );

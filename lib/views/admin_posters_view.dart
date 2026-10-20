@@ -192,12 +192,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           duration: const Duration(seconds: 4),
         );
       } else {
-        throw Exception(res?['message'] ?? 'Could not create poster');
+        throw Exception(ApiService.cleanErrorMessage(res?['message'], defaultMessage: 'Could not create poster.'));
       }
     } catch (e) {
       Get.snackbar(
-        'Upload Failed',
-        e.toString().replaceAll('Exception: ', ''),
+        'Upload Notice',
+        ApiService.cleanErrorMessage(e),
         backgroundColor: Colors.red.shade800,
         colorText: Colors.white,
       );
@@ -245,7 +245,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       } catch (e) {
         Get.snackbar(
           'Delete Notice',
-          e.toString().replaceAll('Exception: ', ''),
+          ApiService.cleanErrorMessage(e),
           backgroundColor: Colors.red.shade800,
           colorText: Colors.white,
         );

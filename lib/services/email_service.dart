@@ -46,7 +46,7 @@ class EmailService {
             'total_amount': '₹${totalAmount.toInt()}',
             'payment_method': paymentMethod,
             'items_summary': itemsSummary,
-            'support_email': 'support@kechi.app',
+            'support_email': 'support.kechi@gmail.com',
           },
         }),
       );
