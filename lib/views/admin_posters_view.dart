@@ -17,7 +17,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
   final homeCtrl = HomeController.to;
 
   final TextEditingController _titleCtrl = TextEditingController();
-  final TextEditingController _priceCtrl = TextEditingController(text: '99');
   final TextEditingController _descCtrl = TextEditingController();
   final TextEditingController _newCategoryCtrl = TextEditingController();
 
@@ -43,7 +42,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
   @override
   void dispose() {
     _titleCtrl.dispose();
-    _priceCtrl.dispose();
     _descCtrl.dispose();
     _newCategoryCtrl.dispose();
     super.dispose();
@@ -89,7 +87,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
+              leading: const Icon(
+                Icons.photo_library_rounded,
+                color: AppColors.primary,
+              ),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Get.back();
@@ -97,7 +98,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
+              leading: const Icon(
+                Icons.camera_alt_rounded,
+                color: AppColors.primary,
+              ),
               title: const Text('Take a Photo'),
               onTap: () {
                 Get.back();
@@ -112,30 +116,37 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
   Future<void> _publishPoster() async {
     final title = _titleCtrl.text.trim();
-    final priceStr = _priceCtrl.text.trim();
-    final category = _isNewCategory ? _newCategoryCtrl.text.trim() : (_selectedCategory ?? 'General');
+    final category = _isNewCategory
+        ? _newCategoryCtrl.text.trim()
+        : (_selectedCategory ?? 'General');
 
     if (title.isEmpty) {
-      Get.snackbar('Missing Title', 'Please enter a poster title',
-          backgroundColor: Colors.orange.shade800, colorText: Colors.white);
-      return;
-    }
-
-    if (priceStr.isEmpty || double.tryParse(priceStr) == null) {
-      Get.snackbar('Invalid Price', 'Please enter a valid price in ₹',
-          backgroundColor: Colors.orange.shade800, colorText: Colors.white);
+      Get.snackbar(
+        'Missing Title',
+        'Please enter a poster title',
+        backgroundColor: Colors.orange.shade800,
+        colorText: Colors.white,
+      );
       return;
     }
 
     if (category.isEmpty) {
-      Get.snackbar('Missing Category', 'Please select or enter a category',
-          backgroundColor: Colors.orange.shade800, colorText: Colors.white);
+      Get.snackbar(
+        'Missing Category',
+        'Please select or enter a category',
+        backgroundColor: Colors.orange.shade800,
+        colorText: Colors.white,
+      );
       return;
     }
 
     if (_selectedImage == null) {
-      Get.snackbar('Missing Image', 'Please pick a poster image to upload',
-          backgroundColor: Colors.orange.shade800, colorText: Colors.white);
+      Get.snackbar(
+        'Missing Image',
+        'Please pick a poster image to upload',
+        backgroundColor: Colors.orange.shade800,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -148,26 +159,26 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       // 1. Upload image to Cloudinary
       final uploadedUrl = await ApiService.uploadImage(_selectedImage!);
       if (uploadedUrl == null || uploadedUrl.isEmpty) {
-        throw Exception('Failed to upload image. Please check internet connection.');
+        throw Exception(
+          'Failed to upload image. Please check internet connection.',
+        );
       }
 
       setState(() {
         _uploadStatus = 'Saving poster to catalog database...';
       });
 
-      final basePrice = double.parse(priceStr);
-
-      // 2. Save poster in MongoDB
+      // 2. Save poster in MongoDB with standard fixed size pricing (A5: ₹39, A4: ₹59, A3: ₹99)
       final res = await ApiService.post('/posters', {
         'title': title,
         'imageUrl': uploadedUrl,
         'category': category,
-        'price': basePrice,
+        'price': 59,
         'description': _descCtrl.text.trim(),
         'sizes': [
-          {'label': 'A5', 'dimensions': '14.8 × 21 cm', 'price': (basePrice * 0.75).round()},
-          {'label': 'A4', 'dimensions': '21 × 29.7 cm', 'price': basePrice.round()},
-          {'label': 'A3', 'dimensions': '29.7 × 42 cm', 'price': (basePrice * 1.6).round()},
+          {'label': 'A5', 'dimensions': '14.8 × 21 cm', 'price': 39},
+          {'label': 'A4', 'dimensions': '21 × 29.7 cm', 'price': 59},
+          {'label': 'A3', 'dimensions': '29.7 × 42 cm', 'price': 99},
         ],
       });
 
@@ -192,7 +203,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           duration: const Duration(seconds: 4),
         );
       } else {
-        throw Exception(ApiService.cleanErrorMessage(res?['message'], defaultMessage: 'Could not create poster.'));
+        throw Exception(
+          ApiService.cleanErrorMessage(
+            res?['message'],
+            defaultMessage: 'Could not create poster.',
+          ),
+        );
       }
     } catch (e) {
       Get.snackbar(
@@ -215,7 +231,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     final confirm = await Get.dialog<bool>(
       AlertDialog(
         title: const Text('Delete Poster'),
-        content: Text('Are you sure you want to remove "$title" from the store?'),
+        content: Text(
+          'Are you sure you want to remove "$title" from the store?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
@@ -329,7 +347,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         children: [
           Row(
             children: const [
-              Icon(Icons.add_photo_alternate_rounded, color: AppColors.primary, size: 22),
+              Icon(
+                Icons.add_photo_alternate_rounded,
+                color: AppColors.primary,
+                size: 22,
+              ),
               SizedBox(width: 8),
               Text(
                 'Add New Poster to Store',
@@ -349,7 +371,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 color: const Color(0xFFF1F1F5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _selectedImage != null ? AppColors.primary : Colors.grey.shade300,
+                  color: _selectedImage != null
+                      ? AppColors.primary
+                      : Colors.grey.shade300,
                   width: _selectedImage != null ? 2 : 1,
                 ),
               ),
@@ -370,7 +394,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.white, size: 18),
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                               onPressed: _showImagePickerModal,
                             ),
                           ),
@@ -380,7 +408,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.cloud_upload_outlined, size: 48, color: Colors.grey.shade500),
+                        Icon(
+                          Icons.cloud_upload_outlined,
+                          size: 48,
+                          color: Colors.grey.shade500,
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'Tap to Pick Poster Image',
@@ -393,7 +425,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         const SizedBox(height: 4),
                         Text(
                           'High-res JPG / PNG (Gallery or Camera)',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       ],
                     ),
@@ -410,8 +445,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
               labelText: 'Poster Title *',
               hintText: 'e.g. Cyberpunk Samurai, Neon Bloom',
               prefixIcon: const Icon(Icons.title_rounded, size: 20),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
             ),
           ),
 
@@ -428,9 +468,17 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         decoration: InputDecoration(
                           labelText: 'New Category Name *',
                           hintText: 'e.g. Gaming, Quotes, Cars',
-                          prefixIcon: const Icon(Icons.category_rounded, size: 20),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          prefixIcon: const Icon(
+                            Icons.category_rounded,
+                            size: 20,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                         ),
                       )
                     : Obx(() {
@@ -442,7 +490,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         return DropdownButtonFormField<String>(
                           value: availableCats.contains(_selectedCategory)
                               ? _selectedCategory
-                              : (availableCats.isNotEmpty ? availableCats.first : null),
+                              : (availableCats.isNotEmpty
+                                    ? availableCats.first
+                                    : null),
                           items: availableCats.map((cat) {
                             return DropdownMenuItem(
                               value: cat,
@@ -456,18 +506,30 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                                 },
                           decoration: InputDecoration(
                             labelText: 'Category *',
-                            prefixIcon: const Icon(Icons.folder_outlined, size: 20),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            prefixIcon: const Icon(
+                              Icons.folder_outlined,
+                              size: 20,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                           ),
                         );
                       }),
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: _isNewCategory ? 'Choose Existing Category' : 'Create New Category',
+                tooltip: _isNewCategory
+                    ? 'Choose Existing Category'
+                    : 'Create New Category',
                 icon: Icon(
-                  _isNewCategory ? Icons.list_rounded : Icons.add_circle_outline_rounded,
+                  _isNewCategory
+                      ? Icons.list_rounded
+                      : Icons.add_circle_outline_rounded,
                   color: AppColors.primary,
                 ),
                 onPressed: () {
@@ -482,20 +544,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           const SizedBox(height: 14),
 
           // ── Base Price ──
-          TextField(
-            controller: _priceCtrl,
-            enabled: !_isPublishing,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Base Price (₹) *',
-              hintText: 'e.g. 99',
-              prefixIcon: const Icon(Icons.currency_rupee_rounded, size: 20),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            ),
-          ),
-
-          const SizedBox(height: 14),
 
           // ── Description ──
           TextField(
@@ -505,8 +553,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             decoration: InputDecoration(
               labelText: 'Description (Optional)',
               hintText: '300 GSM archival stock, vivid archival inks...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
             ),
           ),
 
@@ -521,12 +574,19 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     _uploadStatus,
-                    style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -542,12 +602,20 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   ? const SizedBox.shrink()
                   : const Icon(Icons.cloud_upload_rounded, color: Colors.white),
               label: Text(
-                _isPublishing ? 'Publishing Poster...' : 'Publish Poster to Store',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                _isPublishing
+                    ? 'Publishing Poster...'
+                    : 'Publish Poster to Store',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -580,7 +648,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDynamic ? AppColors.primary.withOpacity(0.3) : const Color(0xFFEAEAEA),
+                color: isDynamic
+                    ? AppColors.primary.withOpacity(0.3)
+                    : const Color(0xFFEAEAEA),
               ),
             ),
             child: Row(
@@ -602,7 +672,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     children: [
                       Text(
                         p['title'] ?? 'Untitled',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -610,23 +683,20 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF0F0F0),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               p['category'] ?? 'General',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            p['price'] ?? '₹49',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -635,7 +705,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         const SizedBox(height: 4),
                         const Text(
                           '⚡ Cloudinary / Database item',
-                          style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ],
@@ -643,7 +717,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 ),
                 if (isDynamic && id.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                    ),
                     tooltip: 'Delete Poster',
                     onPressed: () => _deletePoster(id, p['title'] ?? 'Poster'),
                   ),

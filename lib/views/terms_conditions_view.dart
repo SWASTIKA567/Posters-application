@@ -20,12 +20,12 @@ class TermsConditionsView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black.withOpacity(0.08)),
-                boxShadow: [
+                border: Border.all(color: Colors.black12),
+                boxShadow: const [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Color(0x0A000000),
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
@@ -69,8 +69,8 @@ class TermsConditionsView extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B0000).withOpacity(0.1),
+                        decoration: const BoxDecoration(
+                          color: Color(0x1A8B0000),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.description_rounded, color: Color(0xFF8B0000), size: 20),
@@ -95,9 +95,9 @@ class TermsConditionsView extends StatelessWidget {
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 10),
                   const Text(
-                    "Welcome to Kechi. These Terms & Conditions (\"Terms\") govern your access to and use of the Kechi mobile application, website, products, and services (\"Platform\"). By accessing Kechi, creating an account, placing an order, or using any of our services, you agree to be bound by these Terms.",
+                    "Welcome to Kechi. These Terms & Conditions (\"Terms\") govern your access to and use of the Kechi mobile application, website, products, and services (\"Platform\"). By accessing Kechi, creating an account, placing an order, or using any of our services, you agree to be bound by these Terms. If you do not agree, please do not use Kechi.",
                     style: TextStyle(fontSize: 12.5, color: Colors.black87, height: 1.45),
                   ),
                 ],
@@ -109,7 +109,7 @@ class TermsConditionsView extends StatelessWidget {
               number: "1",
               title: "About Kechi",
               content:
-                  "Kechi is a poster-selling platform that allows customers to browse and purchase printed posters in A3, A4, and A5 sizes. Where available, Kechi may also allow customers to create customised posters using photographs or other content uploaded by them. Kechi currently delivers within the National Capital Region (NCR) and pan-India via express courier partners.",
+                  "Kechi is a poster-selling platform that allows customers to browse and purchase printed posters in A3, A4, and A5 sizes. Where available, Kechi may also allow customers to create customised posters using photographs or other content uploaded by them. Kechi currently delivers within the National Capital Region (NCR) only. Delivery to other locations will be introduced in future.",
             ),
 
             _buildSection(
@@ -123,112 +123,112 @@ class TermsConditionsView extends StatelessWidget {
               number: "3",
               title: "Products, Pricing & GST",
               content:
-                  "Kechi makes reasonable efforts to ensure that product descriptions, images, sizes, and prices displayed on the Platform are accurate. However:\n• All prices displayed are inclusive of applicable Goods and Services Tax (GST) unless explicitly stated otherwise.\n• Product colours may vary slightly depending on the display used to view them.\n• Printed posters may have minor variations in colour, trim, or alignment due to print batch or paper stock. Such variations are not considered defects.\n• Posters are printed on premium 300 GSM archival stock using high-definition pigment inks.\n• The price applicable to an order is the price displayed at the time of order placement, subject to correction of obvious errors.\n• Kechi reserves the right to correct pricing or product information errors at any time.",
+                  "Kechi makes reasonable efforts to ensure that product descriptions, images, sizes, and prices displayed on the Platform are accurate. However:\n• All prices displayed are inclusive of applicable Goods and Services Tax (GST) unless explicitly stated otherwise.\n• Product colours may vary slightly depending on the display used to view them.\n• Printed posters may have minor variations in colour, trim, or alignment due to print batch or paper stock. Such variations are not considered defects.\n• Posters are printed on unlaminated paper stock unless otherwise stated. Customers are advised to consider this before placing an order.\n• The price applicable to an order is the price displayed at the time of order placement, subject to correction of obvious errors.\n• Kechi reserves the right to correct pricing or product information errors at any time.",
             ),
 
             _buildSection(
               number: "4",
-              title: "Order Quantity & Delivery Area",
+              title: "Minimum Order Quantity & Delivery Area",
               content:
-                  "The following conditions apply to orders placed on Kechi:\n• Available Sizes: A5 (₹39), A4 (₹59), A3 (₹99).\n• Delivery Charges: Flat ₹39 delivery fee across India. Orders containing 7 or more posters automatically unlock 100% FREE Delivery.\n• Delivery Coverage: Orders are dispatched via tracked courier partners (including Shadowfax Express) with live tracking links.",
+                  "The following conditions apply to all orders placed on Kechi:\n\nMinimum Order Quantity:\nEach order must contain a minimum of six (6) posters. Orders below this threshold will not be processed. Posters of different sizes (A3, A4, A5) may be combined to meet the minimum quantity.\n\nDelivery Area:\nKechi currently delivers within the National Capital Region (NCR), which includes Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. Orders from outside the NCR will not be processed at this time. Kechi will update these Terms when delivery is extended to other regions.",
             ),
 
             _buildSection(
               number: "5",
               title: "Custom Posters",
               content:
-                  "Where custom poster functionality is available, the customer is solely responsible for all content uploaded for customisation. By uploading content, you confirm that:\n• You own the content or have obtained all necessary permissions to use it;\n• Your use of the content does not infringe any copyright, trademark, privacy, publicity, or other third-party rights;\n• The content does not violate any applicable laws or these Terms; and\n• You have the right to reproduce the content on a physical printed product.\n\nKechi reserves the right to refuse or cancel any customisation request if submitted content appears to violate these Terms, without obligation to provide explanation.",
+                  "Where custom poster functionality is available, the customer is solely responsible for all content uploaded for customisation. By uploading content, you confirm that:\n• You own the content or have obtained all necessary permissions to use it;\n• Your use of the content does not infringe any copyright, trademark, privacy, publicity, or other third-party rights;\n• The content does not violate any applicable laws or these Terms; and\n• You have the right to reproduce the content on a physical printed product.\n\nKechi reserves the right to refuse or cancel any customisation request if the submitted content appears to violate these Terms, applicable law, or the rights of any third party, without any obligation to provide a detailed explanation.",
             ),
 
             _buildSection(
               number: "6",
               title: "Prohibited Content",
               content:
-                  "You must not upload or submit content through Kechi that:\n• Infringes copyright, trademark, or other intellectual property rights;\n• Contains illegal, obscene, defamatory, or fraudulent material;\n• Promotes violence, hatred, discrimination, or criminal activity;\n• Contains exploitative, abusive, or sexually explicit material;\n• Impersonates any person or entity;\n• Violates another person's privacy or data protection rights; or\n• Otherwise violates applicable Indian law.\n\nKechi may reject or cancel orders involving prohibited content and report such content to relevant authorities where required by law.",
+                  "You must not upload or submit content through Kechi that:\n• Infringes copyright, trademark, or other intellectual property rights;\n• Contains illegal, obscene, defamatory, or fraudulent material;\n• Promotes violence, hatred, discrimination, or criminal activity;\n• Contains exploitative, abusive, or sexually explicit material;\n• Impersonates any person or entity;\n• Violates another person's privacy, publicity, or data protection rights; or\n• Otherwise violates applicable Indian law.\n\nKechi may reject or cancel orders involving prohibited content and may report such content to relevant authorities where required by law.",
             ),
 
             _buildSection(
               number: "7",
               title: "Intellectual Property",
               content:
-                  "All Kechi branding, logos, application design, original poster artwork, graphics, text, and other materials created or owned by Kechi remain the exclusive property of Kechi or its licensors.\n\nPosters purchased from Kechi are licensed for personal, non-commercial use only. You may not reproduce, resell, redistribute, or commercially exploit any Kechi poster design without prior written permission.\n\nYou retain ownership of photographs and other content uploaded for custom poster creation. By uploading such content, you grant Kechi a limited, non-exclusive licence solely for fulfilling your order.",
+                  "All Kechi branding, logos, application design, original poster artwork, graphics, text, and other materials created or owned by Kechi remain the exclusive property of Kechi or its licensors.\n\nPosters purchased from Kechi are licensed for personal, non-commercial use only. You may not reproduce, resell, redistribute, publicly display, or commercially exploit any Kechi poster design without prior written permission from Kechi.\n\nYou retain ownership of photographs and other content that you upload for custom poster creation. By uploading such content, you grant Kechi a limited, non-exclusive licence to use, process, and print that content solely for fulfilling your order.",
             ),
 
             _buildSection(
               number: "8",
               title: "Orders & Cash on Delivery (COD)",
               content:
-                  "Order Confirmation:\nAn order is considered confirmed only after required order information is submitted, payment has been successfully received (prepaid) or COD order has been confirmed, and Kechi has accepted the order.\n\nKechi reserves the right to cancel an order at any stage for reasons including product unavailability, pricing errors, suspected fraud, prohibited uploaded content, or circumstances beyond reasonable control.\n\nCash on Delivery (COD):\n• COD orders must be confirmed before dispatch.\n• The customer must be available at the delivery address to receive and make payment.\n• Repeated refusal of COD orders may result in COD being restricted for that customer account.\n• Kechi reserves the right to withdraw COD at any time without prior notice.",
+                  "Order Confirmation:\nAn order is considered confirmed only after:\n• You have submitted the required order information and it meets the minimum quantity requirement;\n• Payment has been successfully received (prepaid) or the COD order has been explicitly confirmed by Kechi via WhatsApp or another written channel; and\n• Kechi has accepted and confirmed the order.\n\nSubmission of an order form or payment initiation alone does not constitute a confirmed order. Kechi reserves the right to cancel an order at any stage for reasons including:\n• Product unavailability;\n• Pricing or listing errors;\n• Delivery address falling outside the NCR service area;\n• Order not meeting the minimum quantity requirement;\n• Suspected fraud or misuse;\n• Invalid, incomplete, or unverifiable customer information;\n• Prohibited uploaded content; or\n• Circumstances beyond Kechi's reasonable control.\n\nCash on Delivery (COD):\nKechi offers Cash on Delivery as a payment option, subject to the following conditions:\n• COD is currently available within the NCR delivery area only.\n• COD orders must be confirmed by the customer via WhatsApp or a written channel before dispatch. Kechi reserves the right not to dispatch unconfirmed COD orders.\n• The customer must be available at the delivery address to receive the order and make payment at the time of delivery.\n• If a customer is unavailable at the time of delivery, Kechi or its courier partner may attempt re-delivery or cancel the order. Any re-delivery charges will be borne by the customer.\n• Repeated refusal of COD orders by a customer may result in COD being restricted or removed for that customer's account.\n• Kechi reserves the right to withdraw the COD option at any time without prior notice.",
             ),
 
             _buildSection(
               number: "9",
               title: "Payments",
               content:
-                  "Prepaid payments may be processed through third-party payment providers such as Razorpay or other providers listed on the Platform at checkout. Payment processing is subject to the terms and policies of the relevant payment provider.\n\nKechi does not request, collect, or store your payment PIN, CVV, password, OTP, or complete payment credentials. Never share such information with anyone claiming to represent Kechi.\n\nIn the event of a payment failure, please verify your payment status before placing a duplicate order. Contact support.kechi@gmail.com if payment is debited but no order confirmation is received.",
+                  "Prepaid payments may be processed through third-party payment providers such as Razorpay or other providers listed on the Platform at the time of checkout. Payment processing is subject to the terms and policies of the relevant payment provider.\n\nKechi does not request, collect, or store your payment PIN, CVV, password, OTP, or complete payment credentials. Never share such information with anyone claiming to represent Kechi.\n\nIn the event of a payment failure, please verify your payment status before placing a duplicate order. Contact us at support.kechi@gmail.com if a payment is debited but no order confirmation is received.",
             ),
 
             _buildSection(
               number: "10",
               title: "Shipping & Delivery",
               content:
-                  "Kechi will make reasonable efforts to deliver orders within the estimated delivery timeframe (typically 3 to 5 business days after 24-48h dispatch). Estimated delivery times are indicative and not guaranteed.\n\nDelivery timelines may be affected by production time, courier capacity, weather conditions, holidays, or incorrect delivery information.\n\nThe customer is responsible for providing an accurate and complete delivery address, including PIN code and reachable contact number.",
+                  "Kechi will make reasonable efforts to deliver orders within the estimated delivery timeframe communicated at the time of purchase. Estimated delivery times are indicative and not guaranteed.\n\nDelivery timelines may be affected by:\n• Production and printing time;\n• Courier partner availability and capacity;\n• Weather conditions, public holidays, or local disruptions;\n• Incorrect or incomplete delivery information provided by the customer; or\n• Other circumstances beyond Kechi's reasonable control.\n\nThe customer is responsible for providing an accurate and complete delivery address, including PIN code and a reachable contact number. Kechi is not responsible for delays, non-delivery, or additional charges resulting from incorrect or incomplete delivery information provided by the customer.",
             ),
 
             _buildSection(
               number: "11",
-              title: "Returns, Cancellations & Replacements",
+              title: "Returns, Cancellations & Refunds",
               content:
-                  "• 2-Hour Cancellation Window: You can cancel your order directly from the app within 2 hours of placing it. After 2 hours, custom posters automatically enter high-definition printing production and cancellation is locked.\n\n• Defective / Damaged Posters (Strict 24-Hour Reporting): In the rare event your poster arrives damaged, bent, or with a printing defect, report it directly within the app or email support.kechi@gmail.com within 24 hours of delivery along with clear defect photos. Claims reported after 24 hours cannot be accepted.\n\n• 100% Free Replacement: For any verified genuine defect or transit damage, we dispatch an immediate 100% Free Replacement (Reprint) to your doorstep at zero extra charge. No monetary cash refunds are issued after delivery.\n\n• Minor colour or trim variance consistent with standard print production is not considered a defect.\n\n• Proof of Delivery: For customised poster orders, courier partners capture delivery photographs as proof that package was delivered in good condition.",
+                  "Returns, cancellations, replacements, and refunds are governed by Kechi's Refund and Cancellation Policy, which is incorporated into these Terms by reference and available on the Platform.\n\nBecause customised posters are produced specifically for each customer, customised products may not be eligible for return or refund except in cases of manufacturing defects or incorrect items delivered.\n\nMinor colour variation or trim variance consistent with standard print production is not considered a defect. Please review the Refund and Cancellation Policy carefully before placing an order.\n\nCancellation of Customised Poster Orders:\nFor customised poster orders, cancellation is only available while the order is pending printing. Once printing has commenced, no cancellation request will be accepted or processed, and the order will proceed to dispatch.\nCustomers wishing to cancel a customised order must contact Kechi immediately at support.kechi@gmail.com or via WhatsApp (+91 9520266789) before printing begins. Kechi cannot guarantee cancellation even for pending orders if production has already started.\n\nProof of Delivery for Customised Orders:\nFor all customised poster orders, the designated delivery partner will capture a photograph of the delivered package at the time of delivery, as proof that the order was delivered in good condition to the correct address. This photograph will be available to Kechi and may be shared with the customer upon request.",
             ),
 
             _buildSection(
               number: "12",
               title: "User Accounts",
               content:
-                  "Where Kechi provides account functionality, you are responsible for maintaining the confidentiality of your account credentials, all activities under your account, and keeping info up to date.\n\nNotify Kechi immediately at support.kechi@gmail.com if you suspect unauthorized access to your account.",
+                  "Where Kechi provides account functionality, you are responsible for:\n• Maintaining the confidentiality of your account credentials;\n• All activities that occur through your account; and\n• Ensuring that the information associated with your account is accurate and up to date.\n\nYou agree to notify Kechi immediately at support.kechi@gmail.com if you suspect any unauthorised access to or use of your account. Kechi is not liable for any loss resulting from unauthorised account use where the customer has failed to maintain reasonable account security.",
             ),
 
             _buildSection(
               number: "13",
               title: "Privacy & Data",
               content:
-                  "By using Kechi, you agree to our Privacy Policy, which governs how we collect, use, store, and protect your personal information. The Privacy Policy is available on the Platform and forms part of these Terms.\n\nWe do not sell your personal data to third parties.",
+                  "By using Kechi, you agree to our Privacy Policy, which governs how we collect, use, store, and protect your personal information. The Privacy Policy is available on the Platform and forms part of these Terms.\n\nKechi collects personal data such as your name, delivery address, phone number, and order history solely for the purpose of processing and delivering your orders, and improving the Platform experience. We do not sell your personal data to third parties.",
             ),
 
             _buildSection(
               number: "14",
               title: "Limitation of Liability",
               content:
-                  "Kechi makes reasonable efforts to keep its Platform available, accurate, and functional. However, we do not guarantee uninterrupted or error-free service.\n\nNothing in these Terms limits consumer rights under the Consumer Protection Act, 2019. To the extent permitted by law, Kechi's liability is limited to the amount paid by the customer for the specific order giving rise to the claim.\n\nKechi is not liable for losses resulting from courier delays, force majeure events, or third-party platform outages.",
+                  "Kechi makes reasonable efforts to keep its Platform available, accurate, and functional. However, we do not guarantee that the application or website will always be uninterrupted or error-free.\n\nNothing in these Terms limits any rights you may have as a consumer under the Consumer Protection Act, 2019 or other applicable Indian law. To the extent permitted by law, Kechi's liability for any claim arising from the use of our Platform, products, or services is limited to the amount paid by the customer for the specific order giving rise to the claim.\n\nKechi is not liable for losses resulting from circumstances beyond our reasonable control, including but not limited to courier delays, force majeure events, or third-party platform outages.",
             ),
 
             _buildSection(
               number: "15",
               title: "Suspension or Termination",
               content:
-                  "Kechi may suspend or terminate access to an account or service if a user violates these Terms, engages in fraudulent activity, uploads prohibited content, repeatedly refuses confirmed COD orders, or harms the Platform.\n\nIn cases of serious or repeated violations, access may be terminated immediately without prior notice.",
+                  "Kechi may suspend or terminate access to an account or service if a user:\n• Violates these Terms;\n• Engages in fraudulent or abusive activity;\n• Uploads prohibited or unlawful content;\n• Repeatedly refuses COD orders after confirmation; or\n• Uses the Platform in a manner that may harm Kechi, other users, or third parties.\n\nWhere possible, Kechi will notify the user before suspension or termination. In cases of serious or repeated violations, access may be terminated immediately without prior notice.",
             ),
 
             _buildSection(
               number: "16",
               title: "Changes to These Terms",
               content:
-                  "Kechi may update these Terms from time to time. Updated Terms will be published on the Platform with a revised \"Last Updated\" date.\n\nYour continued use of Kechi after updated Terms are published constitutes your acceptance of the revised Terms.",
+                  "Kechi may update these Terms from time to time to reflect changes in our services, operations, or applicable law. Updated Terms will be published on the Platform with a revised \"Last Updated\" date.\n\nYour continued use of Kechi after updated Terms are published constitutes your acceptance of the revised Terms. We encourage you to review these Terms periodically.",
             ),
 
             _buildSection(
               number: "17",
               title: "Governing Law & Disputes",
               content:
-                  "These Terms are governed by and construed in accordance with the laws of India, including the Consumer Protection Act 2019 and the Information Technology Act 2000.\n\nDisputes shall first be attempted to be resolved through good-faith communication with Kechi. If unresolved, disputes shall be subject to the jurisdiction of the courts having appropriate jurisdiction over Kechi's registered place of business in NCR, India.",
+                  "These Terms are governed by and construed in accordance with the laws of India, including the Consumer Protection Act 2019, the Information Technology Act 2000, and other applicable legislation.\n\nAny disputes arising from or relating to these Terms or the use of Kechi shall first be attempted to be resolved through good-faith communication between the customer and Kechi. If unresolved, disputes shall be subject to the jurisdiction of the courts having appropriate jurisdiction over Kechi's registered place of business.",
             ),
 
             _buildSection(
               number: "18",
               title: "Contact Us",
               content:
-                  "For questions, complaints, or support related to these Terms or any order, please contact us:\n\n• Entity: Kechi Posters\n• Email: support.kechi@gmail.com\n• Contact / WhatsApp: +91 9520266789\n• Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST\n\nWe aim to respond to all queries within 2 business days.",
+                  "For questions, complaints, or support related to these Terms or any order, please contact us:\n\n• Entity: Kechi\n• Email: support.kechi@gmail.com\n• Phone: +91 9520266789\n• WhatsApp: +91 9520266789\n• Address: Mahagunpuram, Ghaziabad, NCR, India\n\nWe aim to respond to all queries within 2 business days.",
               isLast: true,
             ),
 

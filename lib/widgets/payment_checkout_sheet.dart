@@ -54,18 +54,43 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
             ? 'Credit / Debit Card'
             : 'Net Banking ($_selectedBank)';
 
-    // Verify signature on backend if available
-    if (response.orderId != null && response.signature != null) {
-      try {
-        await ApiService.post('/payment/verify', {
-          'razorpay_order_id': response.orderId,
-          'razorpay_payment_id': response.paymentId,
-          'razorpay_signature': response.signature,
-        });
-        debugPrint('✅ Payment signature verified on server');
-      } catch (e) {
-        debugPrint('Server payment verification notice: $e');
+    // Strict Backend Cryptographic Signature Verification
+    // An order is strictly created ONLY after the server verifies genuine bank clearance
+    if (response.orderId == null || response.paymentId == null || response.signature == null) {
+      if (mounted) setState(() => _isProcessing = false);
+      Get.snackbar(
+        'Payment Incomplete',
+        'Payment details could not be verified by the banking server. No order was placed.',
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+      return;
+    }
+
+    try {
+      final verifyRes = await ApiService.post('/payment/verify', {
+        'razorpay_order_id': response.orderId,
+        'razorpay_payment_id': response.paymentId,
+        'razorpay_signature': response.signature,
+      });
+
+      if (verifyRes == null || verifyRes['success'] != true) {
+        throw Exception(verifyRes?['message'] ?? 'Payment verification failed.');
       }
+      debugPrint('✅ Payment signature 100% verified on server');
+    } catch (e) {
+      if (mounted) setState(() => _isProcessing = false);
+      Get.snackbar(
+        'Payment Verification Failed',
+        'Your transaction could not be verified securely. No order was created.',
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+      return;
     }
 
     _finalizeOrder(
@@ -102,15 +127,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     }
 
     setState(() => _isProcessing = true);
-
-    // If Cash on Delivery, place directly without Razorpay
-    if (_selectedMethod == 'COD') {
-      await _finalizeOrder(
-        paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'Pay on Delivery',
-      );
-      return;
-    }
 
     // If Online Payment (UPI, Card, NetBanking), trigger Razorpay Checkout
     String userEmail = 'customer@gmail.com';
@@ -294,8 +310,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                 _buildMethodTab('Card', 'Cards', Icons.credit_card_rounded),
                 const SizedBox(width: 8),
                 _buildMethodTab('NetBanking', 'Net Banking', Icons.account_balance_rounded),
-                const SizedBox(width: 8),
-                _buildMethodTab('COD', 'Cash on Delivery', Icons.local_shipping_outlined),
               ],
             ),
           ),
@@ -305,7 +319,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           if (_selectedMethod == 'UPI') _buildUpiSection(),
           if (_selectedMethod == 'Card') _buildCardSection(),
           if (_selectedMethod == 'NetBanking') _buildNetBankingSection(),
-          if (_selectedMethod == 'COD') _buildCodSection(),
 
           const SizedBox(height: 22),
 
@@ -358,11 +371,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
                           const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
                           const SizedBox(width: 8),
                           Text(
-                            _selectedMethod == 'COD'
-                                ? "Confirm Cash on Delivery  •  ₹${grandTotal.toInt()}"
-                                : _selectedMethod == 'UPI'
-                                    ? "Pay ₹${grandTotal.toInt()} with $_selectedUpiApp"
-                                    : "Pay Securely  •  ₹${grandTotal.toInt()}",
+                            _selectedMethod == 'UPI'
+                                ? "Pay ₹${grandTotal.toInt()} with $_selectedUpiApp"
+                                : "Pay Securely  •  ₹${grandTotal.toInt()}",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15.5,
@@ -738,41 +749,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       ],
     );
   }
-
-  // ── 4. COD SECTION ───────────────────────────────────────────────────────────
-  Widget _buildCodSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _CodCashBadge(),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Cash or UPI on Delivery",
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Pay in cash or scan QR using any UPI app (GPay, PhonePe, Paytm) when your Kechi poster arrives at your doorstep.",
-                  style: TextStyle(fontSize: 12, color: Colors.black.withValues(alpha: 0.65), height: 1.4),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1026,35 +1002,6 @@ class _RupayLogo extends StatelessWidget {
           fontSize: 9,
           fontStyle: FontStyle.italic,
         ),
-      ),
-    );
-  }
-}
-
-/// Cash on Delivery Cash Badge
-class _CodCashBadge extends StatelessWidget {
-  const _CodCashBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: const Color(0xFF10B981),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10B981).withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.payments_rounded,
-        color: Colors.white,
-        size: 24,
       ),
     );
   }

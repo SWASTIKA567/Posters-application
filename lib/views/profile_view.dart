@@ -1104,73 +1104,22 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildLegalAndSupportSection() {
     return _buildSection(
-      title: 'Legal, Policies & Support',
+      title: 'Legal & Policies',
       icon: Icons.shield_outlined,
       accentColor: AppColors.primary,
       children: [
         _buildPolicyRow(
-          icon: Icons.local_shipping_outlined,
-          title: 'Shipping & Delivery Policy',
-          subtitle: 'Dispatched in 24-48h • ₹39 flat fee (Free on 7+)',
-          onTap: () => _showPolicyModal(
-            title: 'Shipping & Delivery Policy',
-            content: '''
-• Courier Partner: We partner with Shadowfax Express for reliable, tracked pan-India delivery.
-
-• Dispatch Timeline: Custom posters are printed, quality inspected, and packaged in rigid protective safety tubes within 24 to 48 hours of order confirmation.
-
-• Delivery Time: Estimated delivery takes 3 to 5 business days depending on destination pincode.
-
-• Shipping Charges: Standard flat delivery fee of ₹39. Orders with 7 or more posters receive 100% FREE Delivery across India.
-
-• Real-Time Tracking: A live Shadowfax AWB tracking code and direct tracking link are provided in the app for every order.
-''',
-          ),
-        ),
-        _buildPolicyRow(
-          icon: Icons.currency_rupee_rounded,
-          title: 'Cancellation & Replacement Policy',
-          subtitle: '2-hour free cancellation • Free replacement for defects',
-          onTap: () => _showPolicyModal(
-            title: 'Cancellation & Replacement Policy',
-            content: '''
-• 2-Hour Cancellation Window: You can cancel your order directly from the app within 2 hours of placing it. After 2 hours, custom posters automatically enter high-definition printing production and cancellation is locked.
-
-• Personalized Custom Products: Because posters are custom-printed on demand with personalized dimensions and graphics, sales are final once production begins.
-
-• Defective / Damaged Posters (Strict 24-Hour Reporting): In the rare event your poster arrives damaged, bent, or with a printing defect, report it to support.kechi@gmail.com within 24 hours of delivery along with unboxing photos/video. Claims reported after 24 hours of delivery cannot be accepted.
-
-• 100% Free Replacement: For any verified genuine defect or damage, we ship an immediate 100% Free Replacement (Reprint) to your doorstep at zero extra charge. No monetary refunds are issued after delivery.
-''',
-          ),
+          icon: Icons.description_outlined,
+          title: 'Terms & Conditions',
+          subtitle: 'User agreement, orders & policies • Tap to view',
+          onTap: () => Get.to(() => const TermsConditionsView()),
         ),
         _buildPolicyRow(
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
-          subtitle: 'DPDPA 2023 & IT Act compliant • Tap to view',
-          onTap: () => Get.to(() => const PrivacyPolicyView()),
-        ),
-        _buildPolicyRow(
-          icon: Icons.description_outlined,
-          title: 'Terms & Conditions',
-          subtitle: 'User agreement, print & returns • Tap to view',
-          onTap: () => Get.to(() => const TermsConditionsView()),
-        ),
-        _buildPolicyRow(
-          icon: Icons.headset_mic_outlined,
-          title: 'Contact & Customer Support',
-          subtitle: 'support.kechi@gmail.com • +91 9520266789',
+          subtitle: 'DPDPA 2023 & data security • Tap to view',
           isLast: true,
-          onTap: () => _showPolicyModal(
-            title: 'Contact Us',
-            content: '''
-• Customer Support Email: support.kechi@gmail.com
-• Phone / WhatsApp: +91 9520266789
-• Operating Hours: Monday to Saturday, 10:00 AM – 7:00 PM IST
-• Response Time: We respond to queries within 24 to 48 business hours.
-• Grievance: For any unresolved concerns, write to us directly at support.kechi@gmail.com or call +91 9520266789.
-''',
-          ),
+          onTap: () => Get.to(() => const PrivacyPolicyView()),
         ),
       ],
     );
@@ -1270,91 +1219,6 @@ class _ProfileViewState extends State<ProfileView> {
             ),
         ],
       ),
-    );
-  }
-
-  void _showPolicyModal({required String title, required String content}) {
-    Get.bottomSheet(
-      Container(
-        constraints: BoxConstraints(
-          maxHeight: Get.height * 0.75,
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  onPressed: () => Get.back(),
-                ),
-              ],
-            ),
-            const Divider(height: 12),
-            const SizedBox(height: 8),
-            Flexible(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Text(
-                  content.trim(),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    height: 1.6,
-                    color: Color(0xFF444444),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text(
-                  "Close",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 

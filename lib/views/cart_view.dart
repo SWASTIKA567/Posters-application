@@ -133,6 +133,51 @@ class CartView extends StatelessWidget {
                 return ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   children: [
+                    // ── Minimum 4 Posters Requirement Banner ───────────────
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: ctrl.totalItems >= 4
+                            ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                            : const Color(0xFFFFF7ED),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: ctrl.totalItems >= 4
+                              ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                              : const Color(0xFFFDBA74),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            ctrl.totalItems >= 4
+                                ? Icons.check_circle_rounded
+                                : Icons.info_outline_rounded,
+                            size: 18,
+                            color: ctrl.totalItems >= 4
+                                ? const Color(0xFF059669)
+                                : const Color(0xFFC2410C),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              ctrl.totalItems >= 4
+                                  ? "Minimum 4 posters criteria met (${ctrl.totalItems} in order)"
+                                  : "Minimum 4 posters required to order (Current: ${ctrl.totalItems}/4)",
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: ctrl.totalItems >= 4
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF9A3412),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // ── Cart Items ─────────────────────────────────────────
                     ...List.generate(ctrl.items.length, (i) {
                       final item = ctrl.items[i];
@@ -575,10 +620,23 @@ class _PlaceOrderButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final loading = ctrl.isPlacingOrder.value;
+      final meetsMinimum = ctrl.totalItems >= 4;
+
       return GestureDetector(
         onTap: loading
             ? null
             : () {
+                if (!meetsMinimum) {
+                  Get.snackbar(
+                    'Minimum 4 Posters Required',
+                    'Please add at least 4 posters to place an order (Current: ${ctrl.totalItems}). Add ${4 - ctrl.totalItems} more to continue.',
+                    backgroundColor: const Color(0xFFC2410C),
+                    colorText: Colors.white,
+                    snackPosition: SnackPosition.BOTTOM,
+                    margin: const EdgeInsets.all(16),
+                  );
+                  return;
+                }
                 if (ctrl.deliveryAddress.value == null) {
                   Get.snackbar(
                     'Address Required',
@@ -597,10 +655,15 @@ class _PlaceOrderButton extends StatelessWidget {
           height: 62,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(colors: AppColors.primaryGrad),
+            gradient: LinearGradient(
+              colors: meetsMinimum
+                  ? AppColors.primaryGrad
+                  : [const Color(0xFF9CA3AF), const Color(0xFF6B7280)],
+            ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
+                color: (meetsMinimum ? AppColors.primary : Colors.grey)
+                    .withOpacity(0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -618,7 +681,9 @@ class _PlaceOrderButton extends StatelessWidget {
                   )
                 : Obx(
                     () => Text(
-                      'Proceed to Payment  •  ₹${ctrl.grandTotal.toInt()}',
+                      meetsMinimum
+                          ? 'Proceed to Payment  •  ₹${ctrl.grandTotal.toInt()}'
+                          : 'Add ${4 - ctrl.totalItems} More to Order (Min 4)',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,

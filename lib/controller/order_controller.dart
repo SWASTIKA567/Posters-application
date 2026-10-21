@@ -292,37 +292,15 @@ class OrderController extends GetxController {
       }
     } catch (e) {
       isPlacingOrder.value = false;
-      // Fallback local placement if offline / demo mode
-      final addr = deliveryAddress.value!;
-      final trackingCode = 'KCH-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-      final orderId = 'ORD-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
-      final itemsSnapshot = items.map((e) => e.toMap()).toList();
-      orders.insert(0, {
-        'orderId': orderId,
-        'items': itemsSnapshot,
-        'deliveryAddress': addr.toMap(),
-        'subtotal': subtotal,
-        'deliveryCharge': deliveryCharge,
-        'grandTotal': grandTotal,
-        'paymentMethod': paymentMethod,
-        'paymentStatus': paymentStatus,
-        'status': 'Pending',
-        'trackingCode': trackingCode,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      _sendOrderNotifications(
-        trackingCode: trackingCode,
-        orderId: orderId,
-        grandTotal: grandTotal,
-        paymentMethod: paymentMethod,
-        itemsList: itemsSnapshot,
-        recipientName: addr.name,
+      Get.snackbar(
+        'Order Creation Failed',
+        ApiService.cleanErrorMessage(e, defaultMessage: 'Could not complete order. Please try again.'),
+        backgroundColor: Colors.red.shade800,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
       );
-
-      items.clear();
-      deliveryAddress.value = null;
-      return true;
+      return false;
     }
   }
 
