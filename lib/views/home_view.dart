@@ -144,9 +144,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           SafeArea(
             child: FadeTransition(
               opacity: _fadeCtrl,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                backgroundColor: Colors.white,
+                onRefresh: () async {
+                  await ctrl.fetchBackendPosters();
+                },
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     sliver: SliverList(
@@ -214,8 +222,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 
   // ── HEADER ───────────────────────────────────────────────────────────────────

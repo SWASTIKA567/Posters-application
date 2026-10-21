@@ -312,9 +312,20 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   }
                   Get.back();
                   try {
-                    final res = await ApiService.put('/posters/$id', {'category': targetCategory});
-                    if (res != null && res['success'] == true) {
-                      await homeCtrl.fetchBackendPosters();
+                    if (id.isNotEmpty) {
+                      final res = await ApiService.put('/posters/$id', {'category': targetCategory});
+                      if (res != null && res['success'] == true) {
+                        await homeCtrl.fetchBackendPosters();
+                        Get.snackbar(
+                          'Category Updated',
+                          '"$title" is now in "$targetCategory"',
+                          backgroundColor: const Color(0xFF1B5E20),
+                          colorText: Colors.white,
+                        );
+                      }
+                    } else {
+                      // Asset poster update
+                      await homeCtrl.updateAssetPosterCategory(title, targetCategory);
                       Get.snackbar(
                         'Category Updated',
                         '"$title" is now in "$targetCategory"',
@@ -363,9 +374,20 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
     if (confirm == true) {
       try {
-        final res = await ApiService.delete('/posters/$id');
-        if (res != null && res['success'] == true) {
-          await homeCtrl.fetchBackendPosters();
+        if (id.isNotEmpty) {
+          final res = await ApiService.delete('/posters/$id');
+          if (res != null && res['success'] == true) {
+            await homeCtrl.fetchBackendPosters();
+            Get.snackbar(
+              'Deleted',
+              'Poster "$title" was removed.',
+              backgroundColor: Colors.black87,
+              colorText: Colors.white,
+            );
+          }
+        } else {
+          // Asset poster deletion
+          await homeCtrl.deleteAssetPoster(title);
           Get.snackbar(
             'Deleted',
             'Poster "$title" was removed.',
@@ -796,13 +818,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: (isDynamic && id.isNotEmpty)
-                                ? () => _editPosterCategory(
-                                      id,
-                                      p['category'] ?? 'General',
-                                      p['title'] ?? 'Poster',
-                                    )
-                                : null,
+                            onTap: () => _editPosterCategory(
+                              id,
+                              p['category'] ?? 'General',
+                              p['title'] ?? 'Poster',
+                            ),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -825,58 +845,52 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  if (isDynamic && id.isNotEmpty) ...[
-                                    const SizedBox(width: 4),
-                                    const Icon(
-                                      Icons.edit_outlined,
-                                      size: 11,
-                                      color: Colors.black54,
-                                    ),
-                                  ],
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.edit_outlined,
+                                    size: 11,
+                                    color: Colors.black54,
+                                  ),
                                 ],
                               ),
                             ),
                           ),
                         ],
                       ),
-                      if (isDynamic) ...[
-                        const SizedBox(height: 4),
-                        const Text(
-                          '⚡ Cloudinary / Database item',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isDynamic ? '⚡ Cloudinary / Database item' : '📁 Asset / Bundled Poster',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDynamic ? Colors.green : Colors.blueGrey,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-                if (isDynamic && id.isNotEmpty) ...[
-                  IconButton(
-                    icon: const Icon(
-                      Icons.edit_note_rounded,
-                      color: Color(0xFF00796B),
-                      size: 22,
-                    ),
-                    tooltip: 'Change Category',
-                    onPressed: () => _editPosterCategory(
-                      id,
-                      p['category'] ?? 'General',
-                      p['title'] ?? 'Poster',
-                    ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_note_rounded,
+                    color: Color(0xFF00796B),
+                    size: 22,
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.red,
-                      size: 22,
-                    ),
-                    tooltip: 'Delete Poster',
-                    onPressed: () => _deletePoster(id, p['title'] ?? 'Poster'),
+                  tooltip: 'Change Category',
+                  onPressed: () => _editPosterCategory(
+                    id,
+                    p['category'] ?? 'General',
+                    p['title'] ?? 'Poster',
                   ),
-                ],
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.red,
+                    size: 22,
+                  ),
+                  tooltip: 'Delete Poster',
+                  onPressed: () => _deletePoster(id, p['title'] ?? 'Poster'),
+                ),
               ],
             ),
           );

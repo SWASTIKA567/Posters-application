@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 
 class HomeController extends GetxController {
@@ -13,6 +15,28 @@ class HomeController extends GetxController {
 
   // ── Loading state ───────────────────────────────────────────────────────────
   final isLoadingPosters = false.obs;
+
+  // ── SharedPreferences keys for asset poster overrides ──────────────────────
+  static const String _kAssetCategoryOverrides = 'asset_poster_categories';
+  static const String _kDeletedAssetPosters = 'deleted_asset_posters';
+
+  // ── Default Bundled Asset Posters ───────────────────────────────────────────
+  static final List<Map<String, String>> _initialAssetPosters = [
+    {'title': 'Matisse Blue',   'image': 'assets/posters/poster1.jpg', 'price': '₹49', 'category': 'Matisse'},
+    {'title': 'Matisse Red',    'image': 'assets/posters/poster2.jpg', 'price': '₹59', 'category': 'Matisse'},
+    {'title': 'Matisse Green',  'image': 'assets/posters/poster3.jpg', 'price': '₹39', 'category': 'Matisse'},
+    {'title': 'Matisse Yellow', 'image': 'assets/posters/poster4.jpg', 'price': '₹45', 'category': 'Matisse'},
+    {'title': 'Focus',          'image': 'assets/posters/poster2.jpg', 'price': '₹59', 'category': 'Discipline'},
+    {'title': 'Grind',          'image': 'assets/posters/poster3.jpg', 'price': '₹49', 'category': 'Discipline'},
+    {'title': 'Hustle',         'image': 'assets/posters/poster4.jpg', 'price': '₹39', 'category': 'Discipline'},
+    {'title': 'Mindset',        'image': 'assets/posters/poster5.jpg', 'price': '₹55', 'category': 'Discipline'},
+    {'title': 'Rose',           'image': 'assets/posters/poster3.jpg', 'price': '₹39', 'category': 'Flower'},
+    {'title': 'Sunflower',      'image': 'assets/posters/poster4.jpg', 'price': '₹49', 'category': 'Flower'},
+    {'title': 'Tulip',          'image': 'assets/posters/poster1.jpg', 'price': '₹45', 'category': 'Flower'},
+    {'title': 'Daisy',          'image': 'assets/posters/poster2.jpg', 'price': '₹35', 'category': 'Flower'},
+    {'title': 'Nature',         'image': 'assets/posters/poster4.jpg', 'price': '₹49', 'category': 'Nature'},
+    {'title': 'Travel',         'image': 'assets/posters/poster5.jpg', 'price': '₹69', 'category': 'Travel'},
+  ];
 
   // ── All Categories with icons ────────────────────────────────────────────────
   final RxList<Map<String, String>> categories = <Map<String, String>>[
@@ -35,22 +59,7 @@ class HomeController extends GetxController {
   ].obs;
 
   // ── Master poster list (reactive) ──────────────────────────────────────────
-  final RxList<Map<String, String>> allPosters = <Map<String, String>>[
-    {'title': 'Matisse Blue',   'image': 'assets/posters/poster1.jpg', 'price': '₹49', 'category': 'Matisse'},
-    {'title': 'Matisse Red',    'image': 'assets/posters/poster2.jpg', 'price': '₹59', 'category': 'Matisse'},
-    {'title': 'Matisse Green',  'image': 'assets/posters/poster3.jpg', 'price': '₹39', 'category': 'Matisse'},
-    {'title': 'Matisse Yellow', 'image': 'assets/posters/poster4.jpg', 'price': '₹45', 'category': 'Matisse'},
-    {'title': 'Focus',          'image': 'assets/posters/poster2.jpg', 'price': '₹59', 'category': 'Discipline'},
-    {'title': 'Grind',          'image': 'assets/posters/poster3.jpg', 'price': '₹49', 'category': 'Discipline'},
-    {'title': 'Hustle',         'image': 'assets/posters/poster4.jpg', 'price': '₹39', 'category': 'Discipline'},
-    {'title': 'Mindset',        'image': 'assets/posters/poster5.jpg', 'price': '₹55', 'category': 'Discipline'},
-    {'title': 'Rose',           'image': 'assets/posters/poster3.jpg', 'price': '₹39', 'category': 'Flower'},
-    {'title': 'Sunflower',      'image': 'assets/posters/poster4.jpg', 'price': '₹49', 'category': 'Flower'},
-    {'title': 'Tulip',          'image': 'assets/posters/poster1.jpg', 'price': '₹45', 'category': 'Flower'},
-    {'title': 'Daisy',          'image': 'assets/posters/poster2.jpg', 'price': '₹35', 'category': 'Flower'},
-    {'title': 'Nature',         'image': 'assets/posters/poster4.jpg', 'price': '₹49', 'category': 'Nature'},
-    {'title': 'Travel',         'image': 'assets/posters/poster5.jpg', 'price': '₹69', 'category': 'Travel'},
-  ].obs;
+  final RxList<Map<String, String>> allPosters = <Map<String, String>>[].obs;
 
   // ── Filtered posters (reactive) ───────────────────────────────────────────────
   RxList<Map<String, String>> get filteredPosters {
@@ -79,37 +88,118 @@ class HomeController extends GetxController {
   ].obs;
 
   // ── Category posters map (used by CategoryPostersScreen) ─────────────────────
-  final RxMap<String, List<Map<String, String>>> categoryPosters = <String, List<Map<String, String>>>{
-    'Matisse': [
-      {'title': 'Matisse Blue',   'image': 'assets/posters/poster1.jpg', 'price': '₹49'},
-      {'title': 'Matisse Red',    'image': 'assets/posters/poster2.jpg', 'price': '₹59'},
-      {'title': 'Matisse Green',  'image': 'assets/posters/poster3.jpg', 'price': '₹39'},
-      {'title': 'Matisse Yellow', 'image': 'assets/posters/poster4.jpg', 'price': '₹45'},
-    ],
-    'Discipline': [
-      {'title': 'Focus',   'image': 'assets/posters/poster2.jpg', 'price': '₹59'},
-      {'title': 'Grind',   'image': 'assets/posters/poster3.jpg', 'price': '₹49'},
-      {'title': 'Hustle',  'image': 'assets/posters/poster4.jpg', 'price': '₹39'},
-      {'title': 'Mindset', 'image': 'assets/posters/poster5.jpg', 'price': '₹55'},
-    ],
-    'Flower': [
-      {'title': 'Rose',      'image': 'assets/posters/poster3.jpg', 'price': '₹39'},
-      {'title': 'Sunflower', 'image': 'assets/posters/poster4.jpg', 'price': '₹49'},
-      {'title': 'Tulip',     'image': 'assets/posters/poster1.jpg', 'price': '₹45'},
-      {'title': 'Daisy',     'image': 'assets/posters/poster2.jpg', 'price': '₹35'},
-    ],
-  }.obs;
+  final RxMap<String, List<Map<String, String>>> categoryPosters =
+      <String, List<Map<String, String>>>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchBackendPosters();
+    _initPosters();
+  }
+
+  Future<void> _initPosters() async {
+    await _loadAssetPosters();
+    await fetchBackendPosters();
+  }
+
+  Future<void> _loadAssetPosters() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deleted = prefs.getStringList(_kDeletedAssetPosters) ?? [];
+      final overridesRaw = prefs.getString(_kAssetCategoryOverrides);
+      Map<String, dynamic> overrides = {};
+      if (overridesRaw != null) {
+        overrides = jsonDecode(overridesRaw) as Map<String, dynamic>;
+      }
+
+      final List<Map<String, String>> assets = [];
+      for (final raw in _initialAssetPosters) {
+        final title = raw['title'] ?? '';
+        if (deleted.contains(title)) continue;
+
+        final category = overrides[title]?.toString() ?? raw['category'] ?? 'General';
+        final poster = Map<String, String>.from(raw);
+        poster['category'] = category;
+        poster['isDynamic'] = 'false';
+        assets.add(poster);
+
+        // Make sure category exists in categories list
+        if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == category.toLowerCase())) {
+          categories.add({'title': category, 'icon': '🖼️'});
+        }
+      }
+
+      // Keep dynamic posters, update assets
+      final dynamicOnes = allPosters.where((p) => p['isDynamic'] == 'true').toList();
+      allPosters.assignAll([...dynamicOnes, ...assets]);
+      _rebuildCategoryPosters();
+    } catch (e) {
+      debugPrint('Error loading asset poster overrides: $e');
+    }
+  }
+
+  void _rebuildCategoryPosters() {
+    categoryPosters.clear();
+    for (var p in allPosters) {
+      final cat = p['category'] ?? 'General';
+      if (!categoryPosters.containsKey(cat)) {
+        categoryPosters[cat] = [];
+      }
+      categoryPosters[cat]!.add(p);
+    }
+    allPosters.refresh();
+    categoryPosters.refresh();
+    categories.refresh();
+  }
+
+  Future<void> updateAssetPosterCategory(String title, String newCategory) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final overridesRaw = prefs.getString(_kAssetCategoryOverrides);
+      Map<String, dynamic> overrides = {};
+      if (overridesRaw != null) {
+        overrides = jsonDecode(overridesRaw) as Map<String, dynamic>;
+      }
+      overrides[title] = newCategory;
+      await prefs.setString(_kAssetCategoryOverrides, jsonEncode(overrides));
+
+      final index = allPosters.indexWhere((p) => p['title'] == title && p['isDynamic'] != 'true');
+      if (index != -1) {
+        allPosters[index]['category'] = newCategory;
+      }
+
+      if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == newCategory.toLowerCase())) {
+        categories.add({'title': newCategory, 'icon': '🖼️'});
+      }
+
+      _rebuildCategoryPosters();
+    } catch (e) {
+      debugPrint('Error updating asset category: $e');
+    }
+  }
+
+  Future<void> deleteAssetPoster(String title) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final deleted = prefs.getStringList(_kDeletedAssetPosters) ?? [];
+      if (!deleted.contains(title)) {
+        deleted.add(title);
+        await prefs.setStringList(_kDeletedAssetPosters, deleted);
+      }
+
+      allPosters.removeWhere((p) => p['title'] == title && p['isDynamic'] != 'true');
+      _rebuildCategoryPosters();
+    } catch (e) {
+      debugPrint('Error deleting asset poster: $e');
+    }
   }
 
   // ── Fetch dynamic posters from Backend / Cloudinary ─────────────────────────
   Future<void> fetchBackendPosters() async {
     try {
       isLoadingPosters.value = true;
+      await _loadAssetPosters();
+
       final res = await ApiService.get('/posters');
       if (res != null && res['posters'] is List) {
         final List list = res['posters'];
@@ -137,20 +227,12 @@ class HomeController extends GetxController {
             if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == category.toLowerCase())) {
               categories.add({'title': category, 'icon': '🖼️'});
             }
-
-            // Group into categoryPosters
-            if (!categoryPosters.containsKey(category)) {
-              categoryPosters[category] = [];
-            }
-            if (!categoryPosters[category]!.any((p) => p['id'] == id || (p['title'] == title && p['image'] == image))) {
-              categoryPosters[category]!.insert(0, posterMap);
-            }
           }
         }
 
-        // Remove old dynamic entries and prepend newly loaded ones to top
-        allPosters.removeWhere((p) => p['isDynamic'] == 'true');
-        allPosters.insertAll(0, dynamicPosters);
+        // Retain local asset posters and place dynamic ones at top
+        final assetOnly = allPosters.where((p) => p['isDynamic'] != 'true').toList();
+        allPosters.assignAll([...dynamicPosters, ...assetOnly]);
 
         // Also add latest dynamic poster to recent/featured
         if (dynamicPosters.isNotEmpty) {
@@ -161,9 +243,7 @@ class HomeController extends GetxController {
           }
         }
 
-        allPosters.refresh();
-        categories.refresh();
-        categoryPosters.refresh();
+        _rebuildCategoryPosters();
       }
     } catch (e) {
       debugPrint('Notice loading backend posters: $e');
@@ -172,8 +252,11 @@ class HomeController extends GetxController {
     }
   }
 
-  List<Map<String, String>> postersByCategory(String categoryTitle) =>
-      categoryPosters[categoryTitle] ?? [];
+  List<Map<String, String>> postersByCategory(String categoryTitle) {
+    return allPosters
+        .where((p) => (p['category'] ?? '').toLowerCase() == categoryTitle.toLowerCase())
+        .toList();
+  }
 
   void setCategory(String? cat) {
     selectedCategory.value = cat;

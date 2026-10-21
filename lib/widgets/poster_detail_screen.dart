@@ -75,44 +75,56 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
         backgroundColor: AppColors.bg,
         body: Column(
           children: [
-            // ── TOP: IMAGE (55% of screen) ──────────────────────────────
+            // ── TOP: IMAGE (Balanced framed presentation) ───────────────
             Expanded(
-              flex: 65,
+              flex: 48,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Hero image
-                  Hero(
-                    tag: 'poster_${widget.title}',
-                    child: widget.image.startsWith('http')
-                        ? Image.network(
-                            widget.image,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFF1E1E28),
-                              child: const Center(
-                                child: Icon(Icons.broken_image_rounded, size: 48, color: Colors.white38),
-                              ),
-                            ),
-                          )
-                        : Image.asset(widget.image, fit: BoxFit.cover),
+                  // Background container with subtle tint
+                  Container(
+                    color: const Color(0xFFF1F3F6),
                   ),
 
-                  // Top gradient for back/wishlist button legibility
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: topPad + 70,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.45),
-                            Colors.transparent,
+                  // Framed Poster Image (Contain fit, whole artwork visible)
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(32, topPad + 36, 32, 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
                           ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Hero(
+                            tag: 'poster_${widget.title}',
+                            child: widget.image.startsWith('http')
+                                ? Image.network(
+                                    widget.image,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: 200,
+                                      height: 260,
+                                      color: const Color(0xFF1E1E28),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.broken_image_rounded,
+                                          size: 48,
+                                          color: Colors.white38,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Image.asset(widget.image, fit: BoxFit.contain),
+                          ),
                         ),
                       ),
                     ),
@@ -136,10 +148,10 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.black.withOpacity(.08)),
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(.07),
+                              color: Colors.black.withValues(alpha: 0.07),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -183,12 +195,12 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                             shape: BoxShape.circle,
                             color: isLiked
                                 ? AppColors.primary
-                                : Colors.white.withOpacity(0.9),
+                                : Colors.white.withValues(alpha: 0.95),
                             boxShadow: [
                               BoxShadow(
                                 color: isLiked
-                                    ? AppColors.primary.withOpacity(0.4)
-                                    : Colors.black.withOpacity(0.12),
+                                    ? AppColors.primary.withValues(alpha: 0.4)
+                                    : Colors.black.withValues(alpha: 0.12),
                                 blurRadius: 8,
                               ),
                             ],
@@ -208,18 +220,24 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
               ),
             ),
 
-            // ── BOTTOM: INFO PANEL (45% of screen) ─────────────────────
+            // ── BOTTOM: INFO PANEL (Responsive & Scroll-Safe) ─────────
             Expanded(
-              flex: 35,
+              flex: 52,
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.fromLTRB(24, 20, 24, bottomPad + 16),
+                padding: EdgeInsets.fromLTRB(22, 16, 22, bottomPad + 14),
                 decoration: const BoxDecoration(
-                  color: AppColors.bg,
+                  color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x0F000000),
+                      blurRadius: 16,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Drag handle
                     Center(
@@ -232,171 +250,182 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Title + Price row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title
-                        Expanded(
-                          child: Text(
-                            widget.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF1A1A1A),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                              height: 1.2,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title + Price row
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title
+                                Expanded(
+                                  child: Text(
+                                    widget.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF1A1A1A),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
 
-                        // Animated price — gradient shader
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          transitionBuilder: (child, anim) => FadeTransition(
-                            opacity: anim,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(anim),
-                              child: child,
-                            ),
-                          ),
-                          child: ShaderMask(
-                            key: ValueKey(_currentPriceFormatted),
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [AppColors.primary, Color(0xFF00796B)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ).createShader(bounds),
-                            child: Text(
-                              _currentPriceFormatted,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    Text(
-                      'High-quality print  •  ${_dimensionFor(_selectedSize)}',
-                      style: const TextStyle(
-                        color: Color(0xFF9E9E9E),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── SIZE SELECTOR ────────────────────────────────────
-                    const Text(
-                      'Select Size',
-                      style: TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: _sizes.map((size) {
-                        final isSelected = size == _selectedSize;
-                        final sizePrice = _priceFor(size).toInt().toString();
-
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _selectedSize = size),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeOutCubic,
-                              margin: EdgeInsets.only(
-                                right: size != _sizes.last ? 8 : 0,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: isSelected
-                                    ? const LinearGradient(
-                                        colors: AppColors.primaryGrad,
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      )
-                                    : null,
-                                color: isSelected ? null : Colors.white,
-                                border: isSelected
-                                    ? null
-                                    : Border.all(
-                                        color: const Color(0xFFE8E8E8),
-                                        width: 1.5,
+                                // Animated price — gradient shader
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 250),
+                                  transitionBuilder: (child, anim) => FadeTransition(
+                                    opacity: anim,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0, 0.3),
+                                        end: Offset.zero,
+                                      ).animate(anim),
+                                      child: child,
+                                    ),
+                                  ),
+                                  child: ShaderMask(
+                                    key: ValueKey(_currentPriceFormatted),
+                                    shaderCallback: (bounds) => const LinearGradient(
+                                      colors: [AppColors.primary, Color(0xFF00796B)],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ).createShader(bounds),
+                                    child: Text(
+                                      _currentPriceFormatted,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -0.5,
                                       ),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: AppColors.primary.withOpacity(
-                                            0.30,
-                                          ),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ]
-                                    : [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.04),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    size,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : const Color(0xFF1A1A1A),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.3,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '₹$sizePrice',
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white.withOpacity(0.85)
-                                          : const Color(0xFF9E9E9E),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+
+                            Text(
+                              'High-quality print  •  ${_dimensionFor(_selectedSize)}',
+                              style: const TextStyle(
+                                color: Color(0xFF9E9E9E),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                            const SizedBox(height: 14),
+
+                            // ── SIZE SELECTOR ────────────────────────────────────
+                            const Text(
+                              'Select Size',
+                              style: TextStyle(
+                                color: Color(0xFF1A1A1A),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: _sizes.map((size) {
+                                final isSelected = size == _selectedSize;
+                                final sizePrice = _priceFor(size).toInt().toString();
+
+                                return Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => _selectedSize = size),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 220),
+                                      curve: Curves.easeOutCubic,
+                                      margin: EdgeInsets.only(
+                                        right: size != _sizes.last ? 8 : 0,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        gradient: isSelected
+                                            ? const LinearGradient(
+                                                colors: AppColors.primaryGrad,
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              )
+                                            : null,
+                                        color: isSelected ? null : Colors.white,
+                                        border: isSelected
+                                            ? null
+                                            : Border.all(
+                                                color: const Color(0xFFE8E8E8),
+                                                width: 1.5,
+                                              ),
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppColors.primary.withValues(
+                                                    alpha: 0.30,
+                                                  ),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ]
+                                            : [
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.04),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            size,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : const Color(0xFF1A1A1A),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '₹$sizePrice',
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white.withValues(alpha: 0.85)
+                                                  : const Color(0xFF9E9E9E),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
                     ),
 
-                    const Spacer(),
+                    const SizedBox(height: 10),
 
-                    // ── ADD TO ORDER BUTTON ───────────────────────────
+                    // ── ADD TO ORDER BUTTON (Pinned at bottom) ─────────
                     Obx(() {
                       // Check if this poster (same image AND same size) is already in cart
                       final inOrder = orderCtrl.items.any(
