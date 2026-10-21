@@ -138,7 +138,7 @@ class TermsConditionsView extends StatelessWidget {
               number: "4",
               title: "Minimum Order Quantity & Delivery Area",
               content:
-                  "The following conditions apply to all orders placed on Kechi:\n\nMinimum Order Quantity:\nEach order must contain a minimum of six (7) posters. Orders below this threshold will not be processed. Posters of different sizes (A3, A4, A5) may be combined to meet the minimum quantity.\n\nDelivery Area:\nKechi currently delivers within the National Capital Region (NCR), which includes Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. Orders from outside the NCR will not be processed at this time. Kechi will update these Terms when delivery is extended to other regions.",
+                  "The following conditions apply to all orders placed on Kechi:\n\nMinimum Order Quantity:\nEach order must contain a minimum of four (4) posters. Orders below this threshold will not be processed. Posters of different sizes (A3, A4, A5) may be combined to meet the minimum quantity.\n\nDelivery Area:\nKechi currently delivers within the National Capital Region (NCR), which includes Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. Orders from outside the NCR will not be processed at this time. Kechi will update these Terms when delivery is extended to other regions.",
             ),
 
             _buildSection(
@@ -164,16 +164,16 @@ class TermsConditionsView extends StatelessWidget {
 
             _buildSection(
               number: "8",
-              title: "Orders & Cash on Delivery (COD)",
+              title: "Orders & Confirmation",
               content:
-                  "Order Confirmation:\nAn order is considered confirmed only after:\n• You have submitted the required order information and it meets the minimum quantity requirement;\n• Payment has been successfully received (prepaid) or the COD order has been explicitly confirmed by Kechi via WhatsApp or another written channel; and\n• Kechi has accepted and confirmed the order.\n\nSubmission of an order form or payment initiation alone does not constitute a confirmed order. Kechi reserves the right to cancel an order at any stage for reasons including:\n• Product unavailability;\n• Pricing or listing errors;\n• Delivery address falling outside the NCR service area;\n• Order not meeting the minimum quantity requirement;\n• Suspected fraud or misuse;\n• Invalid, incomplete, or unverifiable customer information;\n• Prohibited uploaded content; or\n• Circumstances beyond Kechi's reasonable control.\n\nCash on Delivery (COD):\nKechi offers Cash on Delivery as a payment option, subject to the following conditions:\n• COD is currently available within the NCR delivery area only.\n• COD orders must be confirmed by the customer via WhatsApp or a written channel before dispatch. Kechi reserves the right not to dispatch unconfirmed COD orders.\n• The customer must be available at the delivery address to receive the order and make payment at the time of delivery.\n• If a customer is unavailable at the time of delivery, Kechi or its courier partner may attempt re-delivery or cancel the order. Any re-delivery charges will be borne by the customer.\n• Repeated refusal of COD orders by a customer may result in COD being restricted or removed for that customer's account.\n• Kechi reserves the right to withdraw the COD option at any time without prior notice.",
+                  "Order Confirmation:\nAn order is considered confirmed only after:\n• You have submitted the required order information and it meets the minimum quantity requirement;\n• Payment has been successfully completed and received online (prepaid); and\n• Kechi has accepted and confirmed the order.\n\nSubmission of an order form or payment initiation alone does not constitute a confirmed order. Kechi reserves the right to cancel an order at any stage for reasons including:\n• Product unavailability;\n• Pricing or listing errors;\n• Delivery address falling outside the NCR service area;\n• Order not meeting the minimum quantity requirement;\n• Suspected fraud or misuse;\n• Invalid, incomplete, or unverifiable customer information;\n• Prohibited uploaded content; or\n• Circumstances beyond Kechi's reasonable control.",
             ),
 
             _buildSection(
               number: "9",
               title: "Payments",
               content:
-                  "Prepaid payments may be processed through third-party payment providers such as Razorpay or other providers listed on the Platform at the time of checkout. Payment processing is subject to the terms and policies of the relevant payment provider.\n\nKechi does not request, collect, or store your payment PIN, CVV, password, OTP, or complete payment credentials. Never share such information with anyone claiming to represent Kechi.\n\nIn the event of a payment failure, please verify your payment status before placing a duplicate order. Contact us at support.kechi@gmail.com if a payment is debited but no order confirmation is received.",
+                  "All orders on Kechi are prepaid online. Payments may be processed securely through third-party payment providers such as Razorpay or other providers listed on the Platform at the time of checkout (supporting UPI, Debit/Credit Cards, and Net Banking). Kechi does not offer Cash on Delivery (COD).\n\nKechi does not request, collect, or store your payment PIN, CVV, password, OTP, or complete payment credentials. Never share such information with anyone claiming to represent Kechi.\n\nIn the event of a payment failure, please verify your payment status before placing a duplicate order. Contact us at support.kechi@gmail.com if a payment is debited but no order confirmation is received.",
             ),
 
             _buildSection(
@@ -215,7 +215,7 @@ class TermsConditionsView extends StatelessWidget {
               number: "15",
               title: "Suspension or Termination",
               content:
-                  "Kechi may suspend or terminate access to an account or service if a user:\n• Violates these Terms;\n• Engages in fraudulent or abusive activity;\n• Uploads prohibited or unlawful content;\n• Repeatedly refuses COD orders after confirmation; or\n• Uses the Platform in a manner that may harm Kechi, other users, or third parties.\n\nWhere possible, Kechi will notify the user before suspension or termination. In cases of serious or repeated violations, access may be terminated immediately without prior notice.",
+                  "Kechi may suspend or terminate access to an account or service if a user:\n• Violates these Terms;\n• Engages in fraudulent or abusive activity;\n• Uploads prohibited or unlawful content; or\n• Uses the Platform in a manner that may harm Kechi, other users, or third parties.\n\nWhere possible, Kechi will notify the user before suspension or termination. In cases of serious or repeated violations, access may be terminated immediately without prior notice.",
             ),
 
             _buildSection(

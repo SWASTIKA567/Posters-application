@@ -137,7 +137,7 @@ class PrivacyPolicyView extends StatelessWidget {
               number: "5",
               title: "Payments & Financial Data",
               content:
-                  "Kechi does not collect, process, or store your credit card numbers, debit card numbers, CVV, UPI PIN, OTP, net banking passwords, or any other complete payment credentials.\n\nPrepaid payments are processed entirely by our third-party payment provider (currently Razorpay). Your payment information is subject to Razorpay's own privacy policy and security practices. We only receive a transaction reference number and payment status confirmation.\n\nFor Cash on Delivery (COD) orders, the only financial information we hold is the order value and confirmation of cash collected by our courier partner.",
+                  "Kechi does not collect, process, or store your credit card numbers, debit card numbers, CVV, UPI PIN, OTP, net banking passwords, or any other complete payment credentials.\n\nAll orders on Kechi are prepaid online and processed securely by our third-party payment provider (currently Razorpay). Your payment information is subject to Razorpay's own privacy policy and security practices. We only receive a transaction reference number and payment status confirmation.",
             ),
 
             _buildSection(
