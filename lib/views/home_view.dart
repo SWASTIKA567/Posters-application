@@ -6,6 +6,7 @@ import '../controller/home_controller.dart';
 import '../controller/navigation_controller.dart';
 import '../widgets/poster_card.dart';
 import '../widgets/poster_detail_screen.dart';
+import '../widgets/poster_image.dart';
 import '../widgets/custom_bottom_navbar.dart';
 import '../themes/app_colors.dart';
 import '../views/upload_view.dart';
@@ -527,25 +528,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ClipRRect(
+                        child: PosterImage(
+                          imagePath: poster["image"]!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                          child: poster["image"]!.startsWith('http')
-                              ? Image.network(
-                                  poster["image"]!,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF1E1E28),
-                                    child: const Center(
-                                      child: Icon(Icons.broken_image_rounded, color: Colors.white38),
-                                    ),
-                                  ),
-                                )
-                              : Image.asset(
-                                  poster["image"]!,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
                         ),
                       ),
                       Padding(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/wishlist_controller.dart';
-import '../themes/app_colors.dart'; // adjust path if needed
+import '../themes/app_colors.dart';
 import 'category_poster_screen.dart';
 import 'poster_detail_screen.dart';
+import 'poster_image.dart';
 
 enum PosterSection { featured, recent }
 
@@ -64,31 +65,10 @@ class PosterCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // ── IMAGE ──────────────────────────────────────────
-            image.startsWith('http')
-                ? Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF1E1E28),
-                      child: const Center(
-                        child: Icon(Icons.broken_image_rounded, color: Colors.white38),
-                      ),
-                    ),
-                    loadingBuilder: (ctx, child, progress) {
-                      if (progress == null) return child;
-                      return Container(
-                        color: const Color(0xFF1E1E28),
-                        child: const Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : Image.asset(image, fit: BoxFit.cover),
+            PosterImage(
+              imagePath: image,
+              fit: BoxFit.cover,
+            ),
 
             // ── FEATURED: centred title with gradient overlay ──
             if (isFeatured)
@@ -126,7 +106,6 @@ class PosterCard extends StatelessWidget {
               )
             // ── RECENT: bottom title on light surface ──────────
             else ...[
-              // bottom white pill
               Positioned(
                 bottom: 0,
                 left: 0,

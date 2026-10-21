@@ -4,6 +4,7 @@ import '../controller/wishlist_controller.dart';
 import '../controller/home_controller.dart';
 import '../themes/app_colors.dart';
 import 'poster_detail_screen.dart';
+import 'poster_image.dart';
 
 class CategoryPostersScreen extends StatefulWidget {
   final String categoryTitle;
@@ -57,190 +58,200 @@ class _CategoryPostersScreenState extends State<CategoryPostersScreen>
   Widget build(BuildContext context) {
     final homeCtrl = Get.find<HomeController>();
     final wishlistCtrl = WishlistController.to;
-    final posters = homeCtrl.postersByCategory(widget.categoryTitle);
     final topPad = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ── CUSTOM HEADER ─────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _headerFade,
-              child: SlideTransition(
-                position: _headerSlide,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(20, topPad + 14, 20, 24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Back button row
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              } else {
-                                Get.back();
-                              }
-                            },
-                            child: Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.black.withOpacity(.08)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(.07),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                size: 18,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          // Poster count pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: AppColors.tealOrange,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${posters.length} Posters',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+      body: Obx(() {
+        final posters = homeCtrl.postersByCategory(widget.categoryTitle);
 
-                      // Category title
-                      Text(
-                        widget.categoryTitle,
-                        style: const TextStyle(
-                          color: Color(0xFF1A1A1A),
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1.0,
-                          height: 1.1,
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // ── CUSTOM HEADER ─────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _headerFade,
+                child: SlideTransition(
+                  position: _headerSlide,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(20, topPad + 14, 20, 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Gradient divider
-                      Container(
-                        height: 3,
-                        width: 48,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: AppColors.primaryGrad,
-                          ),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-          // ── GRID ───────────────────────────────────────────────────────
-          posters.isEmpty
-              ? SliverFillRemaining(
-                  child: Center(
+                      ],
+                    ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary.withOpacity(0.08),
-                          ),
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: AppColors.primary.withOpacity(0.4),
-                            size: 40,
+                        // Back button row
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop();
+                                } else {
+                                  Get.back();
+                                }
+                              },
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.black.withOpacity(.08)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(.07),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  size: 18,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '${posters.length} Posters',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        Text(
+                          'Category',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'No posters here yet',
-                          style: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                        const SizedBox(height: 2),
+
+                        Text(
+                          widget.categoryTitle,
+                          style: const TextStyle(
+                            color: Color(0xFF1A1A1A),
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1.0,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Gradient divider
+                        Container(
+                          height: 3,
+                          width: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: AppColors.primaryGrad,
+                            ),
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ],
                     ),
                   ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final poster = posters[index];
-                      // Staggered entry animation per card
-                      final delay = (index * 80).clamp(0, 600);
-                      return _AnimatedPosterTile(
-                        title: poster["title"]!,
-                        image: poster["image"]!,
-                        price: poster["price"]!,
-                        wishlistCtrl: wishlistCtrl,
-                        parentCtrl: _gridCtrl,
-                        delay: delay.toInt(),
-                        index: index,
-                      );
-                    }, childCount: posters.length),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 0.68,
-                        ),
-                  ),
                 ),
+              ),
+            ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-        ],
-      ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // ── GRID ───────────────────────────────────────────────────────
+            posters.isEmpty
+                ? SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary.withOpacity(0.08),
+                            ),
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: AppColors.primary.withOpacity(0.4),
+                              size: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          const Text(
+                            'No posters here yet',
+                            style: TextStyle(
+                              color: Color(0xFF9E9E9E),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                    sliver: SliverGrid(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final poster = posters[index];
+                        final delay = (index * 80).clamp(0, 600);
+                        return _AnimatedPosterTile(
+                          title: poster["title"]!,
+                          image: poster["image"]!,
+                          price: poster["price"] ?? '₹49',
+                          wishlistCtrl: wishlistCtrl,
+                          parentCtrl: _gridCtrl,
+                          delay: delay.toInt(),
+                          index: index,
+                        );
+                      }, childCount: posters.length),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 0.68,
+                          ),
+                    ),
+                  ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          ],
+        );
+      }),
     );
   }
 }
@@ -271,89 +282,81 @@ class _AnimatedPosterTile extends StatefulWidget {
 
 class _AnimatedPosterTileState extends State<_AnimatedPosterTile>
     with SingleTickerProviderStateMixin {
+  late AnimationController _tileCtrl;
+  late Animation<double> _fade;
+  late Animation<Offset> _slide;
   bool _pressed = false;
-  late Animation<double> _fadeAnim;
-  late Animation<Offset> _slideAnim;
 
   @override
   void initState() {
     super.initState();
-    final start = (widget.delay / 800).clamp(0.0, 1.0);
-    final end = ((widget.delay + 400) / 800).clamp(0.0, 1.0);
-    final interval = Interval(start, end, curve: Curves.easeOutCubic);
-
-    _fadeAnim = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: widget.parentCtrl, curve: interval));
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.25),
+    _tileCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fade = CurvedAnimation(parent: _tileCtrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: widget.parentCtrl, curve: interval));
+    ).animate(CurvedAnimation(parent: _tileCtrl, curve: Curves.easeOutCubic));
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _tileCtrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tileCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: _fadeAnim,
+      opacity: _fade,
       child: SlideTransition(
-        position: _slideAnim,
+        position: _slide,
         child: GestureDetector(
           onTapDown: (_) => setState(() => _pressed = true),
-          onTapUp: (_) {
-            setState(() => _pressed = false);
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
+          onTap: () {
             Get.to(
               () => PosterDetailScreen(
                 title: widget.title,
                 image: widget.image,
                 price: widget.price,
               ),
-              transition: Transition.downToUp,
-              duration: const Duration(milliseconds: 400),
+              transition: Transition.fadeIn,
+              duration: const Duration(milliseconds: 300),
             );
           },
-          onTapCancel: () => setState(() => _pressed = false),
           child: AnimatedScale(
-            scale: _pressed ? 0.95 : 1.0,
-            duration: const Duration(milliseconds: 150),
+            scale: _pressed ? 0.96 : 1.0,
+            duration: const Duration(milliseconds: 120),
             curve: Curves.easeInOut,
-            child: _PosterTileContent(
-              title: widget.title,
-              image: widget.image,
-              price: widget.price,
-              wishlistCtrl: widget.wishlistCtrl,
-            ),
+            child: _buildTileContent(),
           ),
         ),
       ),
     );
   }
-}
 
-// ── Tile content ───────────────────────────────────────────────────────────
-class _PosterTileContent extends StatelessWidget {
-  final String title;
-  final String image;
-  final String price;
-  final WishlistController wishlistCtrl;
+  Widget _buildTileContent() {
+    final title = widget.title;
+    final image = widget.image;
+    final wishlistCtrl = widget.wishlistCtrl;
 
-  const _PosterTileContent({
-    required this.title,
-    required this.image,
-    required this.price,
-    required this.wishlistCtrl,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
         color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEDED)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 14,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -368,31 +371,10 @@ class _PosterTileContent extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                image.startsWith('http')
-                    ? Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: const Color(0xFF1E1E28),
-                          child: const Center(
-                            child: Icon(Icons.broken_image_rounded, color: Colors.white38),
-                          ),
-                        ),
-                        loadingBuilder: (ctx, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            color: const Color(0xFF1E1E28),
-                            child: const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30),
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                    : Image.asset(image, fit: BoxFit.cover),
+                PosterImage(
+                  imagePath: image,
+                  fit: BoxFit.cover,
+                ),
 
                 // Subtle top-to-transparent gradient
                 Positioned(

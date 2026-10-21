@@ -156,9 +156,9 @@ class PrivacyPolicyView extends StatelessWidget {
 
             _buildSection(
               number: "8",
-              title: "Your Rights",
+              title: "Your Rights & Account Deletion",
               content:
-                  "Under applicable Indian law, including the Digital Personal Data Protection Act 2023, you have the following rights regarding your personal data:\n• Right to access — you may request a copy of the personal data we hold about you\n• Right to correction — you may request that we correct inaccurate or incomplete personal data\n• Right to erasure — you may request deletion of your personal data, subject to legal retention requirements\n• Right to withdraw consent — where processing is based on your consent (e.g. marketing messages), you may withdraw it at any time\n• Right to grievance redressal — you may raise a complaint about how we handle your data\n\nTo exercise any of these rights, contact us at support.kechi@gmail.com. We will respond within 30 days.",
+                  "Under applicable Indian law, including the Digital Personal Data Protection Act 2023, you have the right to access, correct, or request the deletion of your personal data and account.\n\n• Account & Data Deletion:\nIf you wish to delete your Kechi account and all associated personal data (including profile details, saved addresses, cart items, order history, and wishlist), you can request deletion anytime by contacting our support team:\n  - Email: support.kechi@gmail.com\n  - Phone / WhatsApp: +91 9520266789\n\nUpon receiving your request, our support team will verify your account and permanently remove your account and all associated personal records within 3 to 5 business days, except for any transactional invoices required to be retained for statutory tax and accounting compliances.\n\n• Other Rights:\nYou may also request a copy of the data we hold about you, request corrections to inaccurate details, or withdraw consent for marketing messages by contacting our support team.",
             ),
 
             _buildSection(

@@ -5,6 +5,7 @@ import '../controller/wishlist_controller.dart';
 import '../controller/order_controller.dart';
 import '../themes/app_colors.dart';
 import '../views/cart_view.dart';
+import 'poster_image.dart';
 
 class PosterDetailScreen extends StatefulWidget {
   final String title;
@@ -106,24 +107,10 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: Hero(
                             tag: 'poster_${widget.title}',
-                            child: widget.image.startsWith('http')
-                                ? Image.network(
-                                    widget.image,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      width: 200,
-                                      height: 260,
-                                      color: const Color(0xFF1E1E28),
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.broken_image_rounded,
-                                          size: 48,
-                                          color: Colors.white38,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Image.asset(widget.image, fit: BoxFit.contain),
+                            child: PosterImage(
+                              imagePath: widget.image,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),

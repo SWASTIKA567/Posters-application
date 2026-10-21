@@ -19,6 +19,7 @@ class HomeController extends GetxController {
   // ── SharedPreferences keys for asset poster overrides ──────────────────────
   static const String _kAssetCategoryOverrides = 'asset_poster_categories';
   static const String _kDeletedAssetPosters = 'deleted_asset_posters';
+  static const String _kCustomLocalPosters = 'custom_local_posters';
 
   // ── Default Bundled Asset Posters ───────────────────────────────────────────
   static final List<Map<String, String>> _initialAssetPosters = [
@@ -114,18 +115,58 @@ class HomeController extends GetxController {
 
       final List<Map<String, String>> assets = [];
       for (final raw in _initialAssetPosters) {
-        final title = raw['title'] ?? '';
+        final originalTitle = raw['title'] ?? '';
+        if (deleted.contains(originalTitle)) continue;
+
+        String category = raw['category'] ?? 'General';
+        String title = originalTitle;
+        String price = raw['price'] ?? '₹49';
+
+        if (overrides.containsKey(originalTitle)) {
+          final val = overrides[originalTitle];
+          if (val is Map) {
+            title = val['title']?.toString() ?? originalTitle;
+            category = val['category']?.toString() ?? category;
+            price = val['price']?.toString() ?? price;
+          } else if (val is String) {
+            category = val;
+          }
+        }
+
+        // If renamed title is also in deleted list, skip
         if (deleted.contains(title)) continue;
 
-        final category = overrides[title]?.toString() ?? raw['category'] ?? 'General';
         final poster = Map<String, String>.from(raw);
+        poster['title'] = title;
+        poster['originalTitle'] = originalTitle;
         poster['category'] = category;
+        poster['price'] = price;
         poster['isDynamic'] = 'false';
         assets.add(poster);
 
         // Make sure category exists in categories list
         if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == category.toLowerCase())) {
           categories.add({'title': category, 'icon': '🖼️'});
+        }
+      }
+
+      // Also load custom local posters added by admin
+      final localRaw = prefs.getString(_kCustomLocalPosters);
+      if (localRaw != null) {
+        try {
+          final List list = jsonDecode(localRaw) as List;
+          for (var item in list) {
+            final p = Map<String, String>.from(item);
+            if (deleted.contains(p['title'])) continue;
+            p['isDynamic'] = 'false';
+            assets.insert(0, p);
+            final cat = p['category'] ?? 'General';
+            if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == cat.toLowerCase())) {
+              categories.add({'title': cat, 'icon': '🖼️'});
+            }
+          }
+        } catch (e) {
+          debugPrint('Error reading custom local posters: $e');
         }
       }
 
@@ -152,7 +193,12 @@ class HomeController extends GetxController {
     categories.refresh();
   }
 
-  Future<void> updateAssetPosterCategory(String title, String newCategory) async {
+  Future<void> updateAssetPoster({
+    required String originalTitle,
+    required String newTitle,
+    required String newCategory,
+    String? newPrice,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final overridesRaw = prefs.getString(_kAssetCategoryOverrides);
@@ -160,12 +206,63 @@ class HomeController extends GetxController {
       if (overridesRaw != null) {
         overrides = jsonDecode(overridesRaw) as Map<String, dynamic>;
       }
-      overrides[title] = newCategory;
+      final existingOverride = overrides[originalTitle] as Map<String, dynamic>? ?? {};
+      overrides[originalTitle] = {
+        ...existingOverride,
+        'title': newTitle,
+        'category': newCategory,
+        if (newPrice != null && newPrice.isNotEmpty) 'price': newPrice,
+      };
       await prefs.setString(_kAssetCategoryOverrides, jsonEncode(overrides));
 
-      final index = allPosters.indexWhere((p) => p['title'] == title && p['isDynamic'] != 'true');
+      // Also check custom local posters
+      final localRaw = prefs.getString(_kCustomLocalPosters);
+      if (localRaw != null) {
+        try {
+          final List list = jsonDecode(localRaw) as List;
+          for (var item in list) {
+            if (item['title'] == originalTitle || item['originalTitle'] == originalTitle) {
+              item['title'] = newTitle;
+              item['category'] = newCategory;
+              if (newPrice != null && newPrice.isNotEmpty) item['price'] = newPrice;
+            }
+          }
+          await prefs.setString(_kCustomLocalPosters, jsonEncode(list));
+        } catch (_) {}
+      }
+
+      // Update in allPosters
+      final index = allPosters.indexWhere(
+        (p) => (p['originalTitle'] == originalTitle || p['title'] == originalTitle) && p['isDynamic'] != 'true',
+      );
       if (index != -1) {
-        allPosters[index]['category'] = newCategory;
+        final current = allPosters[index];
+        allPosters[index] = {
+          ...current,
+          'title': newTitle,
+          'category': newCategory,
+          if (newPrice != null && newPrice.isNotEmpty) 'price': newPrice,
+        };
+      }
+
+      // Also update in featured & recent posters
+      for (int i = 0; i < featuredPosters.length; i++) {
+        if (featuredPosters[i]['title'] == originalTitle || featuredPosters[i]['title'] == newTitle) {
+          featuredPosters[i] = {
+            ...featuredPosters[i],
+            'title': newTitle,
+            if (newPrice != null && newPrice.isNotEmpty) 'price': newPrice,
+          };
+        }
+      }
+      for (int i = 0; i < recentPosters.length; i++) {
+        if (recentPosters[i]['title'] == originalTitle || recentPosters[i]['title'] == newTitle) {
+          recentPosters[i] = {
+            ...recentPosters[i],
+            'title': newTitle,
+            if (newPrice != null && newPrice.isNotEmpty) 'price': newPrice,
+          };
+        }
       }
 
       if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == newCategory.toLowerCase())) {
@@ -174,23 +271,102 @@ class HomeController extends GetxController {
 
       _rebuildCategoryPosters();
     } catch (e) {
-      debugPrint('Error updating asset category: $e');
+      debugPrint('Error updating asset poster: $e');
     }
   }
 
-  Future<void> deleteAssetPoster(String title) async {
+  Future<void> updateAssetPosterCategory(String title, String newCategory) async {
+    await updateAssetPoster(
+      originalTitle: title,
+      newTitle: title,
+      newCategory: newCategory,
+    );
+  }
+
+  Future<void> addLocalPoster({
+    required String title,
+    required String imagePath,
+    required String category,
+    String price = '₹59',
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final localRaw = prefs.getString(_kCustomLocalPosters);
+      List list = [];
+      if (localRaw != null) {
+        list = jsonDecode(localRaw) as List;
+      }
+      final newPoster = {
+        'id': '',
+        'title': title,
+        'originalTitle': title,
+        'image': imagePath,
+        'price': price.startsWith('₹') ? price : '₹$price',
+        'category': category,
+        'isDynamic': 'false',
+      };
+      list.insert(0, newPoster);
+      await prefs.setString(_kCustomLocalPosters, jsonEncode(list));
+
+      allPosters.insert(0, newPoster);
+      if (!categories.any((c) => (c['title'] ?? '').toLowerCase() == category.toLowerCase())) {
+        categories.add({'title': category, 'icon': '🖼️'});
+      }
+      _rebuildCategoryPosters();
+    } catch (e) {
+      debugPrint('Error saving local poster: $e');
+    }
+  }
+
+  Future<void> deleteAssetPoster(String title, {String? originalTitle}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final deleted = prefs.getStringList(_kDeletedAssetPosters) ?? [];
       if (!deleted.contains(title)) {
         deleted.add(title);
-        await prefs.setStringList(_kDeletedAssetPosters, deleted);
+      }
+      if (originalTitle != null && originalTitle.isNotEmpty && !deleted.contains(originalTitle)) {
+        deleted.add(originalTitle);
+      }
+      await prefs.setStringList(_kDeletedAssetPosters, deleted);
+
+      // Remove from custom local posters if present
+      final localRaw = prefs.getString(_kCustomLocalPosters);
+      if (localRaw != null) {
+        try {
+          final List list = jsonDecode(localRaw) as List;
+          list.removeWhere((item) =>
+              item['title'] == title ||
+              item['originalTitle'] == title ||
+              (originalTitle != null && (item['title'] == originalTitle || item['originalTitle'] == originalTitle)));
+          await prefs.setString(_kCustomLocalPosters, jsonEncode(list));
+        } catch (_) {}
       }
 
-      allPosters.removeWhere((p) => p['title'] == title && p['isDynamic'] != 'true');
+      allPosters.removeWhere((p) =>
+          (p['title'] == title ||
+           p['originalTitle'] == title ||
+           (originalTitle != null && (p['title'] == originalTitle || p['originalTitle'] == originalTitle))) &&
+          p['isDynamic'] != 'true');
+
+      featuredPosters.removeWhere((p) => p['title'] == title || (originalTitle != null && p['title'] == originalTitle));
+      recentPosters.removeWhere((p) => p['title'] == title || (originalTitle != null && p['title'] == originalTitle));
+
       _rebuildCategoryPosters();
     } catch (e) {
       debugPrint('Error deleting asset poster: $e');
+    }
+  }
+
+  Future<void> resetAssetPosters() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_kDeletedAssetPosters);
+      await prefs.remove(_kAssetCategoryOverrides);
+      await prefs.remove(_kCustomLocalPosters);
+      await _loadAssetPosters();
+    } catch (e) {
+      debugPrint('Error resetting asset posters: $e');
     }
   }
 

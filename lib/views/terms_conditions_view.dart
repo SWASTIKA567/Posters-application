@@ -73,7 +73,11 @@ class TermsConditionsView extends StatelessWidget {
                           color: Color(0x1A8B0000),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.description_rounded, color: Color(0xFF8B0000), size: 20),
+                        child: const Icon(
+                          Icons.description_rounded,
+                          color: Color(0xFF8B0000),
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -98,7 +102,11 @@ class TermsConditionsView extends StatelessWidget {
                   const SizedBox(height: 10),
                   const Text(
                     "Welcome to Kechi. These Terms & Conditions (\"Terms\") govern your access to and use of the Kechi mobile application, website, products, and services (\"Platform\"). By accessing Kechi, creating an account, placing an order, or using any of our services, you agree to be bound by these Terms. If you do not agree, please do not use Kechi.",
-                    style: TextStyle(fontSize: 12.5, color: Colors.black87, height: 1.45),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.black87,
+                      height: 1.45,
+                    ),
                   ),
                 ],
               ),
@@ -130,7 +138,7 @@ class TermsConditionsView extends StatelessWidget {
               number: "4",
               title: "Minimum Order Quantity & Delivery Area",
               content:
-                  "The following conditions apply to all orders placed on Kechi:\n\nMinimum Order Quantity:\nEach order must contain a minimum of six (6) posters. Orders below this threshold will not be processed. Posters of different sizes (A3, A4, A5) may be combined to meet the minimum quantity.\n\nDelivery Area:\nKechi currently delivers within the National Capital Region (NCR), which includes Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. Orders from outside the NCR will not be processed at this time. Kechi will update these Terms when delivery is extended to other regions.",
+                  "The following conditions apply to all orders placed on Kechi:\n\nMinimum Order Quantity:\nEach order must contain a minimum of six (7) posters. Orders below this threshold will not be processed. Posters of different sizes (A3, A4, A5) may be combined to meet the minimum quantity.\n\nDelivery Area:\nKechi currently delivers within the National Capital Region (NCR), which includes Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. Orders from outside the NCR will not be processed at this time. Kechi will update these Terms when delivery is extended to other regions.",
             ),
 
             _buildSection(

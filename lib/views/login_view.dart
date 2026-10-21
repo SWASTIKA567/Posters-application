@@ -298,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           _InputField(
             label: 'email address',
-            hint: 'you@kechi.app',
+            hint: '@gmail.com',
             controller: _ctrl.emailController,
             focusNode: _ctrl.emailFocus,
             isFocused: _ctrl.emailFocused.value,
@@ -556,7 +556,8 @@ class _LoginScreenState extends State<LoginScreen>
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
             ),
-            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const TermsConditionsView()),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => Get.to(() => const TermsConditionsView()),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
@@ -566,7 +567,8 @@ class _LoginScreenState extends State<LoginScreen>
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
             ),
-            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const PrivacyPolicyView()),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => Get.to(() => const PrivacyPolicyView()),
           ),
         ],
       ),
@@ -925,7 +927,9 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
                 hintText: 'you@kechi.app',
                 prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
                 filled: true,
-                fillColor: _otpSent ? Colors.grey.shade100 : const Color(0xFFF8F8F8),
+                fillColor: _otpSent
+                    ? Colors.grey.shade100
+                    : const Color(0xFFF8F8F8),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
@@ -953,7 +957,9 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
                   fillColor: const Color(0xFFF8F8F8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                    borderSide: BorderSide(
+                      color: Colors.black.withOpacity(0.08),
+                    ),
                   ),
                 ),
               ),
@@ -973,13 +979,16 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
                           : Icons.visibility_outlined,
                       size: 20,
                     ),
-                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                    onPressed: () =>
+                        setState(() => _obscurePass = !_obscurePass),
                   ),
                   filled: true,
                   fillColor: const Color(0xFFF8F8F8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: Colors.black.withOpacity(0.08)),
+                    borderSide: BorderSide(
+                      color: Colors.black.withOpacity(0.08),
+                    ),
                   ),
                 ),
               ),
@@ -988,47 +997,45 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
             const SizedBox(height: 22),
 
             // Action Button
-            Obx(
-              () {
-                final isLoading = _otpSent
-                    ? widget.loginCtrl.isResettingPassword.value
-                    : widget.loginCtrl.isOtpSending.value;
+            Obx(() {
+              final isLoading = _otpSent
+                  ? widget.loginCtrl.isResettingPassword.value
+                  : widget.loginCtrl.isOtpSending.value;
 
-                return SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : (_otpSent ? _handleResetPassword : _handleSendOtp),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
+              return SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : (_otpSent ? _handleResetPassword : _handleSendOtp),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            _otpSent ? 'Reset Password →' : 'Send 6-Digit OTP →',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                    elevation: 0,
                   ),
-                );
-              },
-            ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          _otpSent ? 'Reset Password →' : 'Send 6-Digit OTP →',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              );
+            }),
 
             if (_otpSent) ...[
               const SizedBox(height: 12),
@@ -1052,4 +1059,3 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
     );
   }
 }
-

@@ -1,10 +1,8 @@
 // TODO Implement this library.
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../services/api_service.dart';
 import '../controller/profile_controller.dart';
 import '../controller/navigation_controller.dart';
-import 'login_view.dart' show LoginScreen;
 import '../themes/app_colors.dart';
 import 'orders_view.dart';
 import 'select_address_view.dart';
@@ -1234,9 +1232,77 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: () async {
-              await ApiService.setAuthToken(null);
-              Get.offAll(() => const LoginScreen());
+            onTap: () {
+              Get.dialog(
+                AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  title: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Confirm Logout',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: const Text(
+                    'Are you sure you want to log out of your account?',
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                      onPressed: () async {
+                        Get.back();
+                        await controller.logout();
+                      },
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             },
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 14),
@@ -1259,68 +1325,33 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         ),
         const SizedBox(height: 12),
+        // Account Deletion notice (Contact Support)
         Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.red.shade50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.red.shade200, width: 0.5),
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
           ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => _confirmDeleteAccount(controller),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.delete_forever_rounded, color: Colors.red, size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    'Delete Account',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 16, color: Colors.grey.shade600),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'To delete your account & data, contact us at support.kechi@gmail.com',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],
-    );
-  }
-
-  void _confirmDeleteAccount(ProfileController controller) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "Delete Account?",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-        ),
-        content: const Text(
-          "This will permanently delete your account, saved addresses, cart items, and wishlist. This action cannot be undone.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text("Cancel", style: TextStyle(color: Colors.black54)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              controller.deleteAccount();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text("Delete Permanently", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
     );
   }
 }

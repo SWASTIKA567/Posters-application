@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/navigation_controller.dart';
 import '../themes/app_colors.dart';
+import '../widgets/poster_image.dart';
 
 class WishlistView extends StatelessWidget {
   const WishlistView({super.key});

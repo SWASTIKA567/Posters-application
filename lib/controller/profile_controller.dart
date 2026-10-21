@@ -241,6 +241,17 @@ class ProfileController extends GetxController {
     }
   }
 
+  Future<void> logout() async {
+    await ApiService.setAuthToken(null);
+    userName.value = '';
+    userEmail.value = '';
+    userPhone.value = '';
+    userPhotoUrl.value = '';
+    isAdminUser.value = false;
+    isAdminUnlocked.value = false;
+    Get.offAll(() => const LoginScreen());
+  }
+
   @override
   void onClose() {
     nameCtrl.dispose();

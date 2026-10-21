@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../controller/home_controller.dart';
 import '../services/api_service.dart';
 import '../themes/app_colors.dart';
+import '../widgets/poster_image.dart';
 
 class AdminPostersView extends StatefulWidget {
   const AdminPostersView({super.key});
@@ -18,22 +19,33 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
   final TextEditingController _titleCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
+  final TextEditingController _priceCtrl = TextEditingController(text: '59');
   final TextEditingController _newCategoryCtrl = TextEditingController();
 
   File? _selectedImage;
+  String? _selectedAssetPath;
   String? _selectedCategory;
   bool _isNewCategory = false;
   bool _isPublishing = false;
   String _uploadStatus = '';
+  String _catalogFilter = 'all'; // 'all', 'dynamic', 'asset'
+
+  // Available bundled poster assets that can be assigned
+  static const List<String> _bundledAssetOptions = [
+    'assets/posters/poster1.jpg',
+    'assets/posters/poster2.jpg',
+    'assets/posters/poster3.jpg',
+    'assets/posters/poster4.jpg',
+    'assets/posters/poster5.jpg',
+  ];
 
   @override
   void initState() {
     super.initState();
     if (homeCtrl.categories.isNotEmpty) {
-      // Pick first non-'All' category as default
       final firstCat = homeCtrl.categories.firstWhere(
         (c) => c['title'] != 'All',
-        orElse: () => {'title': 'Anime'},
+        orElse: () => {'title': 'General'},
       );
       _selectedCategory = firstCat['title'];
     }
@@ -43,6 +55,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
   void dispose() {
     _titleCtrl.dispose();
     _descCtrl.dispose();
+    _priceCtrl.dispose();
     _newCategoryCtrl.dispose();
     super.dispose();
   }
@@ -57,6 +70,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       if (file != null) {
         setState(() {
           _selectedImage = File(file.path);
+          _selectedAssetPath = null;
         });
       }
     } catch (e) {
@@ -88,6 +102,18 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(
+                Icons.collections_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text('Pick from Bundled Poster Assets'),
+              subtitle: const Text('Use built-in poster templates'),
+              onTap: () {
+                Get.back();
+                _showBundledAssetPickerModal();
+              },
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.photo_library_rounded,
                 color: AppColors.primary,
               ),
@@ -114,11 +140,95 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     );
   }
 
+  void _showBundledAssetPickerModal() {
+    Get.bottomSheet(
+      Container(
+        height: 280,
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select Bundled Asset Template',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _bundledAssetOptions.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final assetPath = _bundledAssetOptions[index];
+                  final isSelected = _selectedAssetPath == assetPath;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedAssetPath = assetPath;
+                        _selectedImage = null;
+                      });
+                      Get.back();
+                    },
+                    child: Container(
+                      width: 130,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                          width: isSelected ? 3 : 1,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(assetPath, fit: BoxFit.cover),
+                            Positioned(
+                              bottom: 6,
+                              left: 6,
+                              right: 6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Asset ${index + 1}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _publishPoster() async {
     final title = _titleCtrl.text.trim();
     final category = _isNewCategory
         ? _newCategoryCtrl.text.trim()
         : (_selectedCategory ?? 'General');
+    final price = int.tryParse(_priceCtrl.text.trim().replaceAll('₹', '')) ?? 59;
 
     if (title.isEmpty) {
       Get.snackbar(
@@ -140,10 +250,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       return;
     }
 
-    if (_selectedImage == null) {
+    if (_selectedImage == null && _selectedAssetPath == null) {
       Get.snackbar(
         'Missing Image',
-        'Please pick a poster image to upload',
+        'Please select an image (gallery, camera, or bundled asset)',
         backgroundColor: Colors.orange.shade800,
         colorText: Colors.white,
       );
@@ -152,15 +262,38 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
     setState(() {
       _isPublishing = true;
-      _uploadStatus = 'Uploading image to Cloudinary...';
+      _uploadStatus = 'Saving poster...';
     });
 
     try {
-      // 1. Upload image to Cloudinary
+      // If a bundled asset was chosen, save directly into local catalog
+      if (_selectedAssetPath != null) {
+        await homeCtrl.addLocalPoster(
+          title: title,
+          imagePath: _selectedAssetPath!,
+          category: category,
+          price: '₹$price',
+        );
+        _resetForm();
+        Get.snackbar(
+          '🎉 Asset Poster Added',
+          '"$title" was added to category "$category".',
+          backgroundColor: const Color(0xFF1B5E20),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+        return;
+      }
+
+      // If a file was picked, attempt Cloudinary upload
+      setState(() {
+        _uploadStatus = 'Uploading image to Cloudinary...';
+      });
+
       final uploadedUrl = await ApiService.uploadImage(_selectedImage!);
       if (uploadedUrl == null || uploadedUrl.isEmpty) {
         throw Exception(
-          'Failed to upload image. Please check internet connection.',
+          'Cloudinary upload failed or network unavailable.',
         );
       }
 
@@ -168,35 +301,24 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         _uploadStatus = 'Saving poster to catalog database...';
       });
 
-      // 2. Save poster in MongoDB with standard fixed size pricing (A5: ₹39, A4: ₹59, A3: ₹99)
       final res = await ApiService.post('/posters', {
         'title': title,
         'imageUrl': uploadedUrl,
         'category': category,
-        'price': 59,
+        'price': price,
         'description': _descCtrl.text.trim(),
         'sizes': [
           {'label': 'A5', 'dimensions': '14.8 × 21 cm', 'price': 39},
-          {'label': 'A4', 'dimensions': '21 × 29.7 cm', 'price': 59},
+          {'label': 'A4', 'dimensions': '21 × 29.7 cm', 'price': price},
           {'label': 'A3', 'dimensions': '29.7 × 42 cm', 'price': 99},
         ],
       });
 
-      if (res != null && (res['success'] == true || res['poster'] != null)) {
-        // Reset form
-        _titleCtrl.clear();
-        _descCtrl.clear();
-        _newCategoryCtrl.clear();
-        setState(() {
-          _selectedImage = null;
-          _isNewCategory = false;
-        });
-
-        // Refresh home posters
+      if (res != null && res['success'] == true) {
+        _resetForm();
         await homeCtrl.fetchBackendPosters();
-
         Get.snackbar(
-          '🎉 Poster Published!',
+          '🎉 Poster Published Live!',
           '"$title" is now live in the $category category for all users.',
           backgroundColor: const Color(0xFF1B5E20),
           colorText: Colors.white,
@@ -211,6 +333,28 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         );
       }
     } catch (e) {
+      // Fallback: If network/backend is unreachable, save locally so admin add always succeeds!
+      try {
+        final imagePath = _selectedImage?.path ?? _selectedAssetPath ?? '';
+        if (imagePath.isNotEmpty) {
+          await homeCtrl.addLocalPoster(
+            title: title,
+            imagePath: imagePath,
+            category: category,
+            price: '₹$price',
+          );
+          _resetForm();
+          Get.snackbar(
+            '🎉 Poster Added (Saved Locally)',
+            '"$title" was added to category "$category".',
+            backgroundColor: const Color(0xFF1B5E20),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 4),
+          );
+          return;
+        }
+      } catch (_) {}
+
       Get.snackbar(
         'Upload Notice',
         ApiService.cleanErrorMessage(e),
@@ -227,7 +371,26 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     }
   }
 
-  Future<void> _editPosterCategory(String id, String currentCategory, String title) async {
+  void _resetForm() {
+    _titleCtrl.clear();
+    _descCtrl.clear();
+    _priceCtrl.text = '59';
+    _newCategoryCtrl.clear();
+    setState(() {
+      _selectedImage = null;
+      _selectedAssetPath = null;
+      _isNewCategory = false;
+    });
+  }
+
+  Future<void> _editPosterDetails(Map<String, String> poster) async {
+    final id = poster['id'] ?? '';
+    final isDynamic = poster['isDynamic'] == 'true';
+    final currentTitle = poster['title'] ?? 'Poster';
+    final originalTitle = poster['originalTitle'] ?? currentTitle;
+    final currentCategory = poster['category'] ?? 'General';
+    final rawPrice = (poster['price'] ?? '₹59').replaceAll('₹', '').trim();
+
     final availableCats = homeCtrl.categories
         .where((c) => c['title'] != 'All')
         .map((c) => c['title']!)
@@ -236,6 +399,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     String selectedCategory = availableCats.contains(currentCategory)
         ? currentCategory
         : (availableCats.isNotEmpty ? availableCats.first : 'General');
+
+    final titleEditCtrl = TextEditingController(text: currentTitle);
+    final priceEditCtrl = TextEditingController(text: rawPrice);
     final customCatCtrl = TextEditingController();
     bool isCustom = false;
 
@@ -244,55 +410,91 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         builder: (context, setDialogState) {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text('Change Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            title: Row(
               children: [
-                Text(
-                  'Update category for "$title":',
-                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                Icon(
+                  isDynamic ? Icons.cloud_done_rounded : Icons.folder_special_rounded,
+                  color: isDynamic ? AppColors.primary : Colors.teal,
+                  size: 20,
                 ),
-                const SizedBox(height: 14),
-                if (!isCustom)
-                  DropdownButtonFormField<String>(
-                    initialValue: availableCats.contains(selectedCategory) ? selectedCategory : null,
-                    decoration: InputDecoration(
-                      labelText: 'Select Category',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                    items: availableCats.map((cat) {
-                      return DropdownMenuItem(value: cat, child: Text(cat));
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setDialogState(() => selectedCategory = val);
-                      }
-                    },
-                  )
-                else
+                const SizedBox(width: 8),
+                Text(
+                  isDynamic ? 'Edit Cloud Poster' : 'Edit Asset Poster',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Poster Title', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 6),
                   TextField(
-                    controller: customCatCtrl,
-                    autofocus: true,
+                    controller: titleEditCtrl,
                     decoration: InputDecoration(
-                      labelText: 'New Category Name',
-                      hintText: 'e.g. Gaming, Aesthetic',
+                      hintText: 'Enter poster title',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
                   ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () {
-                    setDialogState(() {
-                      isCustom = !isCustom;
-                    });
-                  },
-                  icon: Icon(isCustom ? Icons.list_rounded : Icons.add_circle_outline_rounded, size: 18),
-                  label: Text(isCustom ? 'Choose existing' : '+ Create new category'),
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  if (!isCustom)
+                    DropdownButtonFormField<String>(
+                      initialValue: availableCats.contains(selectedCategory) ? selectedCategory : null,
+                      decoration: InputDecoration(
+                        labelText: 'Select Category',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      items: availableCats.map((cat) {
+                        return DropdownMenuItem(value: cat, child: Text(cat));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => selectedCategory = val);
+                        }
+                      },
+                    )
+                  else
+                    TextField(
+                      controller: customCatCtrl,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'New Category Name',
+                        hintText: 'e.g. Gaming, Aesthetic',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                    ),
+                  const SizedBox(height: 6),
+                  TextButton.icon(
+                    onPressed: () {
+                      setDialogState(() {
+                        isCustom = !isCustom;
+                      });
+                    },
+                    icon: Icon(isCustom ? Icons.list_rounded : Icons.add_circle_outline_rounded, size: 18),
+                    label: Text(isCustom ? 'Choose existing category' : '+ Create new category'),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text('Base Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: priceEditCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      prefixText: '₹ ',
+                      hintText: '59',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -305,30 +507,48 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () async {
+                  final targetTitle = titleEditCtrl.text.trim();
                   final targetCategory = isCustom ? customCatCtrl.text.trim() : selectedCategory;
-                  if (targetCategory.isEmpty) {
-                    Get.snackbar('Category Required', 'Please enter or select a valid category name.');
+                  final targetPrice = priceEditCtrl.text.trim().replaceAll('₹', '');
+
+                  if (targetTitle.isEmpty) {
+                    Get.snackbar('Title Required', 'Please enter a valid poster title.');
                     return;
                   }
+                  if (targetCategory.isEmpty) {
+                    Get.snackbar('Category Required', 'Please enter or select a category.');
+                    return;
+                  }
+
                   Get.back();
+
                   try {
-                    if (id.isNotEmpty) {
-                      final res = await ApiService.put('/posters/$id', {'category': targetCategory});
+                    if (isDynamic && id.isNotEmpty) {
+                      final res = await ApiService.put('/posters/$id', {
+                        'title': targetTitle,
+                        'category': targetCategory,
+                        'price': int.tryParse(targetPrice) ?? 59,
+                      });
                       if (res != null && res['success'] == true) {
                         await homeCtrl.fetchBackendPosters();
                         Get.snackbar(
-                          'Category Updated',
-                          '"$title" is now in "$targetCategory"',
+                          'Poster Updated',
+                          '"$targetTitle" is now in "$targetCategory" (₹$targetPrice)',
                           backgroundColor: const Color(0xFF1B5E20),
                           colorText: Colors.white,
                         );
                       }
                     } else {
-                      // Asset poster update
-                      await homeCtrl.updateAssetPosterCategory(title, targetCategory);
+                      // Asset or local poster update
+                      await homeCtrl.updateAssetPoster(
+                        originalTitle: originalTitle,
+                        newTitle: targetTitle,
+                        newCategory: targetCategory,
+                        newPrice: targetPrice.isNotEmpty ? '₹$targetPrice' : null,
+                      );
                       Get.snackbar(
-                        'Category Updated',
-                        '"$title" is now in "$targetCategory"',
+                        'Poster Updated',
+                        '"$targetTitle" is now in "$targetCategory" (₹$targetPrice)',
                         backgroundColor: const Color(0xFF1B5E20),
                         colorText: Colors.white,
                       );
@@ -351,7 +571,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     );
   }
 
-  Future<void> _deletePoster(String id, String title) async {
+  Future<void> _deletePoster(Map<String, String> poster) async {
+    final id = poster['id'] ?? '';
+    final isDynamic = poster['isDynamic'] == 'true';
+    final title = poster['title'] ?? 'Poster';
+    final originalTitle = poster['originalTitle'] ?? title;
+
     final confirm = await Get.dialog<bool>(
       AlertDialog(
         title: const Text('Delete Poster'),
@@ -374,7 +599,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
     if (confirm == true) {
       try {
-        if (id.isNotEmpty) {
+        if (isDynamic && id.isNotEmpty) {
           final res = await ApiService.delete('/posters/$id');
           if (res != null && res['success'] == true) {
             await homeCtrl.fetchBackendPosters();
@@ -387,10 +612,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           }
         } else {
           // Asset poster deletion
-          await homeCtrl.deleteAssetPoster(title);
+          await homeCtrl.deleteAssetPoster(title, originalTitle: originalTitle);
           Get.snackbar(
             'Deleted',
-            'Poster "$title" was removed.',
+            'Asset poster "$title" was removed.',
             backgroundColor: Colors.black87,
             colorText: Colors.white,
           );
@@ -403,6 +628,38 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           colorText: Colors.white,
         );
       }
+    }
+  }
+
+  Future<void> _confirmResetAssetPosters() async {
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Reset Bundled Posters'),
+        content: const Text(
+          'This will restore all default bundled asset posters (Matisse, Discipline, Flower, Nature, Travel) and their original categories. Proceed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00796B)),
+            child: const Text('Reset Defaults', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await homeCtrl.resetAssetPosters();
+      Get.snackbar(
+        'Posters Restored',
+        'Bundled asset posters have been restored to defaults.',
+        backgroundColor: const Color(0xFF1B5E20),
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -419,6 +676,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         elevation: 0.5,
         foregroundColor: Colors.black87,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.restore_rounded),
+            tooltip: 'Restore Default Bundled Posters',
+            onPressed: _confirmResetAssetPosters,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh Posters',
@@ -438,25 +700,88 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             const SizedBox(height: 24),
 
             // ── EXISTING CATALOG / MANAGE ───────────────────────────────
-            const Text(
-              'Live Catalog Posters',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1A1A),
-              ),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Live Catalog Posters',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ),
+                Obx(() => Text(
+                  '${homeCtrl.allPosters.length} Total',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                )),
+              ],
             ),
             const SizedBox(height: 6),
             const Text(
-              'Posters uploaded here are synced live to MongoDB and Cloudinary.',
+              'Add, update categories, edit titles/prices, or delete both Cloud and Asset posters.',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
+            const SizedBox(height: 12),
+
+            // ── Filter Chips (All, Cloudinary, Bundled Assets) ───────────
+            _buildCatalogFilterChips(),
+
             const SizedBox(height: 12),
 
             _buildLivePostersList(),
 
             const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCatalogFilterChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _filterChip(label: 'All Posters', key: 'all'),
+          const SizedBox(width: 8),
+          _filterChip(label: '📁 Bundled / Local Assets', key: 'asset'),
+          const SizedBox(width: 8),
+          _filterChip(label: '⚡ Cloud Database', key: 'dynamic'),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip({required String label, required String key}) {
+    final isSelected = _catalogFilter == key;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _catalogFilter = key;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : const Color(0xFFE0E0E0),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
         ),
       ),
     );
@@ -500,25 +825,27 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           GestureDetector(
             onTap: _isPublishing ? null : _showImagePickerModal,
             child: Container(
-              height: 200,
+              height: 190,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: const Color(0xFFF1F1F5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _selectedImage != null
+                  color: (_selectedImage != null || _selectedAssetPath != null)
                       ? AppColors.primary
                       : Colors.grey.shade300,
-                  width: _selectedImage != null ? 2 : 1,
+                  width: (_selectedImage != null || _selectedAssetPath != null) ? 2 : 1,
                 ),
               ),
-              child: _selectedImage != null
+              child: (_selectedImage != null || _selectedAssetPath != null)
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                          child: _selectedImage != null
+                              ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                              : Image.asset(_selectedAssetPath!, fit: BoxFit.cover),
                         ),
                         Positioned(
                           top: 8,
@@ -538,6 +865,21 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                             ),
                           ),
                         ),
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black87,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _selectedAssetPath != null ? 'Bundled Asset Image' : 'Device Image',
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                       ],
                     )
                   : Column(
@@ -545,12 +887,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       children: [
                         Icon(
                           Icons.cloud_upload_outlined,
-                          size: 48,
+                          size: 44,
                           color: Colors.grey.shade500,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Tap to Pick Poster Image',
+                          'Tap to Select Poster Image',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -559,7 +901,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'High-res JPG / PNG (Gallery or Camera)',
+                          'Bundled Asset Templates, Gallery, or Camera',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey.shade500,
@@ -578,7 +920,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             enabled: !_isPublishing,
             decoration: InputDecoration(
               labelText: 'Poster Title *',
-              hintText: 'e.g. Cyberpunk Samurai, Neon Bloom',
+              hintText: 'e.g. Cyberpunk Samurai, Matisse Joy',
               prefixIcon: const Icon(Icons.title_rounded, size: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -602,7 +944,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         enabled: !_isPublishing,
                         decoration: InputDecoration(
                           labelText: 'New Category Name *',
-                          hintText: 'e.g. Gaming, Quotes, Cars',
+                          hintText: 'e.g. Gaming, Aesthetic, Quotes',
                           prefixIcon: const Icon(
                             Icons.category_rounded,
                             size: 20,
@@ -623,7 +965,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                             .toList();
 
                         return DropdownButtonFormField<String>(
-                          value: availableCats.contains(_selectedCategory)
+                          initialValue: availableCats.contains(_selectedCategory)
                               ? _selectedCategory
                               : (availableCats.isNotEmpty
                                     ? availableCats.first
@@ -678,7 +1020,27 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
           const SizedBox(height: 14),
 
-          // ── Base Price ──
+          // ── Price Input ──
+          TextField(
+            controller: _priceCtrl,
+            enabled: !_isPublishing,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Base Price (₹) *',
+              prefixText: '₹ ',
+              hintText: '59',
+              prefixIcon: const Icon(Icons.currency_rupee_rounded, size: 20),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 14),
 
           // ── Description ──
           TextField(
@@ -687,7 +1049,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             maxLines: 2,
             decoration: InputDecoration(
               labelText: 'Description (Optional)',
-              hintText: '300 GSM archival stock, vivid archival inks...',
+              hintText: '300 GSM archival stock, vivid pigment inks...',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -735,11 +1097,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
               onPressed: _isPublishing ? null : _publishPoster,
               icon: _isPublishing
                   ? const SizedBox.shrink()
-                  : const Icon(Icons.cloud_upload_rounded, color: Colors.white),
+                  : const Icon(Icons.add_task_rounded, color: Colors.white),
               label: Text(
                 _isPublishing
                     ? 'Publishing Poster...'
-                    : 'Publish Poster to Store',
+                    : 'Add Poster to Store',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -761,9 +1123,34 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
   Widget _buildLivePostersList() {
     return Obx(() {
-      final posters = homeCtrl.allPosters;
-      if (posters.isEmpty) {
+      final all = homeCtrl.allPosters;
+      if (all.isEmpty) {
         return const Center(child: Text('No posters available.'));
+      }
+
+      final posters = all.where((p) {
+        final isDynamic = p['isDynamic'] == 'true';
+        if (_catalogFilter == 'dynamic') return isDynamic;
+        if (_catalogFilter == 'asset') return !isDynamic;
+        return true;
+      }).toList();
+
+      if (posters.isEmpty) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              _catalogFilter == 'dynamic'
+                  ? 'No cloud database posters found.'
+                  : 'No asset/local posters found.',
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ),
+        );
       }
 
       return ListView.separated(
@@ -774,8 +1161,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         itemBuilder: (context, index) {
           final p = posters[index];
           final isDynamic = p['isDynamic'] == 'true';
-          final id = p['id'] ?? '';
           final img = p['image'] ?? '';
+          final category = p['category'] ?? 'General';
+          final price = p['price'] ?? '₹59';
 
           return Container(
             padding: const EdgeInsets.all(10),
@@ -795,9 +1183,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   child: SizedBox(
                     width: 55,
                     height: 75,
-                    child: img.startsWith('http')
-                        ? Image.network(img, fit: BoxFit.cover)
-                        : Image.asset(img, fit: BoxFit.cover),
+                    child: PosterImage(
+                      imagePath: img,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -818,11 +1207,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       Row(
                         children: [
                           GestureDetector(
-                            onTap: () => _editPosterCategory(
-                              id,
-                              p['category'] ?? 'General',
-                              p['title'] ?? 'Poster',
-                            ),
+                            onTap: () => _editPosterDetails(p),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -839,7 +1224,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    p['category'] ?? 'General',
+                                    category,
                                     style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -855,14 +1240,30 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              price,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isDynamic ? '⚡ Cloudinary / Database item' : '📁 Asset / Bundled Poster',
+                        isDynamic ? '⚡ Cloud / Database' : '📁 Bundled Asset / Local',
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDynamic ? Colors.green : Colors.blueGrey,
+                          color: isDynamic ? Colors.green.shade700 : Colors.teal.shade700,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -875,12 +1276,8 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     color: Color(0xFF00796B),
                     size: 22,
                   ),
-                  tooltip: 'Change Category',
-                  onPressed: () => _editPosterCategory(
-                    id,
-                    p['category'] ?? 'General',
-                    p['title'] ?? 'Poster',
-                  ),
+                  tooltip: 'Edit Poster',
+                  onPressed: () => _editPosterDetails(p),
                 ),
                 IconButton(
                   icon: const Icon(
@@ -889,7 +1286,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     size: 22,
                   ),
                   tooltip: 'Delete Poster',
-                  onPressed: () => _deletePoster(id, p['title'] ?? 'Poster'),
+                  onPressed: () => _deletePoster(p),
                 ),
               ],
             ),
