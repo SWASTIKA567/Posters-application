@@ -227,6 +227,119 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     }
   }
 
+  Future<void> _editPosterCategory(String id, String currentCategory, String title) async {
+    final availableCats = homeCtrl.categories
+        .where((c) => c['title'] != 'All')
+        .map((c) => c['title']!)
+        .toList();
+
+    String selectedCategory = availableCats.contains(currentCategory)
+        ? currentCategory
+        : (availableCats.isNotEmpty ? availableCats.first : 'General');
+    final customCatCtrl = TextEditingController();
+    bool isCustom = false;
+
+    await Get.dialog(
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Change Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Update category for "$title":',
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                ),
+                const SizedBox(height: 14),
+                if (!isCustom)
+                  DropdownButtonFormField<String>(
+                    initialValue: availableCats.contains(selectedCategory) ? selectedCategory : null,
+                    decoration: InputDecoration(
+                      labelText: 'Select Category',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: availableCats.map((cat) {
+                      return DropdownMenuItem(value: cat, child: Text(cat));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedCategory = val);
+                      }
+                    },
+                  )
+                else
+                  TextField(
+                    controller: customCatCtrl,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'New Category Name',
+                      hintText: 'e.g. Gaming, Aesthetic',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    setDialogState(() {
+                      isCustom = !isCustom;
+                    });
+                  },
+                  icon: Icon(isCustom ? Icons.list_rounded : Icons.add_circle_outline_rounded, size: 18),
+                  label: Text(isCustom ? 'Choose existing' : '+ Create new category'),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () async {
+                  final targetCategory = isCustom ? customCatCtrl.text.trim() : selectedCategory;
+                  if (targetCategory.isEmpty) {
+                    Get.snackbar('Category Required', 'Please enter or select a valid category name.');
+                    return;
+                  }
+                  Get.back();
+                  try {
+                    final res = await ApiService.put('/posters/$id', {'category': targetCategory});
+                    if (res != null && res['success'] == true) {
+                      await homeCtrl.fetchBackendPosters();
+                      Get.snackbar(
+                        'Category Updated',
+                        '"$title" is now in "$targetCategory"',
+                        backgroundColor: const Color(0xFF1B5E20),
+                        colorText: Colors.white,
+                      );
+                    }
+                  } catch (e) {
+                    Get.snackbar(
+                      'Update Error',
+                      ApiService.cleanErrorMessage(e),
+                      backgroundColor: Colors.red.shade800,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _deletePoster(String id, String title) async {
     final confirm = await Get.dialog<bool>(
       AlertDialog(
@@ -682,20 +795,45 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0F0F0),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              p['category'] ?? 'General',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                          GestureDetector(
+                            onTap: (isDynamic && id.isNotEmpty)
+                                ? () => _editPosterCategory(
+                                      id,
+                                      p['category'] ?? 'General',
+                                      p['title'] ?? 'Poster',
+                                    )
+                                : null,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF0F0F0),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    p['category'] ?? 'General',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (isDynamic && id.isNotEmpty) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.edit_outlined,
+                                      size: 11,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
@@ -715,15 +853,30 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     ],
                   ),
                 ),
-                if (isDynamic && id.isNotEmpty)
+                if (isDynamic && id.isNotEmpty) ...[
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit_note_rounded,
+                      color: Color(0xFF00796B),
+                      size: 22,
+                    ),
+                    tooltip: 'Change Category',
+                    onPressed: () => _editPosterCategory(
+                      id,
+                      p['category'] ?? 'General',
+                      p['title'] ?? 'Poster',
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(
                       Icons.delete_outline_rounded,
                       color: Colors.red,
+                      size: 22,
                     ),
                     tooltip: 'Delete Poster',
                     onPressed: () => _deletePoster(id, p['title'] ?? 'Poster'),
                   ),
+                ],
               ],
             ),
           );
