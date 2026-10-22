@@ -232,6 +232,7 @@ class _CategoryPostersScreenState extends State<CategoryPostersScreen>
                           title: poster["title"]!,
                           image: poster["image"]!,
                           price: poster["price"] ?? '₹49',
+                          category: widget.categoryTitle,
                           wishlistCtrl: wishlistCtrl,
                           parentCtrl: _gridCtrl,
                           delay: delay.toInt(),
@@ -261,6 +262,7 @@ class _AnimatedPosterTile extends StatefulWidget {
   final String title;
   final String image;
   final String price;
+  final String category;
   final WishlistController wishlistCtrl;
   final AnimationController parentCtrl;
   final int delay;
@@ -270,6 +272,7 @@ class _AnimatedPosterTile extends StatefulWidget {
     required this.title,
     required this.image,
     required this.price,
+    required this.category,
     required this.wishlistCtrl,
     required this.parentCtrl,
     required this.delay,
@@ -327,6 +330,7 @@ class _AnimatedPosterTileState extends State<_AnimatedPosterTile>
                 title: widget.title,
                 image: widget.image,
                 price: widget.price,
+                category: widget.category,
               ),
               transition: Transition.fadeIn,
               duration: const Duration(milliseconds: 300),

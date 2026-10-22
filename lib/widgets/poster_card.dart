@@ -13,6 +13,7 @@ class PosterCard extends StatelessWidget {
   final String image;
   final PosterSection section;
   final String price;
+  final String? category;
 
   const PosterCard({
     super.key,
@@ -20,6 +21,7 @@ class PosterCard extends StatelessWidget {
     required this.image,
     required this.section,
     this.price = '₹49',
+    this.category,
   });
 
   @override
@@ -31,13 +33,18 @@ class PosterCard extends StatelessWidget {
       onTap: () {
         if (isFeatured) {
           Get.to(
-            () => CategoryPostersScreen(categoryTitle: title),
+            () => CategoryPostersScreen(categoryTitle: category ?? title),
             transition: Transition.fadeIn,
             duration: const Duration(milliseconds: 350),
           );
         } else {
           Get.to(
-            () => PosterDetailScreen(title: title, image: image, price: price),
+            () => PosterDetailScreen(
+              title: title,
+              image: image,
+              price: price,
+              category: category,
+            ),
             transition: Transition.downToUp,
             duration: const Duration(milliseconds: 400),
           );

@@ -23,20 +23,38 @@ class _AdminPostersViewState extends State<AdminPostersView> {
   final TextEditingController _newCategoryCtrl = TextEditingController();
 
   File? _selectedImage;
-  String? _selectedAssetPath;
   String? _selectedCategory;
+  String _selectedSection = 'both'; // 'explore', 'trending', 'both', 'none'
   bool _isNewCategory = false;
   bool _isPublishing = false;
   String _uploadStatus = '';
-  String _catalogFilter = 'all'; // 'all', 'dynamic', 'asset'
+  String _catalogFilter = 'all'; // 'all', 'explore', 'trending', 'none'
 
-  // Available bundled poster assets that can be assigned
-  static const List<String> _bundledAssetOptions = [
-    'assets/posters/poster1.jpg',
-    'assets/posters/poster2.jpg',
-    'assets/posters/poster3.jpg',
-    'assets/posters/poster4.jpg',
-    'assets/posters/poster5.jpg',
+  final List<Map<String, String>> _sectionOptions = [
+    {
+      'key': 'both',
+      'label': 'Both Sections',
+      'desc': 'Shows in Explore Collection & Trending Posters',
+      'icon': '🌟+🔥',
+    },
+    {
+      'key': 'explore',
+      'label': 'Want to Explore Our Collection',
+      'desc': 'Shows under category in Explore Our Collection',
+      'icon': '🌟',
+    },
+    {
+      'key': 'trending',
+      'label': 'Trending Posters',
+      'desc': 'Shows directly in Trending Posters row',
+      'icon': '🔥',
+    },
+    {
+      'key': 'none',
+      'label': 'General Catalog Only',
+      'desc': 'Available in store search and category browse only',
+      'icon': '📦',
+    },
   ];
 
   @override
@@ -70,7 +88,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       if (file != null) {
         setState(() {
           _selectedImage = File(file.path);
-          _selectedAssetPath = null;
         });
       }
     } catch (e) {
@@ -102,18 +119,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(
-                Icons.collections_rounded,
-                color: AppColors.primary,
-              ),
-              title: const Text('Pick from Bundled Poster Assets'),
-              subtitle: const Text('Use built-in poster templates'),
-              onTap: () {
-                Get.back();
-                _showBundledAssetPickerModal();
-              },
-            ),
-            ListTile(
-              leading: const Icon(
                 Icons.photo_library_rounded,
                 color: AppColors.primary,
               ),
@@ -133,89 +138,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 Get.back();
                 _pickImage(ImageSource.camera);
               },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showBundledAssetPickerModal() {
-    Get.bottomSheet(
-      Container(
-        height: 280,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select Bundled Asset Template',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _bundledAssetOptions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final assetPath = _bundledAssetOptions[index];
-                  final isSelected = _selectedAssetPath == assetPath;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedAssetPath = assetPath;
-                        _selectedImage = null;
-                      });
-                      Get.back();
-                    },
-                    child: Container(
-                      width: 130,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                          width: isSelected ? 3 : 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.asset(assetPath, fit: BoxFit.cover),
-                            Positioned(
-                              bottom: 6,
-                              left: 6,
-                              right: 6,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Asset ${index + 1}',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -250,10 +172,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
       return;
     }
 
-    if (_selectedImage == null && _selectedAssetPath == null) {
+    if (_selectedImage == null) {
       Get.snackbar(
         'Missing Image',
-        'Please select an image (gallery, camera, or bundled asset)',
+        'Please select an image from gallery or camera',
         backgroundColor: Colors.orange.shade800,
         colorText: Colors.white,
       );
@@ -262,39 +184,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
     setState(() {
       _isPublishing = true;
-      _uploadStatus = 'Saving poster...';
+      _uploadStatus = 'Uploading image...';
     });
 
     try {
-      // If a bundled asset was chosen, save directly into local catalog
-      if (_selectedAssetPath != null) {
-        await homeCtrl.addLocalPoster(
-          title: title,
-          imagePath: _selectedAssetPath!,
-          category: category,
-          price: '₹$price',
-        );
-        _resetForm();
-        Get.snackbar(
-          '🎉 Asset Poster Added',
-          '"$title" was added to category "$category".',
-          backgroundColor: const Color(0xFF1B5E20),
-          colorText: Colors.white,
-          duration: const Duration(seconds: 4),
-        );
-        return;
-      }
-
-      // If a file was picked, attempt Cloudinary upload
-      setState(() {
-        _uploadStatus = 'Uploading image to Cloudinary...';
-      });
-
       final uploadedUrl = await ApiService.uploadImage(_selectedImage!);
       if (uploadedUrl == null || uploadedUrl.isEmpty) {
-        throw Exception(
-          'Cloudinary upload failed or network unavailable.',
-        );
+        throw Exception('Cloudinary upload failed or network unavailable.');
       }
 
       setState(() {
@@ -305,12 +201,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         'title': title,
         'imageUrl': uploadedUrl,
         'category': category,
+        'section': _selectedSection,
         'price': price,
         'description': _descCtrl.text.trim(),
         'sizes': [
-          {'label': 'A5', 'dimensions': '14.8 × 21 cm', 'price': 39},
+          {'label': 'A5', 'dimensions': '14.8 × 21 cm', 'price': (price * 0.75).round()},
           {'label': 'A4', 'dimensions': '21 × 29.7 cm', 'price': price},
-          {'label': 'A3', 'dimensions': '29.7 × 42 cm', 'price': 99},
+          {'label': 'A3', 'dimensions': '29.7 × 42 cm', 'price': (price * 1.6).round()},
         ],
       });
 
@@ -319,7 +216,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         await homeCtrl.fetchBackendPosters();
         Get.snackbar(
           '🎉 Poster Published Live!',
-          '"$title" is now live in the $category category for all users.',
+          '"$title" added to "$category" in section "${_getSectionLabel(_selectedSection)}".',
           backgroundColor: const Color(0xFF1B5E20),
           colorText: Colors.white,
           duration: const Duration(seconds: 4),
@@ -333,20 +230,22 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         );
       }
     } catch (e) {
-      // Fallback: If network/backend is unreachable, save locally so admin add always succeeds!
+      // Offline fallback: save locally
       try {
-        final imagePath = _selectedImage?.path ?? _selectedAssetPath ?? '';
-        if (imagePath.isNotEmpty) {
-          await homeCtrl.addLocalPoster(
-            title: title,
-            imagePath: imagePath,
-            category: category,
-            price: '₹$price',
-          );
+        if (_selectedImage != null) {
+          await homeCtrl.saveLocalPoster({
+            'id': 'local_${DateTime.now().millisecondsSinceEpoch}',
+            'title': title,
+            'image': _selectedImage!.path,
+            'category': category,
+            'section': _selectedSection,
+            'price': '₹$price',
+            'isDynamic': 'false',
+          });
           _resetForm();
           Get.snackbar(
             '🎉 Poster Added (Saved Locally)',
-            '"$title" was added to category "$category".',
+            '"$title" saved to category "$category" on device.',
             backgroundColor: const Color(0xFF1B5E20),
             colorText: Colors.white,
             duration: const Duration(seconds: 4),
@@ -378,17 +277,124 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     _newCategoryCtrl.clear();
     setState(() {
       _selectedImage = null;
-      _selectedAssetPath = null;
       _isNewCategory = false;
+      _selectedSection = 'both';
     });
+  }
+
+  String _getSectionLabel(String? sec) {
+    switch (sec) {
+      case 'explore':
+        return '🌟 Explore Collection';
+      case 'trending':
+        return '🔥 Trending';
+      case 'both':
+        return '🌟+🔥 Both';
+      case 'none':
+        return '📦 Catalog Only';
+      default:
+        return '🌟+🔥 Both';
+    }
+  }
+
+  Color _getSectionColor(String? sec) {
+    switch (sec) {
+      case 'explore':
+        return const Color(0xFF6A1B9A);
+      case 'trending':
+        return const Color(0xFFE65100);
+      case 'both':
+        return AppColors.primary;
+      case 'none':
+        return Colors.blueGrey;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  Future<void> _quickChangeSection(Map<String, String> poster) async {
+    final id = poster['id'] ?? '';
+    final currentSection = poster['section'] ?? 'both';
+    final title = poster['title'] ?? 'Poster';
+
+    await Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.swap_horiz_rounded, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Assign Section for "$title"',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ..._sectionOptions.map((opt) {
+              final isCurrent = opt['key'] == currentSection;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isCurrent ? AppColors.primary : Colors.grey.shade300,
+                    width: isCurrent ? 2 : 1,
+                  ),
+                  color: isCurrent ? AppColors.primary.withOpacity(0.06) : Colors.white,
+                ),
+                child: ListTile(
+                  title: Text(
+                    '${opt['icon']}  ${opt['label']}',
+                    style: TextStyle(
+                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
+                      color: isCurrent ? AppColors.primary : Colors.black87,
+                    ),
+                  ),
+                  subtitle: Text(
+                    opt['desc']!,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                  trailing: isCurrent
+                      ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                      : null,
+                  onTap: () async {
+                    Get.back();
+                    await homeCtrl.updatePosterSection(
+                      id: id,
+                      newSection: opt['key']!,
+                    );
+                    Get.snackbar(
+                      'Section Updated',
+                      '"$title" is now set to ${opt['label']}.',
+                      backgroundColor: const Color(0xFF1B5E20),
+                      colorText: Colors.white,
+                    );
+                  },
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _editPosterDetails(Map<String, String> poster) async {
     final id = poster['id'] ?? '';
-    final isDynamic = poster['isDynamic'] == 'true';
     final currentTitle = poster['title'] ?? 'Poster';
-    final originalTitle = poster['originalTitle'] ?? currentTitle;
     final currentCategory = poster['category'] ?? 'General';
+    final currentSection = poster['section'] ?? 'both';
     final rawPrice = (poster['price'] ?? '₹59').replaceAll('₹', '').trim();
 
     final availableCats = homeCtrl.categories
@@ -399,6 +405,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     String selectedCategory = availableCats.contains(currentCategory)
         ? currentCategory
         : (availableCats.isNotEmpty ? availableCats.first : 'General');
+    String selectedSec = currentSection;
 
     final titleEditCtrl = TextEditingController(text: currentTitle);
     final priceEditCtrl = TextEditingController(text: rawPrice);
@@ -411,16 +418,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
-              children: [
-                Icon(
-                  isDynamic ? Icons.cloud_done_rounded : Icons.folder_special_rounded,
-                  color: isDynamic ? AppColors.primary : Colors.teal,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
+              children: const [
+                Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 24),
+                SizedBox(width: 8),
                 Text(
-                  isDynamic ? 'Edit Cloud Poster' : 'Edit Asset Poster',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  'Edit Poster Details',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
@@ -429,7 +432,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Poster Title', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const Text('Poster Title', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: titleEditCtrl,
@@ -440,13 +443,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+
+                  const Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   if (!isCustom)
                     DropdownButtonFormField<String>(
                       initialValue: availableCats.contains(selectedCategory) ? selectedCategory : null,
                       decoration: InputDecoration(
-                        labelText: 'Select Category',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -470,7 +473,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
                     ),
-                  const SizedBox(height: 6),
                   TextButton.icon(
                     onPressed: () {
                       setDialogState(() {
@@ -481,7 +483,30 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                     label: Text(isCustom ? 'Choose existing category' : '+ Create new category'),
                   ),
                   const SizedBox(height: 10),
-                  const Text('Base Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+
+                  const Text('Section Assignment', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedSec,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: _sectionOptions.map((opt) {
+                      return DropdownMenuItem(
+                        value: opt['key'],
+                        child: Text('${opt['icon']}  ${opt['label']}'),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedSec = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+
+                  const Text('Base Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: priceEditCtrl,
@@ -511,47 +536,30 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                   final targetCategory = isCustom ? customCatCtrl.text.trim() : selectedCategory;
                   final targetPrice = priceEditCtrl.text.trim().replaceAll('₹', '');
 
-                  if (targetTitle.isEmpty) {
-                    Get.snackbar('Title Required', 'Please enter a valid poster title.');
-                    return;
-                  }
-                  if (targetCategory.isEmpty) {
-                    Get.snackbar('Category Required', 'Please enter or select a category.');
+                  if (targetTitle.isEmpty || targetCategory.isEmpty) {
+                    Get.snackbar('Validation', 'Title and Category are required.');
                     return;
                   }
 
                   Get.back();
 
                   try {
-                    if (isDynamic && id.isNotEmpty) {
+                    if (id.isNotEmpty) {
                       final res = await ApiService.put('/posters/$id', {
                         'title': targetTitle,
                         'category': targetCategory,
+                        'section': selectedSec,
                         'price': int.tryParse(targetPrice) ?? 59,
                       });
                       if (res != null && res['success'] == true) {
                         await homeCtrl.fetchBackendPosters();
                         Get.snackbar(
                           'Poster Updated',
-                          '"$targetTitle" is now in "$targetCategory" (₹$targetPrice)',
+                          '"$targetTitle" updated successfully.',
                           backgroundColor: const Color(0xFF1B5E20),
                           colorText: Colors.white,
                         );
                       }
-                    } else {
-                      // Asset or local poster update
-                      await homeCtrl.updateAssetPoster(
-                        originalTitle: originalTitle,
-                        newTitle: targetTitle,
-                        newCategory: targetCategory,
-                        newPrice: targetPrice.isNotEmpty ? '₹$targetPrice' : null,
-                      );
-                      Get.snackbar(
-                        'Poster Updated',
-                        '"$targetTitle" is now in "$targetCategory" (₹$targetPrice)',
-                        backgroundColor: const Color(0xFF1B5E20),
-                        colorText: Colors.white,
-                      );
                     }
                   } catch (e) {
                     Get.snackbar(
@@ -573,9 +581,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
   Future<void> _deletePoster(Map<String, String> poster) async {
     final id = poster['id'] ?? '';
-    final isDynamic = poster['isDynamic'] == 'true';
     final title = poster['title'] ?? 'Poster';
-    final originalTitle = poster['originalTitle'] ?? title;
 
     final confirm = await Get.dialog<bool>(
       AlertDialog(
@@ -599,27 +605,13 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
     if (confirm == true) {
       try {
-        if (isDynamic && id.isNotEmpty) {
-          final res = await ApiService.delete('/posters/$id');
-          if (res != null && res['success'] == true) {
-            await homeCtrl.fetchBackendPosters();
-            Get.snackbar(
-              'Deleted',
-              'Poster "$title" was removed.',
-              backgroundColor: Colors.black87,
-              colorText: Colors.white,
-            );
-          }
-        } else {
-          // Asset poster deletion
-          await homeCtrl.deleteAssetPoster(title, originalTitle: originalTitle);
-          Get.snackbar(
-            'Deleted',
-            'Asset poster "$title" was removed.',
-            backgroundColor: Colors.black87,
-            colorText: Colors.white,
-          );
-        }
+        await homeCtrl.deletePoster(id, title);
+        Get.snackbar(
+          'Deleted',
+          'Poster "$title" was removed.',
+          backgroundColor: Colors.black87,
+          colorText: Colors.white,
+        );
       } catch (e) {
         Get.snackbar(
           'Delete Notice',
@@ -628,38 +620,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           colorText: Colors.white,
         );
       }
-    }
-  }
-
-  Future<void> _confirmResetAssetPosters() async {
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Reset Bundled Posters'),
-        content: const Text(
-          'This will restore all default bundled asset posters (Matisse, Discipline, Flower, Nature, Travel) and their original categories. Proceed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Get.back(result: true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00796B)),
-            child: const Text('Reset Defaults', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      await homeCtrl.resetAssetPosters();
-      Get.snackbar(
-        'Posters Restored',
-        'Bundled asset posters have been restored to defaults.',
-        backgroundColor: const Color(0xFF1B5E20),
-        colorText: Colors.white,
-      );
     }
   }
 
@@ -676,11 +636,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         elevation: 0.5,
         foregroundColor: Colors.black87,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.restore_rounded),
-            tooltip: 'Restore Default Bundled Posters',
-            onPressed: _confirmResetAssetPosters,
-          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh Posters',
@@ -724,12 +679,12 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Add, update categories, edit titles/prices, or delete both Cloud and Asset posters.',
+              'Select section (Explore Collection, Trending, Both) for any poster.',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 12),
 
-            // ── Filter Chips (All, Cloudinary, Bundled Assets) ───────────
+            // ── Filter Chips ────────────────────────────────────────────
             _buildCatalogFilterChips(),
 
             const SizedBox(height: 12),
@@ -750,9 +705,11 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         children: [
           _filterChip(label: 'All Posters', key: 'all'),
           const SizedBox(width: 8),
-          _filterChip(label: '📁 Bundled / Local Assets', key: 'asset'),
+          _filterChip(label: '🌟 Explore Collection', key: 'explore'),
           const SizedBox(width: 8),
-          _filterChip(label: '⚡ Cloud Database', key: 'dynamic'),
+          _filterChip(label: '🔥 Trending Posters', key: 'trending'),
+          const SizedBox(width: 8),
+          _filterChip(label: '📦 Catalog Only', key: 'none'),
         ],
       ),
     );
@@ -831,21 +788,19 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 color: const Color(0xFFF1F1F5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: (_selectedImage != null || _selectedAssetPath != null)
+                  color: _selectedImage != null
                       ? AppColors.primary
                       : Colors.grey.shade300,
-                  width: (_selectedImage != null || _selectedAssetPath != null) ? 2 : 1,
+                  width: _selectedImage != null ? 2 : 1,
                 ),
               ),
-              child: (_selectedImage != null || _selectedAssetPath != null)
+              child: _selectedImage != null
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: _selectedImage != null
-                              ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                              : Image.asset(_selectedAssetPath!, fit: BoxFit.cover),
+                          child: Image.file(_selectedImage!, fit: BoxFit.cover),
                         ),
                         Positioned(
                           top: 8,
@@ -862,21 +817,6 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                                 size: 18,
                               ),
                               onPressed: _showImagePickerModal,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              _selectedAssetPath != null ? 'Bundled Asset Image' : 'Device Image',
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -901,7 +841,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Bundled Asset Templates, Gallery, or Camera',
+                          'Choose from Gallery or take a photo',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey.shade500,
@@ -920,7 +860,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
             enabled: !_isPublishing,
             decoration: InputDecoration(
               labelText: 'Poster Title *',
-              hintText: 'e.g. Cyberpunk Samurai, Matisse Joy',
+              hintText: 'e.g. Cyberpunk Samurai, Anime Warrior',
               prefixIcon: const Icon(Icons.title_rounded, size: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -1016,6 +956,61 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                 },
               ),
             ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── Section Selector ──
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F9FB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black.withOpacity(0.06)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.dashboard_customize_rounded, size: 18, color: AppColors.primary),
+                    SizedBox(width: 6),
+                    Text(
+                      'Assign to Section *',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedSection,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  items: _sectionOptions.map((opt) {
+                    return DropdownMenuItem(
+                      value: opt['key'],
+                      child: Text('${opt['icon']}  ${opt['label']}'),
+                    );
+                  }).toList(),
+                  onChanged: _isPublishing
+                      ? null
+                      : (val) {
+                          if (val != null) {
+                            setState(() => _selectedSection = val);
+                          }
+                        },
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _sectionOptions.firstWhere((o) => o['key'] == _selectedSection)['desc'] ?? '',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 14),
@@ -1125,13 +1120,32 @@ class _AdminPostersViewState extends State<AdminPostersView> {
     return Obx(() {
       final all = homeCtrl.allPosters;
       if (all.isEmpty) {
-        return const Center(child: Text('No posters available.'));
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Center(
+            child: Text(
+              'No posters in catalog yet. Add your first poster above!',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        );
       }
 
       final posters = all.where((p) {
-        final isDynamic = p['isDynamic'] == 'true';
-        if (_catalogFilter == 'dynamic') return isDynamic;
-        if (_catalogFilter == 'asset') return !isDynamic;
+        final sec = p['section'] ?? 'both';
+        if (_catalogFilter == 'explore') {
+          return sec == 'explore' || sec == 'both';
+        }
+        if (_catalogFilter == 'trending') {
+          return sec == 'trending' || sec == 'both';
+        }
+        if (_catalogFilter == 'none') {
+          return sec == 'none';
+        }
         return true;
       }).toList();
 
@@ -1144,9 +1158,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           ),
           child: Center(
             child: Text(
-              _catalogFilter == 'dynamic'
-                  ? 'No cloud database posters found.'
-                  : 'No asset/local posters found.',
+              'No posters match the "${_catalogFilter}" section filter.',
               style: const TextStyle(color: Colors.grey),
             ),
           ),
@@ -1160,9 +1172,9 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final p = posters[index];
-          final isDynamic = p['isDynamic'] == 'true';
           final img = p['image'] ?? '';
           final category = p['category'] ?? 'General';
+          final section = p['section'] ?? 'both';
           final price = p['price'] ?? '₹59';
 
           return Container(
@@ -1171,9 +1183,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDynamic
-                    ? AppColors.primary.withOpacity(0.3)
-                    : const Color(0xFFEAEAEA),
+                color: const Color(0xFFEAEAEA),
               ),
             ),
             child: Row(
@@ -1206,37 +1216,17 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          GestureDetector(
-                            onTap: () => _editPosterDetails(p),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0F0F0),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: Colors.black.withValues(alpha: 0.08),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    category,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
-                                    Icons.edit_outlined,
-                                    size: 11,
-                                    color: Colors.black54,
-                                  ),
-                                ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              category,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -1258,13 +1248,38 @@ class _AdminPostersViewState extends State<AdminPostersView> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isDynamic ? '⚡ Cloud / Database' : '📁 Bundled Asset / Local',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDynamic ? Colors.green.shade700 : Colors.teal.shade700,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 6),
+                      // Section badge with quick-change tap
+                      GestureDetector(
+                        onTap: () => _quickChangeSection(p),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _getSectionColor(section).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _getSectionColor(section).withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _getSectionLabel(section),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: _getSectionColor(section),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.swap_horiz_rounded,
+                                size: 12,
+                                color: _getSectionColor(section),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

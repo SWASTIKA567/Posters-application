@@ -62,6 +62,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     )..forward();
 
     _searchCtrl.text = ctrl.searchQuery.value;
+    // Auto-fetch posters whenever HomeView loads
+    ctrl.fetchBackendPosters();
   }
 
   @override
@@ -111,53 +113,56 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   Widget _buildHomeBody() {
     return Stack(
-        children: [
-          _Blob(
-            ctrl: _blob1,
-            colors: AppColors.primaryGrad,
-            size: 260,
-            top: -100,
-            left: -80,
-            opacity: .10,
-            dx: 20,
-            dy: -30,
-          ),
-          _Blob(
-            ctrl: _blob2,
-            colors: AppColors.tealOrange,
-            size: 220,
-            bottom: 80,
-            right: -60,
-            opacity: .08,
-            dx: -20,
-            dy: 20,
-          ),
-          _Blob(
-            ctrl: _blob3,
-            colors: AppColors.primaryGrad,
-            size: 180,
-            top: 350,
-            left: -30,
-            opacity: .07,
-            dx: 15,
-            dy: -20,
-          ),
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeCtrl,
-              child: RefreshIndicator(
-                color: AppColors.primary,
-                backgroundColor: Colors.white,
-                onRefresh: () async {
-                  await ctrl.fetchBackendPosters();
-                },
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  slivers: [
+      children: [
+        _Blob(
+          ctrl: _blob1,
+          colors: AppColors.primaryGrad,
+          size: 260,
+          top: -100,
+          left: -80,
+          opacity: .10,
+          dx: 20,
+          dy: -30,
+        ),
+        _Blob(
+          ctrl: _blob2,
+          colors: AppColors.tealOrange,
+          size: 220,
+          bottom: 80,
+          right: -60,
+          opacity: .08,
+          dx: -20,
+          dy: 20,
+        ),
+        _Blob(
+          ctrl: _blob3,
+          colors: AppColors.primaryGrad,
+          size: 180,
+          top: 350,
+          left: -30,
+          opacity: .07,
+          dx: 15,
+          dy: -20,
+        ),
+        SafeArea(
+          child: FadeTransition(
+            opacity: _fadeCtrl,
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: Colors.white,
+              onRefresh: () async {
+                await ctrl.fetchBackendPosters();
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         _buildHeader(),
@@ -179,40 +184,64 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               const SizedBox(height: 30),
                               _sectionTitle("Want to explore Our Collection?"),
                               const SizedBox(height: 16),
-                              SizedBox(
-                                height: 220,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: ctrl.featuredPosters.length,
-                                  itemBuilder: (_, index) {
-                                    final poster = ctrl.featuredPosters[index];
-                                    return PosterCard(
-                                      title: poster["title"] as String,
-                                      image: poster["image"] as String,
-                                      section: PosterSection.featured,
-                                    );
-                                  },
+                              if (ctrl.isLoadingPosters.value &&
+                                  ctrl.allPosters.isEmpty)
+                                _buildLoadingSectionPlaceholder()
+                              else if (ctrl.featuredPosters.isNotEmpty)
+                                SizedBox(
+                                  height: 220,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: ctrl.featuredPosters.length,
+                                    itemBuilder: (_, index) {
+                                      final poster =
+                                          ctrl.featuredPosters[index];
+                                      return PosterCard(
+                                        title: poster["title"] as String,
+                                        image: poster["image"] as String,
+                                        section: PosterSection.featured,
+                                      );
+                                    },
+                                  ),
+                                )
+                              else
+                                _buildEmptySectionPlaceholder(
+                                  icon: Icons.collections_outlined,
+                                  message:
+                                      "No collection posters yet. Pull down or tap to refresh!",
+                                  onRefresh: () => ctrl.fetchBackendPosters(),
                                 ),
-                              ),
                               const SizedBox(height: 20),
                               _sectionTitle("Trending Posters"),
                               const SizedBox(height: 16),
-                              SizedBox(
-                                height: 220,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: ctrl.recentPosters.length,
-                                  itemBuilder: (_, index) {
-                                    final poster = ctrl.recentPosters[index];
-                                    return PosterCard(
-                                      title: poster["title"] as String,
-                                      image: poster["image"] as String,
-                                      price: poster["price"] as String,
-                                      section: PosterSection.recent,
-                                    );
-                                  },
+                              if (ctrl.isLoadingPosters.value &&
+                                  ctrl.allPosters.isEmpty)
+                                _buildLoadingSectionPlaceholder()
+                              else if (ctrl.recentPosters.isNotEmpty)
+                                SizedBox(
+                                  height: 220,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: ctrl.recentPosters.length,
+                                    itemBuilder: (_, index) {
+                                      final poster = ctrl.recentPosters[index];
+                                      return PosterCard(
+                                        title: poster["title"] as String,
+                                        image: poster["image"] as String,
+                                        price: poster["price"] as String,
+                                        category: poster["category"],
+                                        section: PosterSection.recent,
+                                      );
+                                    },
+                                  ),
+                                )
+                              else
+                                _buildEmptySectionPlaceholder(
+                                  icon: Icons.trending_up_rounded,
+                                  message:
+                                      "No trending posters yet. Pull down or tap to refresh!",
+                                  onRefresh: () => ctrl.fetchBackendPosters(),
                                 ),
-                              ),
                             ],
                           );
                         }),
@@ -277,7 +306,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
                       child: Center(
                         child: Text(
                           '$count',
@@ -328,17 +360,26 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             color: AppColors.primary.withOpacity(0.8),
             size: 22,
           ),
-          suffixIcon: Obx(() => ctrl.searchQuery.value.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 18, color: Colors.black54),
-                  onPressed: () {
-                    _searchCtrl.clear();
-                    ctrl.setSearch('');
-                  },
-                )
-              : const SizedBox.shrink()),
+          suffixIcon: Obx(
+            () => ctrl.searchQuery.value.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () {
+                      _searchCtrl.clear();
+                      ctrl.setSearch('');
+                    },
+                  )
+                : const SizedBox.shrink(),
+          ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 14,
+            horizontal: 16,
+          ),
         ),
       ),
     );
@@ -371,11 +412,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primary
-                      : Colors.white,
+                  color: isSelected ? AppColors.primary : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
@@ -398,7 +440,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     title,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                       color: isSelected ? Colors.white : Colors.black87,
                     ),
                   ),
@@ -439,7 +483,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ctrl.setCategory(null);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -460,7 +507,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           const SizedBox(height: 6),
           Text(
             "Filtering by: ${cat != null ? 'Category "$cat"' : ''} ${q.isNotEmpty ? 'Query "$q"' : ''}",
-            style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black.withOpacity(0.5),
+            ),
           ),
         ],
         const SizedBox(height: 16),
@@ -486,7 +536,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 Text(
                   "Try searching for another keyword or pick a different category.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.black.withOpacity(0.5)),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.black.withOpacity(0.5),
+                  ),
                 ),
               ],
             ),
@@ -506,11 +559,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               final poster = list[index];
               return GestureDetector(
                 onTap: () {
-                  Get.to(() => PosterDetailScreen(
-                        title: poster["title"]!,
-                        image: poster["image"]!,
-                        price: poster["price"] ?? "₹49",
-                      ));
+                  Get.to(
+                    () => PosterDetailScreen(
+                      title: poster["title"]!,
+                      image: poster["image"]!,
+                      price: poster["price"] ?? "₹49",
+                    ),
+                  );
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -532,7 +587,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           imagePath: poster["image"]!,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(18),
+                          ),
                         ),
                       ),
                       Padding(
@@ -551,7 +608,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
@@ -644,9 +704,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          gradient: const LinearGradient(
-            colors: AppColors.primaryGrad,
-          ),
+          gradient: const LinearGradient(colors: AppColors.primaryGrad),
         ),
         child: Row(
           children: [
@@ -696,6 +754,86 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         fontSize: 22,
         fontWeight: FontWeight.w800,
         color: Colors.black,
+      ),
+    );
+  }
+
+  Widget _buildLoadingSectionPlaceholder() {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppColors.primary,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              "Loading",
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySectionPlaceholder({
+    required IconData icon,
+    required String message,
+    required VoidCallback onRefresh,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 36, color: Colors.grey.shade400),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: onRefresh,
+            icon: const Icon(
+              Icons.refresh_rounded,
+              size: 16,
+              color: AppColors.primary,
+            ),
+            label: const Text(
+              "Refresh",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

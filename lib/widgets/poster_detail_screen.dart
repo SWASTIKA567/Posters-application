@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../controller/wishlist_controller.dart';
 import '../controller/order_controller.dart';
+import '../controller/home_controller.dart';
 import '../themes/app_colors.dart';
 import '../views/cart_view.dart';
 import 'poster_image.dart';
@@ -11,12 +12,14 @@ class PosterDetailScreen extends StatefulWidget {
   final String title;
   final String image;
   final String price; // e.g. "₹49" — treated as the A4 base price
+  final String? category;
 
   const PosterDetailScreen({
     super.key,
     required this.title,
     required this.image,
     required this.price,
+    this.category,
   });
 
   @override
@@ -404,7 +407,11 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                                 );
                               }).toList(),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 18),
+
+                            // ── CATEGORY SUGGESTIONS ───────────────────────────
+                            _buildCategorySuggestionsSection(),
+                            const SizedBox(height: 14),
                           ],
                         ),
                       ),
@@ -528,6 +535,187 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  String get _resolvedCategory {
+    if (widget.category != null && widget.category!.trim().isNotEmpty) {
+      return widget.category!.trim();
+    }
+    if (Get.isRegistered<HomeController>()) {
+      final match = HomeController.to.allPosters.firstWhereOrNull(
+        (p) => p['title'] == widget.title || p['image'] == widget.image,
+      );
+      if (match != null && match['category'] != null) {
+        return match['category']!.trim();
+      }
+    }
+    return '';
+  }
+
+  List<Map<String, String>> get _suggestedPosters {
+    if (!Get.isRegistered<HomeController>()) return [];
+    final all = HomeController.to.allPosters;
+    final cat = _resolvedCategory.toLowerCase();
+
+    // 1. Same category suggestions (excluding current poster)
+    if (cat.isNotEmpty) {
+      final sameCat = all.where((p) {
+        final itemCat = (p['category'] ?? '').trim().toLowerCase();
+        final notCurrent = p['title'] != widget.title && p['image'] != widget.image;
+        return itemCat == cat && notCurrent;
+      }).toList();
+
+      if (sameCat.isNotEmpty) {
+        return sameCat;
+      }
+    }
+
+    // 2. Fallback: other posters from catalog (excluding current poster)
+    return all.where((p) {
+      return p['title'] != widget.title && p['image'] != widget.image;
+    }).take(8).toList();
+  }
+
+  Widget _buildCategorySuggestionsSection() {
+    final suggestions = _suggestedPosters;
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+
+    final cat = _resolvedCategory;
+    final bool isCategoryMatch = cat.isNotEmpty &&
+        suggestions.any((p) => (p['category'] ?? '').toLowerCase() == cat.toLowerCase());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.auto_awesome_rounded,
+              size: 16,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                isCategoryMatch ? 'More in $cat' : 'You May Also Like',
+                style: const TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${suggestions.length} posters',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 175,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: suggestions.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final item = suggestions[index];
+              final itemTitle = item['title'] ?? 'Poster';
+              final itemImage = item['image'] ?? '';
+              final itemPrice = item['price'] ?? '₹59';
+              final itemCat = item['category'] ?? cat;
+
+              return GestureDetector(
+                onTap: () {
+                  Get.to(
+                    () => PosterDetailScreen(
+                      title: itemTitle,
+                      image: itemImage,
+                      price: itemPrice,
+                      category: itemCat,
+                    ),
+                    preventDuplicates: false,
+                    transition: Transition.rightToLeftWithFade,
+                    duration: const Duration(milliseconds: 300),
+                  );
+                },
+                child: Container(
+                  width: 110,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFEFEFEF)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        child: SizedBox(
+                          height: 115,
+                          width: 110,
+                          child: PosterImage(
+                            imagePath: itemImage,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              itemTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              itemPrice,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
