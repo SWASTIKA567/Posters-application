@@ -86,9 +86,7 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   // Background container with subtle tint
-                  Container(
-                    color: const Color(0xFFF1F3F6),
-                  ),
+                  Container(color: const Color(0xFFF1F3F6)),
 
                   // Framed Poster Image (Contain fit, whole artwork visible)
                   Center(
@@ -138,7 +136,9 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                          border: Border.all(
+                            color: Colors.black.withValues(alpha: 0.08),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.07),
@@ -272,23 +272,28 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                                 // Animated price — gradient shader
                                 AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 250),
-                                  transitionBuilder: (child, anim) => FadeTransition(
-                                    opacity: anim,
-                                    child: SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0, 0.3),
-                                        end: Offset.zero,
-                                      ).animate(anim),
-                                      child: child,
-                                    ),
-                                  ),
+                                  transitionBuilder: (child, anim) =>
+                                      FadeTransition(
+                                        opacity: anim,
+                                        child: SlideTransition(
+                                          position: Tween<Offset>(
+                                            begin: const Offset(0, 0.3),
+                                            end: Offset.zero,
+                                          ).animate(anim),
+                                          child: child,
+                                        ),
+                                      ),
                                   child: ShaderMask(
                                     key: ValueKey(_currentPriceFormatted),
-                                    shaderCallback: (bounds) => const LinearGradient(
-                                      colors: [AppColors.primary, Color(0xFF00796B)],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    ).createShader(bounds),
+                                    shaderCallback: (bounds) =>
+                                        const LinearGradient(
+                                          colors: [
+                                            AppColors.primary,
+                                            Color(0xFF00796B),
+                                          ],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        ).createShader(bounds),
                                     child: Text(
                                       _currentPriceFormatted,
                                       style: const TextStyle(
@@ -329,18 +334,25 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                             Row(
                               children: _sizes.map((size) {
                                 final isSelected = size == _selectedSize;
-                                final sizePrice = _priceFor(size).toInt().toString();
+                                final sizePrice = _priceFor(
+                                  size,
+                                ).toInt().toString();
 
                                 return Expanded(
                                   child: GestureDetector(
-                                    onTap: () => setState(() => _selectedSize = size),
+                                    onTap: () =>
+                                        setState(() => _selectedSize = size),
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 220),
+                                      duration: const Duration(
+                                        milliseconds: 220,
+                                      ),
                                       curve: Curves.easeOutCubic,
                                       margin: EdgeInsets.only(
                                         right: size != _sizes.last ? 8 : 0,
                                       ),
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         gradient: isSelected
@@ -360,16 +372,16 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                                         boxShadow: isSelected
                                             ? [
                                                 BoxShadow(
-                                                  color: AppColors.primary.withValues(
-                                                    alpha: 0.30,
-                                                  ),
+                                                  color: AppColors.primary
+                                                      .withValues(alpha: 0.30),
                                                   blurRadius: 10,
                                                   offset: const Offset(0, 4),
                                                 ),
                                               ]
                                             : [
                                                 BoxShadow(
-                                                  color: Colors.black.withValues(alpha: 0.04),
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.04),
                                                   blurRadius: 4,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -394,7 +406,9 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                                             '₹$sizePrice',
                                             style: TextStyle(
                                               color: isSelected
-                                                  ? Colors.white.withValues(alpha: 0.85)
+                                                  ? Colors.white.withValues(
+                                                      alpha: 0.85,
+                                                    )
                                                   : const Color(0xFF9E9E9E),
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,
@@ -513,7 +527,7 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                inOrder ? 'Go to Orders' : 'Add to Order',
+                                inOrder ? 'Go to Cart' : 'Add to Cart',
                                 style: TextStyle(
                                   color: inOrder
                                       ? AppColors.primary
@@ -562,7 +576,8 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
     if (cat.isNotEmpty) {
       final sameCat = all.where((p) {
         final itemCat = (p['category'] ?? '').trim().toLowerCase();
-        final notCurrent = p['title'] != widget.title && p['image'] != widget.image;
+        final notCurrent =
+            p['title'] != widget.title && p['image'] != widget.image;
         return itemCat == cat && notCurrent;
       }).toList();
 
@@ -572,9 +587,12 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
     }
 
     // 2. Fallback: other posters from catalog (excluding current poster)
-    return all.where((p) {
-      return p['title'] != widget.title && p['image'] != widget.image;
-    }).take(8).toList();
+    return all
+        .where((p) {
+          return p['title'] != widget.title && p['image'] != widget.image;
+        })
+        .take(8)
+        .toList();
   }
 
   Widget _buildCategorySuggestionsSection() {
@@ -582,8 +600,11 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
     if (suggestions.isEmpty) return const SizedBox.shrink();
 
     final cat = _resolvedCategory;
-    final bool isCategoryMatch = cat.isNotEmpty &&
-        suggestions.any((p) => (p['category'] ?? '').toLowerCase() == cat.toLowerCase());
+    final bool isCategoryMatch =
+        cat.isNotEmpty &&
+        suggestions.any(
+          (p) => (p['category'] ?? '').toLowerCase() == cat.toLowerCase(),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,7 +692,9 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
                         child: SizedBox(
                           height: 115,
                           width: 110,

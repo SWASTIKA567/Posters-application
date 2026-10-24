@@ -23,7 +23,7 @@ class SelectAddressView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header with "Add Other" button
+            // ── Header ──────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Row(
@@ -72,48 +72,11 @@ class SelectAddressView extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // Top "+ Add" quick button
-                  GestureDetector(
-                    onTap: () {
-                      addressCtrl.clearFields();
-                      addressCtrl.prefillFromProfile();
-                      Get.to(() => const AddressView());
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: AppColors.primaryGrad),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add_rounded, color: Colors.white, size: 18),
-                          SizedBox(width: 4),
-                          Text(
-                            "Add Other",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
 
-            // Address List or Empty State
+            // ── Address List / Empty State ───────────────────────────────────
             Expanded(
               child: Obx(() {
                 final addresses = orderCtrl.savedAddresses;
@@ -164,15 +127,27 @@ class SelectAddressView extends StatelessWidget {
                               addressCtrl.prefillFromProfile();
                               Get.to(() => const AddressView());
                             },
-                            icon: const Icon(Icons.add_location_alt_outlined, color: Colors.white, size: 18),
+                            icon: const Icon(
+                              Icons.add_location_alt_outlined,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             label: const Text(
                               "Add Address Now",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
                           ),
                         ],
@@ -182,7 +157,10 @@ class SelectAddressView extends StatelessWidget {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   itemCount: addresses.length,
                   itemBuilder: (context, index) {
                     final address = addresses[index];
@@ -201,7 +179,7 @@ class SelectAddressView extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : Colors.black.withOpacity(.06),
+                              : Colors.black.withOpacity(.07),
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: [
@@ -229,7 +207,10 @@ class SelectAddressView extends StatelessWidget {
                                 snackPosition: SnackPosition.BOTTOM,
                                 margin: const EdgeInsets.all(16),
                                 borderRadius: 14,
-                                icon: const Icon(Icons.access_time_rounded, color: Colors.white),
+                                icon: const Icon(
+                                  Icons.access_time_rounded,
+                                  color: Colors.white,
+                                ),
                               );
                               return;
                             }
@@ -248,25 +229,32 @@ class SelectAddressView extends StatelessWidget {
                               margin: const EdgeInsets.all(16),
                               borderRadius: 14,
                             );
-                            await Future.delayed(const Duration(milliseconds: 350));
+                            await Future.delayed(
+                              const Duration(milliseconds: 350),
+                            );
                             Get.back();
                           },
                           child: Padding(
-                            padding: const EdgeInsets.all(18),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 14),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Checkbox selection indicator
+                                // ── Radio circle ──────────────────────────
                                 AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.only(top: 2),
-                                  width: 24,
-                                  height: 24,
+                                  margin: const EdgeInsets.only(top: 3),
+                                  width: 22,
+                                  height: 22,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: isSelected ? AppColors.primary : Colors.transparent,
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : Colors.transparent,
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primary : Colors.black38,
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.black38,
                                       width: 2,
                                     ),
                                   ),
@@ -274,137 +262,119 @@ class SelectAddressView extends StatelessWidget {
                                       ? const Center(
                                           child: Icon(
                                             Icons.check,
-                                            size: 16,
+                                            size: 13,
                                             color: Colors.white,
                                           ),
                                         )
                                       : null,
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 12),
 
-                                // Address Info
+                                // ── Address detail column ─────────────────
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
+                                      // Line 1: Full name (no overflow)
+                                      Text(
+                                        address.name,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+
+                                      // Line 2: Badges row
                                       Row(
                                         children: [
-                                          Expanded(
-                                            child: Text(
-                                              address.name,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.black,
-                                              ),
-                                            ),
+                                          _Badge(
+                                            label: isNcr
+                                                ? "NCR Area"
+                                                : "Coming Soon",
+                                            color: isNcr
+                                                ? const Color(0xFF10B981)
+                                                : const Color(0xFF8B0000),
                                           ),
-                                          if (isNcr)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 3,
-                                              ),
-                                              margin: const EdgeInsets.only(right: 6),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF10B981).withOpacity(.12),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: const Text(
-                                                "NCR Area",
-                                                style: TextStyle(
-                                                  color: Color(0xFF10B981),
-                                                  fontSize: 10.5,
-                                                  fontWeight: FontWeight.w800,
-                                                ),
-                                              ),
-                                            )
-                                          else
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 3,
-                                              ),
-                                              margin: const EdgeInsets.only(right: 6),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF8B0000).withOpacity(.1),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: const Text(
-                                                "Coming Soon",
-                                                style: TextStyle(
-                                                  color: Color(0xFF8B0000),
-                                                  fontSize: 10.5,
-                                                  fontWeight: FontWeight.w800,
-                                                ),
-                                              ),
+                                          if (isSelected) ...[
+                                            const SizedBox(width: 6),
+                                            _Badge(
+                                              label: "✓ Selected",
+                                              color: const Color(0xFF10B981),
+                                              bordered: true,
                                             ),
-                                          if (isSelected)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 3,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF10B981).withOpacity(.12),
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(
-                                                  color: const Color(0xFF10B981).withOpacity(.3),
-                                                ),
-                                              ),
-                                              child: const Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(Icons.check_circle, size: 12, color: Color(0xFF10B981)),
-                                                  SizedBox(width: 4),
-                                                  Text(
-                                                    "Selected",
-                                                    style: TextStyle(
-                                                      color: Color(0xFF10B981),
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.w800,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                          ],
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
+
+                                      // Line 3: Phone
                                       Row(
                                         children: [
-                                          Icon(Icons.phone_outlined, size: 14, color: Colors.black.withOpacity(.4)),
-                                          const SizedBox(width: 6),
+                                          Icon(Icons.phone_outlined,
+                                              size: 13,
+                                              color:
+                                                  Colors.black.withOpacity(.4)),
+                                          const SizedBox(width: 5),
                                           Text(
                                             address.phone,
                                             style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.black.withOpacity(.6),
+                                              fontSize: 12.5,
+                                              color: Colors.black
+                                                  .withOpacity(.55),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      Text(
-                                        address.fullAddress,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black.withOpacity(.75),
-                                          height: 1.4,
-                                        ),
+
+                                      // Divider
+                                      Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: Colors.black.withOpacity(.07),
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // Line 4: House/Flat/Street
+                                      _AddressLine(
+                                        icon: Icons.home_outlined,
+                                        text: address.addressLine,
+                                      ),
+                                      const SizedBox(height: 4),
+
+                                      // Line 5: City, State
+                                      _AddressLine(
+                                        icon: Icons.location_city_outlined,
+                                        text:
+                                            '${address.city}, ${address.state}',
+                                      ),
+                                      const SizedBox(height: 4),
+
+                                      // Line 6: Pincode
+                                      _AddressLine(
+                                        icon: Icons.pin_drop_outlined,
+                                        text: address.pincode,
+                                        bold: true,
                                       ),
                                     ],
                                   ),
                                 ),
 
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
 
-                                // Delete button
+                                // ── Delete button ─────────────────────────
                                 GestureDetector(
-                                  onTap: () => _confirmDelete(context, addressCtrl, address),
+                                  onTap: () => _confirmDelete(
+                                    context,
+                                    addressCtrl,
+                                    address,
+                                  ),
                                   child: Container(
-                                    padding: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(7),
                                     decoration: BoxDecoration(
                                       color: Colors.red.withOpacity(.08),
                                       shape: BoxShape.circle,
@@ -412,7 +382,7 @@ class SelectAddressView extends StatelessWidget {
                                     child: const Icon(
                                       Icons.delete_outline_rounded,
                                       color: Colors.red,
-                                      size: 18,
+                                      size: 17,
                                     ),
                                   ),
                                 ),
@@ -427,7 +397,7 @@ class SelectAddressView extends StatelessWidget {
               }),
             ),
 
-            // "Add Other Address" Bottom Button
+            // ── Add Other Address bottom button ──────────────────────────────
             Padding(
               padding: const EdgeInsets.all(24),
               child: GestureDetector(
@@ -481,7 +451,11 @@ class SelectAddressView extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, AddressController ctrl, UserAddress address) {
+  void _confirmDelete(
+    BuildContext context,
+    AddressController ctrl,
+    UserAddress address,
+  ) {
     if (address.id == null) return;
     Get.dialog(
       AlertDialog(
@@ -490,11 +464,16 @@ class SelectAddressView extends StatelessWidget {
           "Delete Address?",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text("Are you sure you want to delete this saved address?"),
+        content: const Text(
+          "Are you sure you want to delete this saved address?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text("Cancel", style: TextStyle(color: Colors.black54)),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.black54),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -503,12 +482,89 @@ class SelectAddressView extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Small badge chip ──────────────────────────────────────────────────────────
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool bordered;
+
+  const _Badge({
+    required this.label,
+    required this.color,
+    this.bordered = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.12),
+        borderRadius: BorderRadius.circular(6),
+        border: bordered ? Border.all(color: color.withOpacity(.35)) : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+// ── One structured address row ────────────────────────────────────────────────
+class _AddressLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final bool bold;
+
+  const _AddressLine({
+    required this.icon,
+    required this.text,
+    this.bold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1.5),
+          child: Icon(
+            icon,
+            size: 13,
+            color: Colors.black.withOpacity(.38),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.black.withOpacity(bold ? .8 : .6),
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -735,7 +735,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    "Gallery • Drive • URL",
+                    "Gallery or Camera",
                     style: TextStyle(color: Colors.white),
                   ),
                 ],
