@@ -73,7 +73,11 @@ class PrivacyPolicyView extends StatelessWidget {
                           color: Color(0x1A8B0000),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.privacy_tip_rounded, color: Color(0xFF8B0000), size: 20),
+                        child: const Icon(
+                          Icons.privacy_tip_rounded,
+                          color: Color(0xFF8B0000),
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -98,7 +102,11 @@ class PrivacyPolicyView extends StatelessWidget {
                   const SizedBox(height: 10),
                   const Text(
                     "Kechi (\"we\", \"us\", or \"our\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, share, and protect your personal information when you use the Kechi mobile application, website, and services (\"Platform\").\n\nBy using Kechi, you agree to the collection and use of your information in accordance with this Privacy Policy. This Policy forms part of our Terms & Conditions.\n\nThis Privacy Policy is published in compliance with the Information Technology Act, 2000, the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011, and the Digital Personal Data Protection Act, 2023, as applicable.",
-                    style: TextStyle(fontSize: 12.5, color: Colors.black87, height: 1.45),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.black87,
+                      height: 1.45,
+                    ),
                   ),
                 ],
               ),
@@ -116,7 +124,7 @@ class PrivacyPolicyView extends StatelessWidget {
               number: "2",
               title: "What Data We Collect",
               content:
-                  "We collect the following categories of personal information:\n\na) Information You Provide Directly:\n• Full name\n• Delivery address (including PIN code)\n• Mobile phone number\n• Email address (if provided)\n• Order details (items, sizes, quantities)\n• Payment method and transaction references (not card/bank details — see Section 5)\n• WhatsApp messages sent to us for order confirmation or support\n• Photographs or other content uploaded for custom poster creation\n\nb) Information Collected Automatically:\n• Device type and operating system\n• IP address and approximate location (city-level only)\n\nc) Information From Third Parties:\n• Payment confirmation and transaction status from payment providers (e.g. Razorpay)\n• Delivery status and proof-of-delivery photographs from courier partners (e.g. Shadowfax, Bombax, Borzo)",
+                  "We collect the following categories of personal information:\n\na) Information You Provide Directly:\n• Full name\n• Delivery address (including PIN code)\n• Mobile phone number\n• Email address (if provided)\n• Order details (items, sizes, quantities)\n• Payment method and transaction references (not card/bank details — see Section 5)\n• WhatsApp messages sent to us for order confirmation or support\n• Photographs or other content uploaded for custom poster creation\n\nb) Information Collected Automatically:\n• Device type and operating system\n• IP address and approximate location (city-level only)\n\nc) Information From Third Parties:\n• Payment confirmation and transaction status from payment providers (e.g. Razorpay)\n• Delivery status and proof-of-delivery photographs from courier partners (e.g. Shadowfax)",
             ),
 
             _buildSection(
