@@ -30,6 +30,10 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   late RazorpayService _razorpayService;
   bool _isProcessing = false;
 
+  // Guard: prevent double order placement if Razorpay fires success
+  // spuriously when user returns from UPI app without paying
+  bool _orderFinalized = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,14 +53,19 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   }
 
   void _onRazorpaySuccess(PaymentSuccessResponse response) async {
+    // Guard: if already finalized (e.g. spurious duplicate callback), ignore
+    if (_orderFinalized) {
+      debugPrint('⚠️ Ignoring duplicate Razorpay success callback');
+      return;
+    }
+
     final methodLabel = _selectedMethod == 'UPI'
         ? 'UPI ($_selectedUpiApp)'
         : _selectedMethod == 'Card'
             ? 'Credit / Debit Card'
             : 'Net Banking ($_selectedBank)';
 
-    // Strict Backend Cryptographic Signature Verification
-    // An order is strictly created ONLY after the server verifies genuine bank clearance
+    // Strict: all three fields must be present for a real payment
     if (response.orderId == null || response.paymentId == null || response.signature == null) {
       if (mounted) setState(() => _isProcessing = false);
       Get.snackbar(
@@ -104,6 +113,27 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
 
   void _onRazorpayError(PaymentFailureResponse response) {
     if (mounted) setState(() => _isProcessing = false);
+
+    // Reset guard so user can retry
+    _orderFinalized = false;
+
+    // Error code 2 = user dismissed / pressed back from payment app
+    // Don't show scary error in that case
+    final code = response.code ?? 0;
+    if (code == Razorpay.PAYMENT_CANCELLED || code == 2) {
+      // User simply went back — show soft message
+      Get.snackbar(
+        'Payment Cancelled',
+        'You returned without completing the payment. No order was placed.',
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
     final cleanMsg = ApiService.cleanErrorMessage(
       response.message,
       defaultMessage: 'Payment was cancelled or could not be processed.',
@@ -144,6 +174,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     }
 
     setState(() => _isProcessing = true);
+    _orderFinalized = false; // Reset for fresh payment attempt
 
     // If Online Payment (UPI, Card, NetBanking), trigger Razorpay Checkout
     String userEmail = 'customer@gmail.com';
@@ -184,6 +215,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     String? razorpayPaymentId,
     String? razorpayOrderId,
   }) async {
+    // Prevent double execution
+    if (_orderFinalized) return;
+    _orderFinalized = true;
     final success = await widget.ctrl.placeOrder(
       paymentMethod: paymentMethod,
       paymentStatus: paymentStatus,
