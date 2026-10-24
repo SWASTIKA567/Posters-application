@@ -221,7 +221,7 @@ class SelectAddressView extends StatelessWidget {
                           onTap: () async {
                             if (!isNcr) {
                               Get.snackbar(
-                                '🚀 Delivery Coming Soon!',
+                                'Delivery Coming Soon',
                                 'We currently deliver only across the Delhi-NCR region. We are coming to ${address.city} soon!',
                                 backgroundColor: const Color(0xFF8B0000),
                                 colorText: Colors.white,

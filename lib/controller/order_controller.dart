@@ -252,7 +252,7 @@ class OrderController extends GetxController {
     final addr = deliveryAddress.value!;
     if (!isNcrRegion(state: addr.state, district: addr.city, pincode: addr.pincode)) {
       Get.snackbar(
-        '🚀 Delivery Coming Soon!',
+        'Delivery Coming Soon',
         'Delivery is currently available only across the Delhi-NCR region. We will be in ${addr.city} soon!',
         backgroundColor: const Color(0xFF8B0000),
         colorText: Colors.white,
@@ -330,7 +330,7 @@ class OrderController extends GetxController {
   }) {
     if (Get.isRegistered<NotificationController>()) {
       NotificationController.to.addNotification(
-        title: '🎉 Order Placed #$trackingCode',
+        title: 'Order Placed #$trackingCode',
         body: 'Your Kechi poster print order is confirmed & receipt sent to your Gmail!',
         type: 'order',
       );
@@ -368,7 +368,7 @@ class OrderController extends GetxController {
           orders.refresh();
         }
         Get.snackbar(
-          '🚫 Order Cancelled',
+          'Order Cancelled',
           'Your order has been cancelled successfully.',
           backgroundColor: Colors.red.shade700,
           colorText: Colors.white,
@@ -423,7 +423,7 @@ class OrderController extends GetxController {
         }
 
         Get.snackbar(
-          '✅ Replacement Requested',
+          'Replacement Requested',
           'Your defect report has been received. Our team will verify and dispatch a 100% free reprint.',
           backgroundColor: Colors.green.shade800,
           colorText: Colors.white,

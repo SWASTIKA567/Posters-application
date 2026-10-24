@@ -130,7 +130,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     final addr = widget.ctrl.deliveryAddress.value!;
     if (!isNcrRegion(state: addr.state, district: addr.city, pincode: addr.pincode)) {
       Get.snackbar(
-        '🚀 Delivery Coming Soon!',
+        'Delivery Coming Soon',
         'Delivery is currently available only across the Delhi-NCR region. We will arrive in ${addr.city} soon!',
         backgroundColor: const Color(0xFF8B0000),
         colorText: Colors.white,
@@ -202,7 +202,7 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       // Push Notification
       if (Get.isRegistered<NotificationController>()) {
         NotificationController.to.addNotification(
-          title: '🎉 Order Placed #$trackingCode',
+          title: 'Order Placed #$trackingCode',
           body: 'Your Kechi poster print order is confirmed & receipt sent to your Gmail!',
           type: 'order',
         );
