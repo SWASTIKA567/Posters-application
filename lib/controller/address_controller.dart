@@ -93,14 +93,18 @@ class AddressController extends GetxController {
             cityCtrl.text = district;
             stateCtrl.text = state;
 
-            final isNcr = isNcrRegion(state: state, district: district, pincode: pincode);
+            final isNcr = isNcrRegion(
+              state: state,
+              district: district,
+              pincode: pincode,
+            );
 
             if (isNcr) {
               isDeliverableInNcr.value = true;
               pincodeFeedback.value = 'Delivering to $district, NCR';
 
               Get.snackbar(
-                'Delivery Available',
+                ' NCR Delivery Available',
                 'We deliver across $district ($state)!',
                 backgroundColor: const Color(0xFF10B981),
                 colorText: Colors.white,
@@ -108,14 +112,17 @@ class AddressController extends GetxController {
                 snackPosition: SnackPosition.BOTTOM,
                 margin: const EdgeInsets.all(16),
                 borderRadius: 14,
-                icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+                icon: const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                ),
               );
             } else {
               isDeliverableInNcr.value = false;
               pincodeFeedback.value = 'Delivery coming soon to $district';
 
               Get.snackbar(
-                'Delivery Coming Soon',
+                '🚀 Delivery Coming Soon!',
                 'We currently deliver exclusively in Delhi-NCR. Coming soon to $district!',
                 backgroundColor: const Color(0xFF8B0000),
                 colorText: Colors.white,
@@ -123,7 +130,10 @@ class AddressController extends GetxController {
                 snackPosition: SnackPosition.BOTTOM,
                 margin: const EdgeInsets.all(16),
                 borderRadius: 14,
-                icon: const Icon(Icons.access_time_rounded, color: Colors.white),
+                icon: const Icon(
+                  Icons.access_time_rounded,
+                  color: Colors.white,
+                ),
               );
             }
             return;
@@ -152,17 +162,22 @@ class AddressController extends GetxController {
   }
 
   Future<void> saveAddress() async {
-    if (formKey.currentState == null || !formKey.currentState!.validate()) return;
+    if (formKey.currentState == null || !formKey.currentState!.validate())
+      return;
 
     final pincode = pincodeCtrl.text.trim();
     final district = cityCtrl.text.trim();
     final state = stateCtrl.text.trim();
 
-    final isNcr = isNcrRegion(state: state, district: district, pincode: pincode);
+    final isNcr = isNcrRegion(
+      state: state,
+      district: district,
+      pincode: pincode,
+    );
 
     if (!isNcr) {
       Get.snackbar(
-        'Delivery Coming Soon',
+        '🚀 Delivery Coming Soon!',
         'We currently deliver only across the whole region of Delhi-NCR. Service is coming soon to your location!',
         backgroundColor: const Color(0xFF8B0000),
         colorText: Colors.white,
@@ -222,7 +237,7 @@ class AddressController extends GetxController {
         Get.back();
 
         Get.snackbar(
-          'Address Saved',
+          '✅ Address Saved',
           'Your NCR delivery address has been added.',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,
@@ -234,7 +249,10 @@ class AddressController extends GetxController {
         isSaving.value = false;
         Get.snackbar(
           'Notice',
-          ApiService.cleanErrorMessage(res['message'], defaultMessage: 'Failed to save address.'),
+          ApiService.cleanErrorMessage(
+            res['message'],
+            defaultMessage: 'Failed to save address.',
+          ),
           backgroundColor: Colors.red.shade800,
           colorText: Colors.white,
         );
