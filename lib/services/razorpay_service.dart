@@ -87,7 +87,7 @@ class RazorpayService {
         } else if (lower.contains('bhim')) {
           options['upi_app'] = 'in.org.npci.upiapp';
         } else if (lower.contains('cred')) {
-          options['upi_app'] = 'com.cred.club';
+          options['upi_app'] = 'com.dreamplug.androidapp';
         }
       }
     } else if (paymentMethod == 'Card') {
