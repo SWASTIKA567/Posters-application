@@ -64,35 +64,38 @@ class OrdersView extends StatelessWidget {
   // ── Status Color & Icon ────────────────────────────────────────────────────
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'pending':    return const Color(0xFFF59E0B);
-      case 'confirmed':  return const Color(0xFF3B82F6);
-      case 'processing': return const Color(0xFF8B5CF6);
-      case 'shipped':    return const Color(0xFF06B6D4);
-      case 'delivered':  return const Color(0xFF10B981);
-      case 'cancelled':  return const Color(0xFFEF4444);
-      default:           return Colors.grey;
+      case 'pending':          return const Color(0xFFF59E0B);
+      case 'confirmed':        return const Color(0xFF3B82F6);
+      case 'processing':       return const Color(0xFF8B5CF6);
+      case 'shipped':          return const Color(0xFF06B6D4);
+      case 'out for delivery': return const Color(0xFFF97316);
+      case 'delivered':        return const Color(0xFF10B981);
+      case 'cancelled':        return const Color(0xFFEF4444);
+      default:                 return Colors.grey;
     }
   }
 
   IconData _statusIcon(String status) {
     switch (status.toLowerCase()) {
-      case 'pending':    return Icons.hourglass_empty_rounded;
-      case 'confirmed':  return Icons.check_circle_outline_rounded;
-      case 'processing': return Icons.settings_outlined;
-      case 'shipped':    return Icons.local_shipping_outlined;
-      case 'delivered':  return Icons.inventory_2_outlined;
-      case 'cancelled':  return Icons.cancel_outlined;
-      default:           return Icons.info_outline;
+      case 'pending':          return Icons.hourglass_empty_rounded;
+      case 'confirmed':        return Icons.check_circle_outline_rounded;
+      case 'processing':       return Icons.settings_outlined;
+      case 'shipped':          return Icons.local_shipping_outlined;
+      case 'out for delivery': return Icons.two_wheeler_rounded;
+      case 'delivered':        return Icons.inventory_2_outlined;
+      case 'cancelled':        return Icons.cancel_outlined;
+      default:                 return Icons.info_outline;
     }
   }
 
   // ── Timeline Steps ─────────────────────────────────────────────────────────
   static const _timelineSteps = [
-    {'label': 'Pending',    'icon': Icons.hourglass_empty_rounded},
-    {'label': 'Confirmed',  'icon': Icons.check_circle_outline_rounded},
-    {'label': 'Processing', 'icon': Icons.settings_outlined},
-    {'label': 'Shipped',    'icon': Icons.local_shipping_outlined},
-    {'label': 'Delivered',  'icon': Icons.inventory_2_outlined},
+    {'label': 'Pending',          'icon': Icons.hourglass_empty_rounded},
+    {'label': 'Confirmed',        'icon': Icons.check_circle_outline_rounded},
+    {'label': 'Processing',       'icon': Icons.settings_outlined},
+    {'label': 'Shipped',          'icon': Icons.local_shipping_outlined},
+    {'label': 'Out for Delivery', 'icon': Icons.two_wheeler_rounded},
+    {'label': 'Delivered',        'icon': Icons.inventory_2_outlined},
   ];
 
   Widget _buildStatusTimeline(String currentStatus) {

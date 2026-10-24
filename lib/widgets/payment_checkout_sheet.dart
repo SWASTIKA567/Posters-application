@@ -11,6 +11,7 @@ import '../services/razorpay_service.dart';
 import 'order_tracking_screen.dart';
 import '../views/privacy_policy_view.dart';
 import '../views/terms_conditions_view.dart';
+import '../utils/ncr_helper.dart';
 
 class PaymentCheckoutSheet extends StatefulWidget {
   final OrderController ctrl;
@@ -126,6 +127,22 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
       return;
     }
 
+    final addr = widget.ctrl.deliveryAddress.value!;
+    if (!isNcrRegion(state: addr.state, district: addr.city, pincode: addr.pincode)) {
+      Get.snackbar(
+        '🚀 Delivery Coming Soon!',
+        'Delivery is currently available only across the Delhi-NCR region. We will arrive in ${addr.city} soon!',
+        backgroundColor: const Color(0xFF8B0000),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.access_time_rounded, color: Colors.white),
+      );
+      return;
+    }
+
     setState(() => _isProcessing = true);
 
     // If Online Payment (UPI, Card, NetBanking), trigger Razorpay Checkout
@@ -133,8 +150,6 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
     if (Get.isRegistered<ProfileController>() && ProfileController.to.emailCtrl.text.isNotEmpty) {
       userEmail = ProfileController.to.emailCtrl.text.trim();
     }
-
-    final addr = widget.ctrl.deliveryAddress.value!;
 
     // Create server Razorpay Order before checkout
     String? serverOrderId;

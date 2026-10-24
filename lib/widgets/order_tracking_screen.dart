@@ -459,7 +459,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     final sLower = status.toLowerCase();
     if (sLower == 'confirmed') currentStepIndex = 1;
     if (sLower == 'processing') currentStepIndex = 2;
-    if (sLower == 'shipped') currentStepIndex = 3;
+    if (sLower == 'shipped') currentStepIndex = 2;
+    if (sLower == 'out for delivery') currentStepIndex = 3;
     if (sLower == 'delivered') currentStepIndex = 4;
     if (sLower == 'cancelled') currentStepIndex = -1;
 

@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/email_service.dart';
 import '../controller/notification_controller.dart';
 import '../controller/profile_controller.dart';
+import '../utils/ncr_helper.dart';
 
 class CartItem {
   final String? docId;
@@ -248,9 +249,24 @@ class OrderController extends GetxController {
       return false;
     }
 
+    final addr = deliveryAddress.value!;
+    if (!isNcrRegion(state: addr.state, district: addr.city, pincode: addr.pincode)) {
+      Get.snackbar(
+        '🚀 Delivery Coming Soon!',
+        'Delivery is currently available only across the Delhi-NCR region. We will be in ${addr.city} soon!',
+        backgroundColor: const Color(0xFF8B0000),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.access_time_rounded, color: Colors.white),
+      );
+      return false;
+    }
+
     isPlacingOrder.value = true;
     try {
-      final addr = deliveryAddress.value!;
       final trackingCode = 'KCH-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
       final res = await ApiService.post('/orders', {

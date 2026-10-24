@@ -4,6 +4,7 @@ import '../themes/app_colors.dart';
 import '../controller/order_controller.dart';
 import '../controller/address_controller.dart';
 import '../controller/profile_controller.dart';
+import '../utils/ncr_helper.dart';
 import 'address_view.dart';
 
 class SelectAddressView extends StatelessWidget {
@@ -186,6 +187,11 @@ class SelectAddressView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final address = addresses[index];
                     final isSelected = selectedAddress?.id == address.id;
+                    final isNcr = isNcrRegion(
+                      state: address.state,
+                      district: address.city,
+                      pincode: address.pincode,
+                    );
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -213,6 +219,21 @@ class SelectAddressView extends StatelessWidget {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
                           onTap: () async {
+                            if (!isNcr) {
+                              Get.snackbar(
+                                '🚀 Delivery Coming Soon!',
+                                'We currently deliver only across the Delhi-NCR region. We are coming to ${address.city} soon!',
+                                backgroundColor: const Color(0xFF8B0000),
+                                colorText: Colors.white,
+                                duration: const Duration(seconds: 4),
+                                snackPosition: SnackPosition.BOTTOM,
+                                margin: const EdgeInsets.all(16),
+                                borderRadius: 14,
+                                icon: const Icon(Icons.access_time_rounded, color: Colors.white),
+                              );
+                              return;
+                            }
+
                             await orderCtrl.setAddress(address);
                             if (Get.isRegistered<ProfileController>()) {
                               ProfileController.to.setSelectedAddress(address);
@@ -278,6 +299,46 @@ class SelectAddressView extends StatelessWidget {
                                               ),
                                             ),
                                           ),
+                                          if (isNcr)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 3,
+                                              ),
+                                              margin: const EdgeInsets.only(right: 6),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF10B981).withOpacity(.12),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                "NCR Area",
+                                                style: TextStyle(
+                                                  color: Color(0xFF10B981),
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 3,
+                                              ),
+                                              margin: const EdgeInsets.only(right: 6),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF8B0000).withOpacity(.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                "Coming Soon",
+                                                style: TextStyle(
+                                                  color: Color(0xFF8B0000),
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
                                           if (isSelected)
                                             Container(
                                               padding: const EdgeInsets.symmetric(
