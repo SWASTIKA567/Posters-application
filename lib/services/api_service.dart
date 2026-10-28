@@ -230,7 +230,7 @@ class ApiService {
   }
 
   // ── Multipart File Upload ───────────────────────────────────────────────────
-  static Future<String?> uploadImage(File imageFile) async {
+  static Future<String?> uploadImage(File imageFile, {bool isPrivate = false}) async {
     try {
       if (_authToken == null || _authToken!.isEmpty) {
         await loadSavedToken();
@@ -243,6 +243,10 @@ class ApiService {
 
       if (_authToken != null && _authToken!.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $_authToken';
+      }
+
+      if (isPrivate) {
+        request.fields['isPrivate'] = 'true';
       }
 
       final pathLower = imageFile.path.toLowerCase();

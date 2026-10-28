@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import '../controller/home_controller.dart';
 import '../services/api_service.dart';
 import '../themes/app_colors.dart';
@@ -29,6 +31,10 @@ class _AdminPostersViewState extends State<AdminPostersView> {
   bool _isPublishing = false;
   String _uploadStatus = '';
   String _catalogFilter = 'all'; // 'all', 'explore', 'trending', 'none'
+
+  // ── Customer Print Orders State ─────────────────────────────────────────────
+  List<dynamic> _customerOrders = [];
+  bool _isLoadingOrders = false;
 
   final List<Map<String, String>> _sectionOptions = [
     {
@@ -66,6 +72,25 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         orElse: () => {'title': 'General'},
       );
       _selectedCategory = firstCat['title'];
+    }
+    _fetchCustomerOrders();
+  }
+
+  Future<void> _fetchCustomerOrders() async {
+    setState(() => _isLoadingOrders = true);
+    try {
+      final res = await ApiService.get('/orders/admin/all');
+      if (res != null && res['success'] == true) {
+        setState(() {
+          _customerOrders = (res['orders'] as List<dynamic>? ?? []);
+          _isLoadingOrders = false;
+        });
+      } else {
+        setState(() => _isLoadingOrders = false);
+      }
+    } catch (e) {
+      debugPrint('Admin fetch orders notice: $e');
+      setState(() => _isLoadingOrders = false);
     }
   }
 
@@ -625,77 +650,778 @@ class _AdminPostersViewState extends State<AdminPostersView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F7FA),
-      appBar: AppBar(
-        title: const Text(
-          'Manage Posters (Admin)',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        foregroundColor: Colors.black87,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh Posters',
-            onPressed: () => homeCtrl.fetchBackendPosters(),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF7F7FA),
+        appBar: AppBar(
+          title: const Text(
+            'Admin Dashboard',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          backgroundColor: Colors.white,
+          elevation: 0.5,
+          foregroundColor: Colors.black87,
+          bottom: const TabBar(
+            labelColor: AppColors.primary,
+            unselectedLabelColor: Colors.black54,
+            indicatorColor: AppColors.primary,
+            indicatorWeight: 3,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            tabs: [
+              Tab(
+                icon: Icon(Icons.print_rounded, size: 20),
+                text: 'Customer Prints',
+              ),
+              Tab(
+                icon: Icon(Icons.inventory_2_rounded, size: 20),
+                text: 'Store Posters',
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: () {
+                homeCtrl.fetchBackendPosters();
+                _fetchCustomerOrders();
+              },
+            ),
+          ],
+        ),
+        body: TabBarView(
           children: [
-            // ── ADD POSTER CARD ─────────────────────────────────────────
-            _buildAddPosterCard(),
-
-            const SizedBox(height: 24),
-
-            // ── EXISTING CATALOG / MANAGE ───────────────────────────────
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Live Catalog Posters',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ),
-                Obx(() => Text(
-                  '${homeCtrl.allPosters.length} Total',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                )),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Select section (Explore Collection, Trending, Both) for any poster.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-
-            // ── Filter Chips ────────────────────────────────────────────
-            _buildCatalogFilterChips(),
-
-            const SizedBox(height: 12),
-
-            _buildLivePostersList(),
-
-            const SizedBox(height: 40),
+            _buildCustomerPrintsTab(),
+            _buildStoreCatalogTab(),
           ],
         ),
       ),
     );
+  }
+
+  // ── STORE CATALOG TAB ───────────────────────────────────────────────────────
+  Widget _buildStoreCatalogTab() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── ADD POSTER CARD ─────────────────────────────────────────
+          _buildAddPosterCard(),
+
+          const SizedBox(height: 24),
+
+          // ── EXISTING CATALOG / MANAGE ───────────────────────────────
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Live Catalog Posters',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+              ),
+              Obx(() => Text(
+                '${homeCtrl.allPosters.length} Total',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              )),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Select section (Explore Collection, Trending, Both) for any poster.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Filter Chips ────────────────────────────────────────────
+          _buildCatalogFilterChips(),
+
+          const SizedBox(height: 12),
+
+          _buildLivePostersList(),
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  // ── CUSTOMER PRINTS TAB ─────────────────────────────────────────────────────
+  Widget _buildCustomerPrintsTab() {
+    if (_isLoadingOrders) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.primary),
+            SizedBox(height: 14),
+            Text(
+              'Loading customer print uploads...',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_customerOrders.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _fetchCustomerOrders,
+        color: AppColors.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+          children: [
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.print_disabled_rounded,
+                  size: 48,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'No Customer Posters Yet',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'When customers upload posters to print, they will securely appear here with who uploaded it, date & time, and private print download links.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.4),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _fetchCustomerOrders,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Refresh Orders'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchCustomerOrders,
+      color: AppColors.primary,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        itemCount: _customerOrders.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          final order = _customerOrders[index] as Map<String, dynamic>;
+          return _buildCustomerOrderCard(order);
+        },
+      ),
+    );
+  }
+
+  Widget _buildCustomerOrderCard(Map<String, dynamic> order) {
+    final customerName = (order['customerName'] ?? 'Customer').toString();
+    final customerEmail = (order['customerEmail'] ?? 'No email').toString();
+    final customerPhone = (order['customerPhone'] ?? '').toString();
+    final status = (order['status'] ?? 'Pending').toString();
+    final createdAt = order['createdAt'];
+    final items = (order['items'] as List<dynamic>? ?? []);
+    final orderId = (order['_id'] ?? '').toString();
+    final shortId = orderId.length > 8 ? orderId.substring(orderId.length - 8).toUpperCase() : orderId;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── HEADER: User info & Date ────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primary.withOpacity(0.12),
+                  child: Text(
+                    customerName.isNotEmpty ? customerName[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              customerName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Color(0xFF111827),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _getStatusBadgeColor(status).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _getStatusBadgeColor(status),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        customerEmail + (customerPhone.isNotEmpty ? ' • $customerPhone' : ''),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.access_time_rounded, size: 13, color: Colors.grey.shade500),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDateTime(createdAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Order #$shortId',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── POSTER ITEMS ────────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Uploads (${items.length} ${items.length == 1 ? 'Poster' : 'Posters'})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ...items.map((item) {
+                  final itemMap = item as Map<String, dynamic>;
+                  final imgUrl = (itemMap['imageUrl'] ?? '').toString();
+                  final size = (itemMap['size'] ?? 'A4').toString();
+                  final qty = itemMap['quantity'] ?? 1;
+                  final price = itemMap['totalPrice'] ?? 0;
+                  final printDownloadUrl = (itemMap['printDownloadUrl'] ?? imgUrl).toString();
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 60,
+                            height: 75,
+                            color: Colors.grey.shade200,
+                            child: imgUrl.isNotEmpty
+                                ? Image.network(
+                                    imgUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.image_not_supported_rounded,
+                                      color: Colors.grey,
+                                      size: 24,
+                                    ),
+                                  )
+                                : const Icon(Icons.image_outlined, color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'Size $size',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Qty: $qty',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '₹$price',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () => _showPrintDialog(itemMap, order),
+                                    icon: const Icon(Icons.fullscreen_rounded, size: 14),
+                                    label: const Text('View', style: TextStyle(fontSize: 12)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF111827),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton.icon(
+                                    onPressed: () => _downloadImageToDevice(
+                                      printDownloadUrl,
+                                      'poster_${customerName}_${size}_$qty',
+                                    ),
+                                    icon: const Icon(Icons.file_download_rounded, size: 14),
+                                    label: const Text('Download', style: TextStyle(fontSize: 12)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF10B981),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(text: printDownloadUrl));
+                                      Get.snackbar(
+                                        'Link Copied',
+                                        'Private print URL copied! Valid for 24 hours.',
+                                        backgroundColor: const Color(0xFF10B981),
+                                        colorText: Colors.white,
+                                        duration: const Duration(seconds: 3),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.copy_rounded, size: 13),
+                                    label: const Text('Link', style: TextStyle(fontSize: 11)),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black87,
+                                      side: BorderSide(color: Colors.grey.shade300),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrintDialog(Map<String, dynamic> item, Map<String, dynamic> order) {
+    final imgUrl = (item['imageUrl'] ?? '').toString();
+    final printDownloadUrl = (item['printDownloadUrl'] ?? imgUrl).toString();
+    final customerName = (order['customerName'] ?? 'Customer').toString();
+    final customerEmail = (order['customerEmail'] ?? '').toString();
+    final size = (item['size'] ?? 'A4').toString();
+    final qty = item['quantity'] ?? 1;
+    final createdAt = _formatDateTime(order['createdAt']);
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480),
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.print_rounded, color: AppColors.primary, size: 22),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Customer Print Details',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => Get.back(),
+                  ),
+                ],
+              ),
+              const Divider(height: 20),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    _printInfoRow('Uploaded By:', customerName),
+                    const SizedBox(height: 4),
+                    _printInfoRow('Email:', customerEmail),
+                    const SizedBox(height: 4),
+                    _printInfoRow('Uploaded At:', createdAt),
+                    const SizedBox(height: 4),
+                    _printInfoRow('Poster Size:', '$size ($qty ${qty == 1 ? 'Copy' : 'Copies'})'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  height: 260,
+                  width: double.infinity,
+                  color: Colors.black12,
+                  child: InteractiveViewer(
+                    minScale: 1.0,
+                    maxScale: 4.0,
+                    child: Image.network(
+                      imgUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Text('Unable to load preview'),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Center(
+                child: Text(
+                  'Pinch or double tap to zoom in and check print quality',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Get.back();
+                        _downloadImageToDevice(
+                          printDownloadUrl,
+                          'poster_${customerName}_${size}_$qty',
+                        );
+                      },
+                      icon: const Icon(Icons.file_download_rounded, size: 16),
+                      label: const Text('Download Image'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: printDownloadUrl));
+                        Get.back();
+                        Get.snackbar(
+                          'Signed URL Copied',
+                          'Private Cloudinary link copied! Send to printing shop.',
+                          backgroundColor: const Color(0xFF10B981),
+                          colorText: Colors.white,
+                        );
+                      },
+                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      label: const Text('Copy Link'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadImageToDevice(String url, String fileName) async {
+    try {
+      Get.snackbar(
+        'Downloading Poster',
+        'Fetching original print file...',
+        backgroundColor: const Color(0xFF1E293B),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        throw Exception('Download failed with status ${response.statusCode}');
+      }
+
+      Directory? targetDir;
+      if (Platform.isAndroid) {
+        final downloadDir = Directory('/storage/emulated/0/Download');
+        if (downloadDir.existsSync()) {
+          targetDir = downloadDir;
+        } else {
+          targetDir = Directory('/storage/emulated/0/Pictures');
+        }
+      } else if (Platform.isWindows) {
+        final userProfile = Platform.environment['USERPROFILE'];
+        if (userProfile != null) {
+          targetDir = Directory('$userProfile\\Downloads');
+        }
+      } else if (Platform.isMacOS || Platform.isLinux) {
+        final home = Platform.environment['HOME'];
+        if (home != null) {
+          targetDir = Directory('$home/Downloads');
+        }
+      }
+
+      if (targetDir != null && targetDir.existsSync()) {
+        final safeName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9_\-\.]'), '_');
+        final file = File('${targetDir.path}${Platform.pathSeparator}$safeName.jpg');
+        await file.writeAsBytes(response.bodyBytes);
+
+        Get.snackbar(
+          '🎉 Downloaded Successfully',
+          'Poster saved to Downloads: ${file.path.split(Platform.pathSeparator).last}',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+      } else {
+        Clipboard.setData(ClipboardData(text: url));
+        Get.snackbar(
+          'Print Link Ready',
+          'Direct print link copied to clipboard!',
+          backgroundColor: const Color(0xFF3B82F6),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Clipboard.setData(ClipboardData(text: url));
+      Get.snackbar(
+        'Link Ready',
+        'Direct download link copied to clipboard! (Status: $e)',
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Widget _printInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getStatusBadgeColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return const Color(0xFFF59E0B);
+      case 'confirmed':
+        return const Color(0xFF3B82F6);
+      case 'processing':
+        return const Color(0xFF8B5CF6);
+      case 'shipped':
+        return const Color(0xFF06B6D4);
+      case 'delivered':
+        return const Color(0xFF10B981);
+      case 'cancelled':
+        return const Color(0xFFEF4444);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDateTime(dynamic rawDate) {
+    if (rawDate == null) return 'Recent';
+    try {
+      final dt = DateTime.parse(rawDate.toString()).toLocal();
+      final months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = months[dt.month - 1];
+      final year = dt.year;
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      final hour = (dt.hour % 12 == 0 ? 12 : dt.hour % 12).toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day $month $year, $hour:$minute $period';
+    } catch (_) {
+      return 'Recent';
+    }
   }
 
   Widget _buildCatalogFilterChips() {

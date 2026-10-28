@@ -74,7 +74,7 @@ class UploadController extends GetxController {
       isUploading.value = true;
       uploadProgress.value = 0.5;
 
-      final url = await ApiService.uploadImage(image);
+      final url = await ApiService.uploadImage(image, isPrivate: true);
 
       uploadProgress.value = 1.0;
       isUploading.value = false;
