@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +29,10 @@ class AddressController extends GetxController {
   final Rx<LatLng> selectedLocation = const LatLng(28.6139, 77.2090).obs; // New Delhi Connaught Place
   final RxBool isDetectingLocation = false.obs;
   final RxBool isReverseGeocoding = false.obs;
+  final RxBool isGeocodingAddress = false.obs;
+  final RxString mapVerificationStatus = ''.obs;
   final RxBool showMap = true.obs;
+  Timer? _addressDebounce;
 
   // ── Phone Double-Entry Confirmation State ─────────────────────────────────
   final RxBool doPhonesMatch = false.obs;
@@ -49,6 +53,7 @@ class AddressController extends GetxController {
 
   @override
   void onClose() {
+    _addressDebounce?.cancel();
     nameCtrl.dispose();
     phoneCtrl.dispose();
     confirmPhoneCtrl.dispose();
@@ -241,6 +246,127 @@ class AddressController extends GetxController {
     reverseGeocode(position.latitude, position.longitude);
   }
 
+  void onAddressFieldChanged(String val) {
+    _addressDebounce?.cancel();
+    if (val.trim().length >= 4) {
+      _addressDebounce = Timer(const Duration(milliseconds: 1400), () {
+        locateAddressOnMap(showNotification: false);
+      });
+    }
+  }
+
+  Future<void> locateAddressOnMap({bool showNotification = false}) async {
+    final street = streetCtrl.text.trim();
+    final house = houseNoCtrl.text.trim();
+    final city = cityCtrl.text.trim();
+    final state = stateCtrl.text.trim();
+    final pincode = pincodeCtrl.text.trim();
+
+    final queryParts = [house, street, city, state, pincode, 'India']
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    if (queryParts.length <= 1) {
+      if (showNotification) {
+        Get.snackbar(
+          'Address Info Needed',
+          'Please enter Street / Area or PIN code to locate on map.',
+          backgroundColor: Colors.black87,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 14,
+        );
+      }
+      return;
+    }
+
+    isGeocodingAddress.value = true;
+    mapVerificationStatus.value = 'Locating on map...';
+
+    try {
+      final query = queryParts.join(', ');
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}&format=json&addressdetails=1&limit=1',
+      );
+      final response = await http.get(
+        url,
+        headers: {'User-Agent': 'KechiPosterApp/1.0 (com.kechi.poster)'},
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> results = jsonDecode(response.body);
+        if (results.isNotEmpty) {
+          final first = results[0];
+          final lat = double.tryParse(first['lat']?.toString() ?? '');
+          final lon = double.tryParse(first['lon']?.toString() ?? '');
+
+          if (lat != null && lon != null) {
+            final target = LatLng(lat, lon);
+            selectedLocation.value = target;
+            try {
+              mapController.move(target, 16.0);
+            } catch (_) {}
+
+            mapVerificationStatus.value = '📍 Address verified & pinned on map';
+            if (showNotification) {
+              Get.snackbar(
+                '📍 Map Pin Updated',
+                'Located address on map: ${first['display_name'] ?? ''}',
+                backgroundColor: const Color(0xFF10B981),
+                colorText: Colors.white,
+                duration: const Duration(seconds: 3),
+                snackPosition: SnackPosition.BOTTOM,
+                margin: const EdgeInsets.all(16),
+                borderRadius: 14,
+                icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+              );
+            }
+            return;
+          }
+        }
+      }
+
+      // Secondary search if full address didn't pinpoint:
+      if (pincode.isNotEmpty || city.isNotEmpty) {
+        final fallbackQuery = [street, city, pincode, 'NCR, India']
+            .where((p) => p.isNotEmpty)
+            .join(', ');
+        final fbUrl = Uri.parse(
+          'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(fallbackQuery)}&format=json&limit=1',
+        );
+        final fbRes = await http.get(
+          fbUrl,
+          headers: {'User-Agent': 'KechiPosterApp/1.0 (com.kechi.poster)'},
+        ).timeout(const Duration(seconds: 6));
+
+        if (fbRes.statusCode == 200) {
+          final List<dynamic> fbList = jsonDecode(fbRes.body);
+          if (fbList.isNotEmpty) {
+            final lat = double.tryParse(fbList[0]['lat']?.toString() ?? '');
+            final lon = double.tryParse(fbList[0]['lon']?.toString() ?? '');
+            if (lat != null && lon != null) {
+              final target = LatLng(lat, lon);
+              selectedLocation.value = target;
+              try {
+                mapController.move(target, 15.0);
+              } catch (_) {}
+              mapVerificationStatus.value = '📍 Area located on map';
+              return;
+            }
+          }
+        }
+      }
+
+      mapVerificationStatus.value = 'Could not pinpoint exact address on map';
+    } catch (e) {
+      debugPrint('Locate address error: $e');
+      mapVerificationStatus.value = '';
+    } finally {
+      isGeocodingAddress.value = false;
+    }
+  }
+
   void onPhoneChanged(String val) {
     _checkPhonesMatch();
   }
@@ -270,6 +396,7 @@ class AddressController extends GetxController {
   }
 
   void clearFields() {
+    _addressDebounce?.cancel();
     nameCtrl.clear();
     phoneCtrl.clear();
     confirmPhoneCtrl.clear();
@@ -280,6 +407,8 @@ class AddressController extends GetxController {
     cityCtrl.clear();
     stateCtrl.clear();
     pincodeCtrl.clear();
+    mapVerificationStatus.value = '';
+    isGeocodingAddress.value = false;
     isDeliverableInNcr.value = null;
     pincodeFeedback.value = '';
     _lastFetchedPincode = '';

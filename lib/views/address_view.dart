@@ -621,20 +621,119 @@ class AddressView extends StatelessWidget {
                           label: "Flat / House No. / Building (Required)",
                           hint: "Flat no., House no., Building / Apartment name",
                           icon: Icons.apartment_rounded,
+                          onChanged: ctrl.onAddressFieldChanged,
                           validator: (v) => (v == null || v.trim().isEmpty)
                               ? 'Please enter Flat / House / Building no.'
                               : null,
                         ),
                         const SizedBox(height: 16),
-                        _FormField(
-                          controller: ctrl.streetCtrl,
-                          label: "Street / Road / Area (Required)",
-                          hint: "Street name, Road, Area, Colony or Landmark",
-                          icon: Icons.add_road_rounded,
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Please enter Street, Road, Area or Landmark'
-                              : null,
-                        ),
+                        Obx(() {
+                          final isLocating = ctrl.isGeocodingAddress.value;
+                          Widget suffix;
+                          if (isLocating) {
+                            suffix = const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            );
+                          } else {
+                            suffix = IconButton(
+                              icon: const Icon(
+                                Icons.pin_drop_rounded,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                              tooltip: "Verify & Locate on Map",
+                              onPressed: () => ctrl.locateAddressOnMap(
+                                showNotification: true,
+                              ),
+                            );
+                          }
+
+                          return _FormField(
+                            controller: ctrl.streetCtrl,
+                            label: "Street / Road / Area (Required)",
+                            hint: "Street name, Road, Area, Colony or Landmark",
+                            icon: Icons.add_road_rounded,
+                            suffixIcon: suffix,
+                            onChanged: ctrl.onAddressFieldChanged,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Please enter Street, Road, Area or Landmark'
+                                : null,
+                          );
+                        }),
+
+                        // Map Verification Live Status Banner
+                        Obx(() {
+                          final status = ctrl.mapVerificationStatus.value;
+                          final isLocating = ctrl.isGeocodingAddress.value;
+                          if (status.isEmpty && !isLocating) {
+                            return const SizedBox.shrink();
+                          }
+
+                          final isSuccess = status.contains('verified') ||
+                              status.contains('located');
+
+                          return Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSuccess
+                                  ? const Color(0xFF10B981).withOpacity(0.1)
+                                  : Colors.blue.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSuccess
+                                    ? const Color(0xFF10B981).withOpacity(0.3)
+                                    : Colors.blue.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isSuccess
+                                      ? Icons.location_on_rounded
+                                      : Icons.search_rounded,
+                                  size: 16,
+                                  color: isSuccess
+                                      ? const Color(0xFF047857)
+                                      : Colors.blue.shade700,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    status,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isSuccess
+                                          ? const Color(0xFF047857)
+                                          : Colors.blue.shade900,
+                                    ),
+                                  ),
+                                ),
+                                if (isSuccess)
+                                  const Text(
+                                    "Map Pinned 📍",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF047857),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 16),
 
                         // Auto-populated City / District & State
