@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/email_service.dart';
 import '../services/razorpay_service.dart';
 import 'order_tracking_screen.dart';
+import 'phone_verification_sheet.dart';
 import '../views/privacy_policy_view.dart';
 import '../views/terms_conditions_view.dart';
 import '../utils/ncr_helper.dart';
@@ -33,6 +34,9 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
   // Guard: prevent double order placement if Razorpay fires success
   // spuriously when user returns from UPI app without paying
   bool _orderFinalized = false;
+
+  // Session-cached verified phone number
+  static String? _verifiedPhoneNumber;
 
   @override
   void initState() {
@@ -171,6 +175,20 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
         icon: const Icon(Icons.access_time_rounded, color: Colors.white),
       );
       return;
+    }
+
+    // Verify Mobile Number via Firebase SMS OTP if not yet verified
+    final digits = addr.phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (_verifiedPhoneNumber != digits) {
+      final isVerified = await PhoneVerificationSheet.show(
+        context: context,
+        phoneNumber: addr.phone,
+      );
+      if (!isVerified) {
+        return; // User cancelled or failed phone verification
+      }
+      _verifiedPhoneNumber = digits;
+      if (mounted) setState(() {});
     }
 
     setState(() => _isProcessing = true);
@@ -369,7 +387,49 @@ class _PaymentCheckoutSheetState extends State<PaymentCheckoutSheet> {
           if (_selectedMethod == 'Card') _buildCardSection(),
           if (_selectedMethod == 'NetBanking') _buildNetBankingSection(),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
+
+          // Mobile Verification Status Pill
+          if (widget.ctrl.deliveryAddress.value != null) ...[
+            Builder(builder: (context) {
+              final addr = widget.ctrl.deliveryAddress.value!;
+              final digits = addr.phone.replaceAll(RegExp(r'[^0-9]'), '');
+              final isVerified = _verifiedPhoneNumber == digits && digits.isNotEmpty;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isVerified ? const Color(0xFF10B981).withValues(alpha: 0.08) : Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isVerified ? const Color(0xFF10B981).withValues(alpha: 0.3) : Colors.amber.shade200,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isVerified ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                      size: 16,
+                      color: isVerified ? const Color(0xFF10B981) : Colors.amber.shade800,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        isVerified
+                            ? 'Delivery phone (+91 $digits) is verified'
+                            : 'Phone (+91 $digits) will be verified via SMS on Pay',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isVerified ? const Color(0xFF047857) : Colors.amber.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
 
           // Pay Button
           GestureDetector(
