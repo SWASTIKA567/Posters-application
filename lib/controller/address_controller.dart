@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -17,6 +15,7 @@ class AddressController extends GetxController {
 
   final nameCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
+  final confirmPhoneCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
   final cityCtrl = TextEditingController();
   final stateCtrl = TextEditingController();
@@ -29,20 +28,8 @@ class AddressController extends GetxController {
   final RxBool isReverseGeocoding = false.obs;
   final RxBool showMap = true.obs;
 
-  // ── Phone OTP Verification State ───────────────────────────────────────────
-  final RxBool isPhoneVerified = false.obs;
-  final RxBool isSendingPhoneOtp = false.obs;
-  final RxBool isVerifyingPhoneOtp = false.obs;
-  final RxBool isOtpSent = false.obs;
-  final RxString phoneVerificationError = ''.obs;
-  final RxInt otpCountdown = 30.obs;
-  final RxBool canResendOtp = false.obs;
-  final otpController = TextEditingController();
-
-  String? _verificationId;
-  int? _resendToken;
-  Timer? _countdownTimer;
-  String _verifiedPhoneDigits = '';
+  // ── Phone Double-Entry Confirmation State ─────────────────────────────────
+  final RxBool doPhonesMatch = false.obs;
 
   final formKey = GlobalKey<FormState>();
   final RxBool isSaving = false.obs;
@@ -60,14 +47,13 @@ class AddressController extends GetxController {
 
   @override
   void onClose() {
-    _countdownTimer?.cancel();
     nameCtrl.dispose();
     phoneCtrl.dispose();
+    confirmPhoneCtrl.dispose();
     addressCtrl.dispose();
     cityCtrl.dispose();
     stateCtrl.dispose();
     pincodeCtrl.dispose();
-    otpController.dispose();
     super.onClose();
   }
 
@@ -241,142 +227,17 @@ class AddressController extends GetxController {
   }
 
   void onPhoneChanged(String val) {
-    final digits = val.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits != _verifiedPhoneDigits) {
-      isPhoneVerified.value = false;
-      isOtpSent.value = false;
-      phoneVerificationError.value = '';
-    }
+    _checkPhonesMatch();
   }
 
-  void _startOtpTimer() {
-    _countdownTimer?.cancel();
-    otpCountdown.value = 30;
-    canResendOtp.value = false;
-
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (otpCountdown.value > 1) {
-        otpCountdown.value--;
-      } else {
-        _countdownTimer?.cancel();
-        otpCountdown.value = 0;
-        canResendOtp.value = true;
-      }
-    });
+  void onConfirmPhoneChanged(String val) {
+    _checkPhonesMatch();
   }
 
-  Future<void> sendPhoneOtp() async {
-    final digits = phoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length != 10) {
-      phoneVerificationError.value = 'Please enter a valid 10-digit mobile number';
-      return;
-    }
-
-    isSendingPhoneOtp.value = true;
-    phoneVerificationError.value = '';
-
-    try {
-      final fullPhoneNumber = '+91$digits';
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: fullPhoneNumber,
-        timeout: const Duration(seconds: 60),
-        forceResendingToken: _resendToken,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          debugPrint('✅ Auto-verification completed via Play Services');
-          try {
-            await FirebaseAuth.instance.signInWithCredential(credential);
-          } catch (_) {}
-          isPhoneVerified.value = true;
-          _verifiedPhoneDigits = digits;
-          isOtpSent.value = false;
-          phoneVerificationError.value = '';
-          Get.snackbar(
-            '🎉 Mobile Verified',
-            'Phone number +91 $digits verified successfully!',
-            backgroundColor: const Color(0xFF10B981),
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          debugPrint('❌ Phone verification failed: ${e.code} - ${e.message}');
-          isSendingPhoneOtp.value = false;
-          if (e.code == 'invalid-phone-number') {
-            phoneVerificationError.value = 'Invalid phone number format.';
-          } else if (e.code == 'too-many-requests') {
-            phoneVerificationError.value = 'Too many requests. Please wait before retrying.';
-          } else {
-            phoneVerificationError.value = e.message ?? 'Failed to send SMS code. Check your network.';
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          debugPrint('📩 SMS OTP code sent to $fullPhoneNumber');
-          _verificationId = verificationId;
-          _resendToken = resendToken;
-          isSendingPhoneOtp.value = false;
-          isOtpSent.value = true;
-          otpController.clear();
-          _startOtpTimer();
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          _verificationId = verificationId;
-        },
-      );
-    } catch (e) {
-      isSendingPhoneOtp.value = false;
-      phoneVerificationError.value = 'Could not send verification code: $e';
-    }
-  }
-
-  Future<void> verifyPhoneOtp() async {
-    final code = otpController.text.trim();
-    if (code.length != 6) {
-      phoneVerificationError.value = 'Please enter the complete 6-digit OTP';
-      return;
-    }
-
-    if (_verificationId == null) {
-      phoneVerificationError.value = 'Session expired. Please request a new OTP.';
-      return;
-    }
-
-    isVerifyingPhoneOtp.value = true;
-    phoneVerificationError.value = '';
-
-    try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId!,
-        smsCode: code,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      final digits = phoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-      isPhoneVerified.value = true;
-      _verifiedPhoneDigits = digits;
-      isOtpSent.value = false;
-      isVerifyingPhoneOtp.value = false;
-      phoneVerificationError.value = '';
-
-      Get.snackbar(
-        '🎉 Mobile Verified',
-        'Phone number +91 $digits verified successfully!',
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } on FirebaseAuthException catch (e) {
-      isVerifyingPhoneOtp.value = false;
-      if (e.code == 'invalid-verification-code') {
-        phoneVerificationError.value = 'Incorrect OTP code. Please check and retry.';
-      } else if (e.code == 'session-expired') {
-        phoneVerificationError.value = 'OTP expired. Please tap "Resend Code".';
-      } else {
-        phoneVerificationError.value = e.message ?? 'Verification failed.';
-      }
-    } catch (e) {
-      isVerifyingPhoneOtp.value = false;
-      phoneVerificationError.value = 'Verification error: $e';
-    }
+  void _checkPhonesMatch() {
+    final p1 = phoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final p2 = confirmPhoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    doPhonesMatch.value = (p1.length == 10 && p2.length == 10 && p1 == p2);
   }
 
   void prefillFromProfile() {
@@ -387,6 +248,8 @@ class AddressController extends GetxController {
       }
       if (phoneCtrl.text.isEmpty && profile.phoneCtrl.text.isNotEmpty) {
         phoneCtrl.text = profile.phoneCtrl.text;
+        confirmPhoneCtrl.text = profile.phoneCtrl.text;
+        _checkPhonesMatch();
       }
     }
   }
@@ -394,15 +257,12 @@ class AddressController extends GetxController {
   void clearFields() {
     nameCtrl.clear();
     phoneCtrl.clear();
+    confirmPhoneCtrl.clear();
+    doPhonesMatch.value = false;
     addressCtrl.clear();
     cityCtrl.clear();
     stateCtrl.clear();
     pincodeCtrl.clear();
-    otpController.clear();
-    isPhoneVerified.value = false;
-    isOtpSent.value = false;
-    phoneVerificationError.value = '';
-    _verifiedPhoneDigits = '';
     isDeliverableInNcr.value = null;
     pincodeFeedback.value = '';
     _lastFetchedPincode = '';
@@ -519,17 +379,33 @@ class AddressController extends GetxController {
       return;
     }
 
-    // Ensure phone number has been verified via SMS OTP before saving address
-    if (!isPhoneVerified.value) {
+    final p1 = phoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final p2 = confirmPhoneCtrl.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (p1.length != 10) {
       Get.snackbar(
-        'Phone Verification Required',
-        'Please verify your 10-digit mobile number with OTP before saving address.',
+        'Invalid Phone Number',
+        'Please enter a valid 10-digit mobile number.',
         backgroundColor: const Color(0xFF8B0000),
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         margin: const EdgeInsets.all(16),
         borderRadius: 14,
-        icon: const Icon(Icons.shield_outlined, color: Colors.white),
+        icon: const Icon(Icons.phone_android_rounded, color: Colors.white),
+      );
+      return;
+    }
+
+    if (p1 != p2) {
+      Get.snackbar(
+        'Phone Numbers Do Not Match',
+        'Please make sure the phone number and confirm phone number match exactly.',
+        backgroundColor: const Color(0xFF8B0000),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.error_outline_rounded, color: Colors.white),
       );
       return;
     }
