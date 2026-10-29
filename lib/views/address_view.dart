@@ -153,10 +153,282 @@ class AddressView extends StatelessWidget {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(10),
                           ],
+                          onChanged: ctrl.onPhoneChanged,
                           validator: (v) => v!.length != 10
                               ? 'Enter a valid 10-digit number'
                               : null,
                         ),
+
+                        // ── Inline Mobile Phone OTP Verification Box ────────
+                        Obx(() {
+                          final isVerified = ctrl.isPhoneVerified.value;
+                          final isOtpSent = ctrl.isOtpSent.value;
+                          final isSending = ctrl.isSendingPhoneOtp.value;
+                          final isVerifying = ctrl.isVerifyingPhoneOtp.value;
+                          final error = ctrl.phoneVerificationError.value;
+                          final countdown = ctrl.otpCountdown.value;
+                          final canResend = ctrl.canResendOtp.value;
+
+                          if (isVerified) {
+                            return Container(
+                              margin: const EdgeInsets.only(top: 8, bottom: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFF10B981).withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Color(0xFF10B981),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "Mobile Number Verified (+91 ${ctrl.phoneCtrl.text})",
+                                      style: const TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF047857),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.only(top: 8, bottom: 4),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: error.isNotEmpty
+                                    ? Colors.red.shade300
+                                    : Colors.grey.shade300,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.shield_outlined,
+                                      size: 18,
+                                      color: isOtpSent
+                                          ? AppColors.primary
+                                          : Colors.grey.shade700,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        isOtpSent
+                                            ? "Enter 6-Digit SMS OTP"
+                                            : "Verify phone number with OTP",
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF111827),
+                                        ),
+                                      ),
+                                    ),
+                                    if (!isOtpSent)
+                                      ElevatedButton(
+                                        onPressed:
+                                            isSending ? null : ctrl.sendPhoneOtp,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: isSending
+                                            ? const SizedBox(
+                                                width: 14,
+                                                height: 14,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                            : const Text(
+                                                "Send OTP",
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                      ),
+                                  ],
+                                ),
+                                if (isOtpSent) ...[
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "SMS code sent to +91 ${ctrl.phoneCtrl.text}",
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: SizedBox(
+                                          height: 46,
+                                          child: TextField(
+                                            controller: ctrl.otpController,
+                                            keyboardType: TextInputType.number,
+                                            maxLength: 6,
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.digitsOnly,
+                                            ],
+                                            decoration: InputDecoration(
+                                              counterText: '',
+                                              hintText: "Enter 6 digits",
+                                              hintStyle: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black26,
+                                              ),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                                vertical: 10,
+                                              ),
+                                              filled: true,
+                                              fillColor: const Color(0xFFF9FAFB),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                  color: Colors.grey.shade300,
+                                                ),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: const BorderSide(
+                                                  color: AppColors.primary,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 3,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: isVerifying
+                                            ? null
+                                            : ctrl.verifyPhoneOtp,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF10B981),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 13,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: isVerifying
+                                            ? const SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                            : const Text(
+                                                "Verify",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      canResend
+                                          ? GestureDetector(
+                                              onTap: ctrl.sendPhoneOtp,
+                                              child: const Text(
+                                                "Resend Code via SMS",
+                                                style: TextStyle(
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            )
+                                          : Text(
+                                              "Resend code in ${countdown}s",
+                                              style: TextStyle(
+                                                fontSize: 11.5,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                    ],
+                                  ),
+                                ],
+                                if (error.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    error,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 16),
 
                         // Pincode with Auto District & State Lookup
@@ -314,6 +586,7 @@ class AddressView extends StatelessWidget {
                           final loading = ctrl.isSaving.value;
                           final isNonNcr =
                               ctrl.isDeliverableInNcr.value == false;
+                          final isPhoneVerified = ctrl.isPhoneVerified.value;
 
                           return GestureDetector(
                             onTap: loading ? null : ctrl.saveAddress,
@@ -329,16 +602,24 @@ class AddressView extends StatelessWidget {
                                           Colors.grey.shade700,
                                         ],
                                       )
-                                    : const LinearGradient(
-                                        colors: AppColors.primaryGrad,
-                                      ),
+                                    : !isPhoneVerified
+                                        ? LinearGradient(
+                                            colors: [
+                                              Colors.amber.shade800,
+                                              Colors.orange.shade900,
+                                            ],
+                                          )
+                                        : const LinearGradient(
+                                            colors: AppColors.primaryGrad,
+                                          ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color:
-                                        (isNonNcr
-                                                ? Colors.grey
+                                    color: (isNonNcr
+                                            ? Colors.grey
+                                            : !isPhoneVerified
+                                                ? Colors.orange
                                                 : AppColors.primary)
-                                            .withOpacity(.25),
+                                        .withOpacity(.25),
                                     blurRadius: 16,
                                     offset: const Offset(0, 6),
                                   ),
@@ -361,7 +642,9 @@ class AddressView extends StatelessWidget {
                                           Icon(
                                             isNonNcr
                                                 ? Icons.access_time_rounded
-                                                : Icons.check_circle_outline,
+                                                : !isPhoneVerified
+                                                    ? Icons.shield_outlined
+                                                    : Icons.check_circle_outline,
                                             color: Colors.white,
                                             size: 20,
                                           ),
@@ -369,7 +652,9 @@ class AddressView extends StatelessWidget {
                                           Text(
                                             isNonNcr
                                                 ? "Coming Soon to Your Location"
-                                                : "Save & Continue",
+                                                : !isPhoneVerified
+                                                    ? "Verify Mobile Number to Continue"
+                                                    : "Save & Continue",
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 16,
