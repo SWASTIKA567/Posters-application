@@ -220,7 +220,7 @@ class SelectAddressView extends StatelessWidget {
                               ProfileController.to.setSelectedAddress(address);
                             }
                             Get.snackbar(
-                              '✅ Address Selected',
+                              'Address Selected',
                               '${address.name}\'s address selected for delivery & profile.',
                               duration: const Duration(milliseconds: 1600),
                               backgroundColor: const Color(0xFF10B981),

@@ -189,7 +189,7 @@ class ProfileController extends GetxController {
       isEditMode.value = false;
 
       Get.snackbar(
-        '✅ Profile Updated',
+        'Profile Updated',
         'Your profile has been saved.',
         backgroundColor: const Color(0xFF00796B),
         colorText: Colors.white,

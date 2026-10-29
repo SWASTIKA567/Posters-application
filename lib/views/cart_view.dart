@@ -522,7 +522,7 @@ class _PriceSummary extends StatelessWidget {
                   Expanded(
                     child: Text(
                       ctrl.deliveryCharge == 0.0
-                          ? "🎉 You unlocked FREE Delivery!"
+                          ? "You unlocked FREE Delivery!"
                           : "Add ${7 - ctrl.totalItems} more poster(s) to get FREE Delivery!",
                       style: TextStyle(
                         fontSize: 12,

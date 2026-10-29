@@ -206,7 +206,7 @@ class AddressController extends GetxController {
             isDeliverableInNcr.value = true;
             pincodeFeedback.value = 'Delivering to ${cityCtrl.text.trim()}, NCR';
             Get.snackbar(
-              '📍 Address Auto-Detected',
+              'Address Auto-Detected',
               'Delivering across ${cityCtrl.text.trim()} (Delhi-NCR)! You can adjust any field manually.',
               backgroundColor: const Color(0xFF10B981),
               colorText: Colors.white,
@@ -308,10 +308,10 @@ class AddressController extends GetxController {
               mapController.move(target, 16.0);
             } catch (_) {}
 
-            mapVerificationStatus.value = '📍 Address verified & pinned on map';
+            mapVerificationStatus.value = 'Address verified & pinned on map';
             if (showNotification) {
               Get.snackbar(
-                '📍 Map Pin Updated',
+                'Map Location Updated',
                 'Located address on map: ${first['display_name'] ?? ''}',
                 backgroundColor: const Color(0xFF10B981),
                 colorText: Colors.white,
@@ -351,7 +351,7 @@ class AddressController extends GetxController {
               try {
                 mapController.move(target, 15.0);
               } catch (_) {}
-              mapVerificationStatus.value = '📍 Area located on map';
+              mapVerificationStatus.value = 'Area located on map';
               return;
             }
           }
@@ -481,7 +481,7 @@ class AddressController extends GetxController {
               pincodeFeedback.value = 'Delivery coming soon to $district';
 
               Get.snackbar(
-                '🚀 Delivery Coming Soon!',
+                'Delivery Coming Soon',
                 'We currently deliver exclusively in Delhi-NCR. Coming soon to $district!',
                 backgroundColor: const Color(0xFF8B0000),
                 colorText: Colors.white,
@@ -599,7 +599,7 @@ class AddressController extends GetxController {
 
     if (!isNcr) {
       Get.snackbar(
-        '🚀 Delivery Coming Soon!',
+        'Delivery Coming Soon',
         'We currently deliver only across the whole region of Delhi-NCR. Service is coming soon to your location!',
         backgroundColor: const Color(0xFF8B0000),
         colorText: Colors.white,
@@ -662,7 +662,7 @@ class AddressController extends GetxController {
         Get.back();
 
         Get.snackbar(
-          '✅ Address Saved',
+          'Address Saved',
           'Your NCR delivery address has been added.',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,

@@ -526,7 +526,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
             child: Column(
               children: [
-                const Text("🔍", style: TextStyle(fontSize: 40)),
+                const Icon(Icons.search_rounded, size: 40, color: Colors.grey),
                 const SizedBox(height: 12),
                 const Text(
                   "No posters found",

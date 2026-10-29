@@ -458,7 +458,7 @@ class _PosterDetailScreenState extends State<PosterDetailScreen> {
                               '',
                               '',
                               titleText: const Text(
-                                'Added to Order 🛒',
+                                'Added to Order',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,

@@ -240,7 +240,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         _resetForm();
         await homeCtrl.fetchBackendPosters();
         Get.snackbar(
-          '🎉 Poster Published Live!',
+          'Poster Published Live',
           '"$title" added to "$category" in section "${_getSectionLabel(_selectedSection)}".',
           backgroundColor: const Color(0xFF1B5E20),
           colorText: Colors.white,
@@ -269,7 +269,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
           });
           _resetForm();
           Get.snackbar(
-            '🎉 Poster Added (Saved Locally)',
+            'Poster Added (Saved Locally)',
             '"$title" saved to category "$category" on device.',
             backgroundColor: const Color(0xFF1B5E20),
             colorText: Colors.white,
@@ -1330,7 +1330,7 @@ class _AdminPostersViewState extends State<AdminPostersView> {
         await file.writeAsBytes(response.bodyBytes);
 
         Get.snackbar(
-          '🎉 Downloaded Successfully',
+          'Downloaded Successfully',
           'Poster saved to Downloads: ${file.path.split(Platform.pathSeparator).last}',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,

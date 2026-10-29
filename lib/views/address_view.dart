@@ -451,7 +451,7 @@ class AddressView extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      "Phone numbers match (+91 $p1) ✅",
+                                      "Phone numbers match (+91 $p1)",
                                       style: const TextStyle(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w700,
@@ -599,8 +599,8 @@ class AddressView extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     isSuccess
-                                        ? "✅ $feedback • Delivery available"
-                                        : "⏳ $feedback • Delivery coming soon!",
+                                        ? "$feedback • Delivery available"
+                                        : "$feedback • Delivery coming soon",
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -723,7 +723,7 @@ class AddressView extends StatelessWidget {
                                 ),
                                 if (isSuccess)
                                   const Text(
-                                    "Map Pinned 📍",
+                                    "Map Pinned",
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,

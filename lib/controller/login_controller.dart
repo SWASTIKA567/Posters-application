@@ -148,7 +148,7 @@ class LoginController extends GetxController {
       isOtpSending.value = false;
       if (res['success'] == true) {
         Get.snackbar(
-          '🔐 OTP Sent',
+          'OTP Sent',
           'A 6-digit verification code has been sent to $email',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,
@@ -194,7 +194,7 @@ class LoginController extends GetxController {
       isResettingPassword.value = false;
       if (res['success'] == true) {
         Get.snackbar(
-          '🎉 Password Reset',
+          'Password Reset',
           'Your password has been reset successfully! You can now log in.',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,

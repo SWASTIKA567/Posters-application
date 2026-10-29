@@ -136,7 +136,7 @@ class UploadController extends GetxController {
       isAddingToCart.value = false;
 
       Get.snackbar(
-        '🎉 Added to Cart!',
+        'Added to Cart',
         '${quantity.value}× ${selectedSize.label} poster added.',
         backgroundColor: const Color(0xFF10B981),
         colorText: Colors.white,

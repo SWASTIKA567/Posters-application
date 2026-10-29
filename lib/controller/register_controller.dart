@@ -89,7 +89,7 @@ class RegisterController extends GetxController {
 
       if (res['success'] == true) {
         Get.snackbar(
-          '🔐 Verification Code Sent',
+          'Verification Code Sent',
           'A 6-digit OTP code has been sent to $email',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,

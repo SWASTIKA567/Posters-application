@@ -172,7 +172,7 @@ class _OtpViewState extends State<OtpView> with TickerProviderStateMixin {
 
       if (res['success'] == true) {
         Get.snackbar(
-          '🔐 OTP Resent',
+          'OTP Resent',
           'A new 6-digit code has been sent to ${widget.email}',
           backgroundColor: const Color(0xFF10B981),
           colorText: Colors.white,
@@ -243,7 +243,7 @@ class _OtpViewState extends State<OtpView> with TickerProviderStateMixin {
           _initAppControllers();
 
           Get.snackbar(
-            '🎉 Welcome!',
+            'Welcome',
             'Your account has been created successfully.',
             backgroundColor: const Color(0xFF10B981),
             colorText: Colors.white,
