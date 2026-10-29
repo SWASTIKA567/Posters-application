@@ -482,15 +482,4 @@ class AddressController extends GetxController {
       );
     }
   }
-
-  @override
-  void onClose() {
-    nameCtrl.dispose();
-    phoneCtrl.dispose();
-    addressCtrl.dispose();
-    cityCtrl.dispose();
-    stateCtrl.dispose();
-    pincodeCtrl.dispose();
-    super.onClose();
-  }
 }
