@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../controller/order_controller.dart';
 import '../controller/profile_controller.dart';
@@ -18,6 +21,13 @@ class AddressController extends GetxController {
   final cityCtrl = TextEditingController();
   final stateCtrl = TextEditingController();
   final pincodeCtrl = TextEditingController();
+
+  // ── Map & Geolocation State ────────────────────────────────────────────────
+  final mapController = MapController();
+  final Rx<LatLng> selectedLocation = const LatLng(28.6139, 77.2090).obs; // New Delhi Connaught Place
+  final RxBool isDetectingLocation = false.obs;
+  final RxBool isReverseGeocoding = false.obs;
+  final RxBool showMap = true.obs;
 
   // ── Phone OTP Verification State ───────────────────────────────────────────
   final RxBool isPhoneVerified = false.obs;
@@ -59,6 +69,175 @@ class AddressController extends GetxController {
     pincodeCtrl.dispose();
     otpController.dispose();
     super.onClose();
+  }
+
+  Future<void> getCurrentLocation() async {
+    isDetectingLocation.value = true;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Get.snackbar(
+          'Location Services Disabled',
+          'Please turn on GPS / Location on your device.',
+          backgroundColor: Colors.orange.shade800,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+        isDetectingLocation.value = false;
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          Get.snackbar(
+            'Permission Denied',
+            'Location permission is required to detect your location automatically.',
+            backgroundColor: Colors.orange.shade800,
+            colorText: Colors.white,
+          );
+          isDetectingLocation.value = false;
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        Get.snackbar(
+          'Permission Blocked',
+          'Please enable location in App Settings or enter address manually.',
+          backgroundColor: Colors.red.shade800,
+          colorText: Colors.white,
+        );
+        isDetectingLocation.value = false;
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      ).timeout(const Duration(seconds: 10));
+
+      final targetLatLng = LatLng(position.latitude, position.longitude);
+      selectedLocation.value = targetLatLng;
+
+      try {
+        mapController.move(targetLatLng, 15.5);
+      } catch (_) {}
+
+      await reverseGeocode(position.latitude, position.longitude);
+    } catch (e) {
+      debugPrint('Error getting GPS location: $e');
+      Get.snackbar(
+        'Location Notice',
+        'Could not detect GPS. You can tap on the map or type address manually.',
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+    } finally {
+      isDetectingLocation.value = false;
+    }
+  }
+
+  Future<void> reverseGeocode(double lat, double lng) async {
+    isReverseGeocoding.value = true;
+    try {
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&addressdetails=1',
+      );
+      final response = await http.get(
+        url,
+        headers: {'User-Agent': 'KechiPosterApp/1.0 (com.kechi.poster)'},
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final address = data['address'] as Map<String, dynamic>?;
+
+        if (address != null) {
+          final postcode = (address['postcode'] ?? '').toString().trim();
+          final state = (address['state'] ?? '').toString().trim();
+          final district = (address['state_district'] ??
+                  address['city'] ??
+                  address['county'] ??
+                  address['district'] ??
+                  '')
+              .toString()
+              .trim();
+
+          // Build road / street string
+          final streetParts = [
+            address['house_number'],
+            address['building'],
+            address['road'],
+            address['neighbourhood'] ?? address['suburb'],
+          ].where((part) => part != null && part.toString().trim().isNotEmpty).toList();
+
+          final streetLine = streetParts.isNotEmpty
+              ? streetParts.join(', ')
+              : (data['display_name'] ?? '');
+
+          if (streetLine.isNotEmpty) {
+            addressCtrl.text = streetLine;
+          }
+          if (district.isNotEmpty) {
+            cityCtrl.text = district;
+          }
+          if (state.isNotEmpty) {
+            stateCtrl.text = state;
+          }
+          if (postcode.isNotEmpty && RegExp(r'^\d{6}$').hasMatch(postcode)) {
+            pincodeCtrl.text = postcode;
+          }
+
+          // Check NCR Region validity
+          final isNcr = isNcrRegion(
+            state: stateCtrl.text.trim(),
+            district: cityCtrl.text.trim(),
+            pincode: pincodeCtrl.text.trim(),
+          );
+
+          if (isNcr) {
+            isDeliverableInNcr.value = true;
+            pincodeFeedback.value = 'Delivering to ${cityCtrl.text.trim()}, NCR';
+            Get.snackbar(
+              '📍 Address Auto-Detected',
+              'Delivering across ${cityCtrl.text.trim()} (Delhi-NCR)! You can adjust any field manually.',
+              backgroundColor: const Color(0xFF10B981),
+              colorText: Colors.white,
+              duration: const Duration(seconds: 4),
+              snackPosition: SnackPosition.BOTTOM,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 14,
+            );
+          } else {
+            isDeliverableInNcr.value = false;
+            pincodeFeedback.value = 'Delivery currently limited to Delhi-NCR';
+            Get.snackbar(
+              'Outside Delhi-NCR',
+              'Detected location is outside Delhi-NCR. We currently deliver only across Delhi-NCR.',
+              backgroundColor: const Color(0xFF8B0000),
+              colorText: Colors.white,
+              duration: const Duration(seconds: 4),
+              snackPosition: SnackPosition.BOTTOM,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 14,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode error: $e');
+    } finally {
+      isReverseGeocoding.value = false;
+    }
+  }
+
+  void onMapTapped(LatLng position) {
+    selectedLocation.value = position;
+    try {
+      mapController.move(position, mapController.camera.zoom);
+    } catch (_) {}
+    reverseGeocode(position.latitude, position.longitude);
   }
 
   void onPhoneChanged(String val) {
