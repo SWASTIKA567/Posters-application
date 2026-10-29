@@ -617,13 +617,23 @@ class AddressView extends StatelessWidget {
 
                         const SizedBox(height: 16),
                         _FormField(
-                          controller: ctrl.addressCtrl,
-                          label: "Address (House/Flat, Street, Area)",
-                          hint: "House no., Building name, Street",
-                          icon: Icons.home_outlined,
-                          maxLines: 2,
-                          validator: (v) =>
-                              v!.isEmpty ? 'Please enter your address' : null,
+                          controller: ctrl.houseNoCtrl,
+                          label: "Flat / House No. / Building (Required)",
+                          hint: "Flat no., House no., Building / Apartment name",
+                          icon: Icons.apartment_rounded,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Please enter Flat / House / Building no.'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        _FormField(
+                          controller: ctrl.streetCtrl,
+                          label: "Street / Road / Area (Required)",
+                          hint: "Street name, Road, Area, Colony or Landmark",
+                          icon: Icons.add_road_rounded,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Please enter Street, Road, Area or Landmark'
+                              : null,
                         ),
                         const SizedBox(height: 16),
 

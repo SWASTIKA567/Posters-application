@@ -16,6 +16,8 @@ class AddressController extends GetxController {
   final nameCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
   final confirmPhoneCtrl = TextEditingController();
+  final houseNoCtrl = TextEditingController();
+  final streetCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
   final cityCtrl = TextEditingController();
   final stateCtrl = TextEditingController();
@@ -50,6 +52,8 @@ class AddressController extends GetxController {
     nameCtrl.dispose();
     phoneCtrl.dispose();
     confirmPhoneCtrl.dispose();
+    houseNoCtrl.dispose();
+    streetCtrl.dispose();
     addressCtrl.dispose();
     cityCtrl.dispose();
     stateCtrl.dispose();
@@ -150,18 +154,29 @@ class AddressController extends GetxController {
               .toString()
               .trim();
 
-          // Build road / street string
-          final streetParts = [
+          // Extract house/building and road/street parts
+          final houseParts = [
             address['house_number'],
             address['building'],
+          ].where((part) => part != null && part.toString().trim().isNotEmpty).toList();
+
+          final roadParts = [
             address['road'],
             address['neighbourhood'] ?? address['suburb'],
           ].where((part) => part != null && part.toString().trim().isNotEmpty).toList();
 
-          final streetLine = streetParts.isNotEmpty
-              ? streetParts.join(', ')
-              : (data['display_name'] ?? '');
+          if (houseParts.isNotEmpty) {
+            houseNoCtrl.text = houseParts.join(', ');
+          }
+          if (roadParts.isNotEmpty) {
+            streetCtrl.text = roadParts.join(', ');
+          } else if (data['display_name'] != null && streetCtrl.text.isEmpty) {
+            streetCtrl.text = data['display_name'];
+          }
 
+          final streetLine = [houseNoCtrl.text, streetCtrl.text]
+              .where((p) => p.trim().isNotEmpty)
+              .join(', ');
           if (streetLine.isNotEmpty) {
             addressCtrl.text = streetLine;
           }
@@ -259,6 +274,8 @@ class AddressController extends GetxController {
     phoneCtrl.clear();
     confirmPhoneCtrl.clear();
     doPhonesMatch.value = false;
+    houseNoCtrl.clear();
+    streetCtrl.clear();
     addressCtrl.clear();
     cityCtrl.clear();
     stateCtrl.clear();
@@ -410,6 +427,37 @@ class AddressController extends GetxController {
       return;
     }
 
+    final houseNo = houseNoCtrl.text.trim();
+    final street = streetCtrl.text.trim();
+
+    if (houseNo.isEmpty) {
+      Get.snackbar(
+        'House/Flat Required',
+        'Please enter your Flat, House No., or Building name.',
+        backgroundColor: const Color(0xFF8B0000),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.apartment_rounded, color: Colors.white),
+      );
+      return;
+    }
+
+    if (street.isEmpty) {
+      Get.snackbar(
+        'Street / Area Required',
+        'Please enter your Street, Road, or Area name.',
+        backgroundColor: const Color(0xFF8B0000),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 14,
+        icon: const Icon(Icons.add_road_rounded, color: Colors.white),
+      );
+      return;
+    }
+
     final pincode = pincodeCtrl.text.trim();
     final district = cityCtrl.text.trim();
     final state = stateCtrl.text.trim();
@@ -435,13 +483,16 @@ class AddressController extends GetxController {
       return;
     }
 
+    final combinedAddress = '$houseNo, $street';
+    addressCtrl.text = combinedAddress;
+
     isSaving.value = true;
 
     try {
       final res = await ApiService.post('/addresses', {
         'name': nameCtrl.text.trim(),
         'phone': phoneCtrl.text.trim(),
-        'addressLine': addressCtrl.text.trim(),
+        'addressLine': combinedAddress,
         'city': district,
         'state': state,
         'pincode': pincode,
