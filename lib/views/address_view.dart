@@ -205,19 +205,24 @@ class AddressView extends StatelessWidget {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Icon(Icons.my_location_rounded,
-                                          size: 14),
+                                      : const Icon(
+                                          Icons.my_location_rounded,
+                                          size: 14,
+                                        ),
                                   label: Text(
                                     isDetecting ? "Locating..." : "Use GPS",
                                     style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                     minimumSize: Size.zero,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -279,7 +284,9 @@ class AddressView extends StatelessWidget {
                                   left: 10,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.black.withOpacity(0.75),
                                       borderRadius: BorderRadius.circular(8),
@@ -298,7 +305,9 @@ class AddressView extends StatelessWidget {
                                         Text(
                                           "Fetching address...",
                                           style: TextStyle(
-                                              color: Colors.white, fontSize: 11),
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -312,22 +321,26 @@ class AddressView extends StatelessWidget {
                                 right: 8,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.9),
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 4),
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 4,
+                                      ),
                                     ],
                                   ),
                                   child: const Text(
                                     "Tap map to reposition",
                                     style: TextStyle(
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -437,8 +450,9 @@ class AddressView extends StatelessWidget {
                                 color: const Color(0xFF10B981).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color:
-                                      const Color(0xFF10B981).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withOpacity(0.3),
                                 ),
                               ),
                               child: Row(
@@ -451,7 +465,7 @@ class AddressView extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      "Phone numbers match (+91 $p1)",
+                                      "Phone numbers match (+91 $p1) ",
                                       style: const TextStyle(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w700,
@@ -472,11 +486,14 @@ class AddressView extends StatelessWidget {
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF8B0000).withOpacity(0.08),
+                                color: const Color(
+                                  0xFF8B0000,
+                                ).withOpacity(0.08),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color:
-                                      const Color(0xFF8B0000).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFF8B0000,
+                                  ).withOpacity(0.3),
                                 ),
                               ),
                               child: const Row(
@@ -599,8 +616,8 @@ class AddressView extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     isSuccess
-                                        ? "$feedback • Delivery available"
-                                        : "$feedback • Delivery coming soon",
+                                        ? " $feedback • Delivery available"
+                                        : " $feedback • Delivery coming soon!",
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -618,12 +635,12 @@ class AddressView extends StatelessWidget {
                         const SizedBox(height: 16),
                         _FormField(
                           controller: ctrl.houseNoCtrl,
-                          label: "Flat / House No. / Building (Required)",
-                          hint: "Flat no., House no., Building / Apartment name",
+                          label: "Address (Required)",
+                          hint: "Address",
                           icon: Icons.apartment_rounded,
                           onChanged: ctrl.onAddressFieldChanged,
                           validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Please enter Flat / House / Building no.'
+                              ? 'Please enter Address.'
                               : null,
                         ),
                         const SizedBox(height: 16),
@@ -677,7 +694,8 @@ class AddressView extends StatelessWidget {
                             return const SizedBox.shrink();
                           }
 
-                          final isSuccess = status.contains('verified') ||
+                          final isSuccess =
+                              status.contains('verified') ||
                               status.contains('located');
 
                           return Container(
@@ -723,7 +741,7 @@ class AddressView extends StatelessWidget {
                                 ),
                                 if (isSuccess)
                                   const Text(
-                                    "Map Pinned",
+                                    "Map Pinned ",
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
@@ -787,23 +805,24 @@ class AddressView extends StatelessWidget {
                                         ],
                                       )
                                     : !phonesMatch
-                                        ? LinearGradient(
-                                            colors: [
-                                              Colors.amber.shade800,
-                                              Colors.orange.shade900,
-                                            ],
-                                          )
-                                        : const LinearGradient(
-                                            colors: AppColors.primaryGrad,
-                                          ),
+                                    ? LinearGradient(
+                                        colors: [
+                                          Colors.amber.shade800,
+                                          Colors.orange.shade900,
+                                        ],
+                                      )
+                                    : const LinearGradient(
+                                        colors: AppColors.primaryGrad,
+                                      ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (isNonNcr
-                                            ? Colors.grey
-                                            : !phonesMatch
+                                    color:
+                                        (isNonNcr
+                                                ? Colors.grey
+                                                : !phonesMatch
                                                 ? Colors.orange
                                                 : AppColors.primary)
-                                        .withOpacity(.25),
+                                            .withOpacity(.25),
                                     blurRadius: 16,
                                     offset: const Offset(0, 6),
                                   ),
@@ -827,8 +846,8 @@ class AddressView extends StatelessWidget {
                                             isNonNcr
                                                 ? Icons.access_time_rounded
                                                 : !phonesMatch
-                                                    ? Icons.phone_android_rounded
-                                                    : Icons.check_circle_outline,
+                                                ? Icons.phone_android_rounded
+                                                : Icons.check_circle_outline,
                                             color: Colors.white,
                                             size: 20,
                                           ),
@@ -837,8 +856,8 @@ class AddressView extends StatelessWidget {
                                             isNonNcr
                                                 ? "Coming Soon to Your Location"
                                                 : !phonesMatch
-                                                    ? "Confirm Phone Numbers to Continue"
-                                                    : "Save & Continue",
+                                                ? "Confirm Phone Numbers to Continue"
+                                                : "Save & Continue",
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 16,

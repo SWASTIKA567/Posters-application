@@ -135,6 +135,11 @@ class ProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint('loadProfile error: $e');
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('expired') || errStr.contains('not authorized') || errStr.contains('unauthorized')) {
+        await ApiService.setAuthToken(null);
+        Get.offAll(() => const LoginScreen());
+      }
     } finally {
       isLoading.value = false;
     }

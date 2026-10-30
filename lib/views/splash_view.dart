@@ -80,25 +80,41 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
-      if (Get.isRegistered<ProfileController>()) {
-        Get.find<ProfileController>().loadProfile();
+      try {
+        final res = await ApiService.get('/users/profile').timeout(
+          const Duration(seconds: 6),
+        );
+        if (res != null && res['success'] == true && res['user'] != null) {
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().setUser(Map<String, dynamic>.from(res['user']));
+            await Get.find<ProfileController>().checkAdminStatus();
+          }
+          if (Get.isRegistered<OrderController>()) {
+            Get.find<OrderController>().fetchOrders();
+          }
+          PushNotificationService.syncFcmToken();
+
+          if (!mounted) return;
+          Get.off(
+            () => const HomeView(),
+            transition: Transition.fade,
+            duration: const Duration(milliseconds: 800),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('Token verification failed: $e');
+        // Clear invalid, expired, or non-existent user token
+        await ApiService.setAuthToken(null);
       }
-      if (Get.isRegistered<OrderController>()) {
-        Get.find<OrderController>().fetchOrders();
-      }
-      PushNotificationService.syncFcmToken();
-      Get.off(
-        () => const HomeView(),
-        transition: Transition.fade,
-        duration: const Duration(milliseconds: 800),
-      );
-    } else {
-      Get.off(
-        () => const LoginScreen(),
-        transition: Transition.fade,
-        duration: const Duration(milliseconds: 800),
-      );
     }
+
+    if (!mounted) return;
+    Get.off(
+      () => const LoginScreen(),
+      transition: Transition.fade,
+      duration: const Duration(milliseconds: 800),
+    );
   }
 
   @override
